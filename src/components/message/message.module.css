@@ -1,0 +1,15 @@
+.reference_link {
+  color: var(--chakra-colors-orange-300)
+}
+.reference_link:hover {
+  text-decoration: underline;
+}
+
+.reference_link:active {
+  color: var(--chakra-colors-purple-400);
+  text-decoration: none;
+}
+
+.reference_link:visited {
+  color: var(--chakra-colors-purple-400)
+}

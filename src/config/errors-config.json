@@ -1,0 +1,11 @@
+{
+  "errorMessagesByBlock": [
+    "Something went wrong. Try again later",
+    "Something went wrong. Try again later",
+    "Something went wrong. Try again later",
+    "We can't answer that question, try rephrasing your question",
+    "Something went wrong. Try again later",
+    "Something went wrong. Try again later"
+  ],
+  "defaultErrorMessage": "Something went wrong. Try again later"
+}
