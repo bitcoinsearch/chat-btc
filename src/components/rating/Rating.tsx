@@ -8,7 +8,7 @@ import { Button, Flex, Text } from "@chakra-ui/react";
 import Feedback from "./feedback";
 
 interface RatingProps {
-  isResponseGenerated?: boolean;
+  isResponseGenerated: boolean;
   feedbackId: string;
 }
 
@@ -50,7 +50,7 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
   }
 
   return (
-    <Flex flexDir="column" alignItems="flex-start" width={"400px"} gap="10">
+    <Flex flexDir="column" alignItems="flex-start" width={"400px"} gap="8" mt="8">
       <Flex flexDir="column" alignItems="flex-start" gap={2}>
         <Text fontWeight={500}>Answer quality</Text>
         <Flex gap={2}>

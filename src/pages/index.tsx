@@ -308,8 +308,6 @@ export default function Home() {
     }
   };
 
-  console.log(streamLoading, loading, typedMessage, streamData.message);
-
   return (
     <>
       <Head>
