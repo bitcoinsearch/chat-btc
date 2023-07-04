@@ -310,13 +310,7 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Chat BTC</title>
-        <meta name="description" content="Your technical bitcoin copilot" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/bitcoin.svg" />
-      </Head>
-      <Box position="relative" overflow="hidden" w="full" h="full">
+      <Box position="relative" overflow="hidden" w="full" h="full" mt={12}>
         <Container
           display="flex"
           flexDir="column"

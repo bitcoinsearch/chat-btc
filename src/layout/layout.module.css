@@ -1,0 +1,9 @@
+.app_container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.main_full_height {
+  flex-grow: 1;
+}
