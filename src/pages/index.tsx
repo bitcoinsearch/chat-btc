@@ -1,5 +1,4 @@
 import Head from "next/head";
-import { Inter } from "@next/font/google";
 import { useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -12,26 +11,18 @@ import {
 import { BitcoinIcon, SendIcon } from "@/chakra/custom-chakra-icons";
 import { isMobile } from "react-device-detect";
 import MessageBox, { Message } from "@/components/message/message";
-import {
-  defaultErrorMessage,
-  getErrorByBlockIndex,
-} from "@/config/error-config";
+import { defaultErrorMessage } from "@/config/error-config";
 import { v4 as uuidv4 } from "uuid";
 import { SupaBaseDatabase } from "@/database/database";
 import BackgroundHelper from "@/components/background/BackgroundHelper";
 import Rating from "@/components/rating/Rating";
 
-const inter = Inter({ subsets: ["latin"] });
 const initialStream: Message = {
   type: "apiStream",
   message: "",
   uniqueId: "",
 };
 const matchFinalWithLinks = /(^\[\d+\]:\shttps:\/\/)/gm;
-interface RatingProps {
-  messageId: string;
-  rateAnswer: (messageId: string, value: number) => void;
-}
 
 interface FeedbackStatus {
   [messageId: string]: "submitted" | undefined;
@@ -51,12 +42,9 @@ function formatDate(date: Date) {
 
 export default function Home() {
   const [userInput, setUserInput] = useState("");
-  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [streamLoading, setStreamLoading] = useState(false);
   const [streamData, setStreamData] = useState<Message>(initialStream);
-  const [ratings, setRatings] = useState({});
-  const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus>({});
   const [typedMessage, setTypedMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -69,10 +57,14 @@ export default function Home() {
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const idleBackground = !userInput.trim() && messages.length === 1 && loading === false
+  const idleBackground =
+    !userInput.trim() && messages.length === 1 && loading === false;
 
   // add typing effect
-  const addTypingEffect = async (message: string, callback: (typedText: string) => void) => {
+  const addTypingEffect = async (
+    message: string,
+    callback: (typedText: string) => void
+  ) => {
     setTypedMessage("");
 
     let typedText = "";
@@ -155,7 +147,6 @@ export default function Home() {
     return data;
   };
 
-
   const fetchESResult = async (query: string) => {
     const response = await fetch("/api/search", {
       method: "POST",
@@ -163,10 +154,9 @@ export default function Home() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        inputs:
-          {
-            question: query
-          },
+        inputs: {
+          question: query,
+        },
       }),
     });
     return response.json(); // Add this line
@@ -204,7 +194,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent, prompt?: string) => {
     if (e) {
-      e.preventDefault()
+      e.preventDefault();
     }
     const query = prompt ? prompt.trim() : userInput.trim();
     if (query === "") {
@@ -258,7 +248,8 @@ export default function Home() {
       let dateString = "03-07-2023"; // DD-MM-YY
       let timeString = "00:00:00";
 
-      const dateTimeString = dateString.split("-").reverse().join("-") + "T" + timeString;
+      const dateTimeString =
+        dateString.split("-").reverse().join("-") + "T" + timeString;
       const dateObject = new Date(dateTimeString);
       const formattedDateTime = formatDate(dateObject);
 
@@ -301,7 +292,7 @@ export default function Home() {
   };
 
   const promptChat = async (e: any, prompt: string) => {
-    handleSubmit(e, prompt)
+    handleSubmit(e, prompt);
   };
 
   // Prevent blank submissions and allow for multiline input
@@ -317,13 +308,7 @@ export default function Home() {
     }
   };
 
-  const rateAnswer = async (messageId: string, value: number) => {
-    // UPDATED: Handle the rating updates
-    setRatings((prevRatings) => ({
-      ...prevRatings,
-      [messageId]: value,
-    }));
-  };
+  console.log(streamLoading, loading, typedMessage, streamData.message);
 
   return (
     <>
@@ -377,8 +362,9 @@ export default function Home() {
               overflow="auto"
               maxH="100lvh"
             >
-              {
-                idleBackground ? <BackgroundHelper promptChat={promptChat} /> :
+              {idleBackground ? (
+                <BackgroundHelper promptChat={promptChat} />
+              ) : (
                 <>
                   {messages.length &&
                     messages.map((message, index) => {
@@ -390,8 +376,8 @@ export default function Home() {
                           <MessageBox content={message} />
                           {isApiMessage && !greetMsg && (
                             <Rating
-                              messageId={message.uniqueId}
-                              rateAnswer={rateAnswer}
+                              feedbackId={message.uniqueId}
+                              isResponseGenerated={!loading || !streamLoading}
                             />
                           )}
                         </div>
@@ -401,7 +387,9 @@ export default function Home() {
                     <MessageBox
                       // messageId={uuidv4()}
                       content={{
-                        message: streamLoading ? typedMessage : streamData.message,
+                        message: streamLoading
+                          ? typedMessage
+                          : streamData.message,
                         type: "apiStream",
                         uniqueId: uuidv4(),
                       }}
@@ -409,8 +397,8 @@ export default function Home() {
                       streamLoading={streamLoading}
                     />
                   )}
-                </> 
-              }
+                </>
+              )}
             </Box>
             {/* <Box w="100%" maxW="100%" flex={{base: "0 0 50px", md:"0 0 100px"}} mb={{base: "70px", md: "70px"}}> */}
             <Box w="100%">

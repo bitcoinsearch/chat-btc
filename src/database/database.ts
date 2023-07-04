@@ -1,5 +1,6 @@
+import { FeedbackPayload } from "@/types";
 import { createClient } from "@supabase/supabase-js";
-import getConfig from 'next/config';
+import getConfig from "next/config";
 
 // Access the environment variables
 const { publicRuntimeConfig } = getConfig();
@@ -34,15 +35,21 @@ export class SupaBaseDatabase {
       console.log("Q&A inserted:", data);
     }
   }
-  async updateData(rate: number, id: string, time: string) {
+  async addFeedback(payload: FeedbackPayload) {
+    const { answerQuality, feedbackId, rating, timestamp } = payload;
     const { data, error } = await supabase
       .from(DB_NAME)
-      .update({ rating: rate , updatedAt:time })
-      .eq("uniqueId", id);
+      .update({
+        answerQuality,
+        rating,
+        updatedAt: timestamp,
+      })
+      .eq("uniqueId", feedbackId);
 
     if (error) {
       console.error("Error inserting rating:", error);
-    } else {
+    }
+    if (data) {
       console.log("Q&A rating updated:", data);
     }
   }
