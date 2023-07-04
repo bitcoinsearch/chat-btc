@@ -37,7 +37,7 @@ export class SupaBaseDatabase {
   }
   async addFeedback(payload: FeedbackPayload) {
     const { answerQuality, feedbackId, rating, timestamp } = payload;
-    const { data, error } = await supabase
+    const { data, error, status } = await supabase
       .from(DB_NAME)
       .update({
         answerQuality,
@@ -45,6 +45,8 @@ export class SupaBaseDatabase {
         updatedAt: timestamp,
       })
       .eq("uniqueId", feedbackId);
+
+    console.log("status", status);
 
     if (error) {
       console.error("Error inserting rating:", error);

@@ -50,9 +50,17 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
   }
 
   return (
-    <Flex flexDir="column" alignItems="flex-start" width={"400px"} gap="8" mt="8">
+    <Flex
+      flexDir="column"
+      alignItems="flex-start"
+      width={"400px"}
+      gap="8"
+      mt="8"
+    >
       <Flex flexDir="column" alignItems="flex-start" gap={2}>
-        <Text fontWeight={500}>Answer quality</Text>
+        <Text fontWeight={500} fontSize={14}>
+          Answer quality
+        </Text>
         <Flex gap={2}>
           {Object.entries(thumbsIcon).map(([key, value]) => {
             return (
@@ -66,9 +74,11 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
                 width={"45px"}
                 border={"1px solid white"}
                 bg={"transparent"}
+                outline={"none"}
                 _active={{
                   bg: "button.accent.100",
                   border: "none",
+                  outline: "none",
                 }}
                 onClick={() => {
                   sendFeedback({
@@ -93,7 +103,9 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
 
       {feedback?.rating === Ratings.NEGATIVE && (
         <Flex wrap={"wrap"} maxW={"400px"} gap={"10px"}>
-          <Text fontWeight={500}>What was the issue with this response?</Text>
+          <Text fontWeight={500} fontSize={14}>
+            What was the issue with this response?
+          </Text>
           {Object.entries(AnswerQuality).map(([key, value]) => {
             return (
               <Feedback

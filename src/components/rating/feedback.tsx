@@ -30,15 +30,17 @@ const Feedback = ({ message, feedback, sendFeedback }: FeedbackProps) => {
       justifyContent={"center"}
       fontWeight={"400"}
       bg={"transparent"}
+      outline={"none"}
       _active={{
         bg: "button.accent.50",
         fontWeight: "500",
+        outline: "none",
       }}
       onClick={() => {
         onFeedbackChange(feedback);
       }}
     >
-      <Text fontSize={"16px"} lineHeight={"18px"}>
+      <Text fontSize={"14px"} lineHeight={"18px"}>
         {message}
       </Text>
     </Button>
