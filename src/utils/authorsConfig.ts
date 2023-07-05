@@ -12,7 +12,7 @@ const authorsConfig: AuthorConfig[] = [
     title: "Your Bitcoin Assistant",
     slug: "blippy",
     value: "",
-    imgURL: "",
+    imgURL: "/images/authors/blippy.png",
     questions: [
       "How is bitcoin's 21 million supply cap enforced?",
       "What is bitcoin mining?",
@@ -23,7 +23,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "matt-corallo",
     title: "Bitcoin Core / LDK Dev",
     value: "Matt Corallo",
-    imgURL: "",
+    imgURL: "/images/authors/matt_corallo.jpeg",
     questions: ["Why is lightning broken?", "How do mining pools work?"],
   },
   {
@@ -31,7 +31,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "pieter-wiulle",
     title: "Bitcoin Core Dev",
     value: "Pieter Wiulle",
-    imgURL: "",
+    imgURL: "/images/authors/pieter_wiulle.jpeg",
     questions: [
       "How does taproot work?",
       "How would total ordering on mempool transactions work?",
@@ -42,7 +42,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "greg-maxwell",
     title: "Bitcoin Core Contributor",
     value: "Greg Maxwell",
-    imgURL: "",
+    imgURL: "/images/authors/greg_maxwell.jpeg",
     questions: [
       "How does a sidechain two-way peg work?",
       "What is a Confidential Transaction?",
