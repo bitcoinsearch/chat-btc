@@ -71,9 +71,10 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     <Flex
       flexDir="column"
       alignItems="flex-start"
-      width={"400px"}
       gap="8"
       mt="8"
+      pl={4}
+      pb={4}
     >
       <Flex flexDir="column" alignItems="flex-start" gap={2}>
         <Text fontWeight={500} fontSize={14}>
