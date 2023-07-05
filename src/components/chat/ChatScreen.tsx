@@ -67,10 +67,10 @@ const ChatScreen = ({userInput, typedMessage, streamData, messages, handleSubmit
   useEffect(() => {
     textAreaRef.current && textAreaRef.current.focus();
   }, []);
-  
+
   return (
     <>
-      <Box position="relative" overflow="hidden" w="full" h="full" pt={12}>
+      <Box position="relative" overflow="hidden" w="full" h="full">
         <Container
           display="flex"
           flexDir="column"

@@ -293,7 +293,7 @@ export default function Home() {
 
   return (
     <>
-      {authorQuery ? (
+      {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}
           userInput={userInput}
