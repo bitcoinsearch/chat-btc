@@ -1,8 +1,7 @@
-import { AuthorConfig } from '@/utils/authorsConfig'
+import { AuthorConfig, PromptAction } from '@/types'
 import { Box, Flex, Text } from '@chakra-ui/react'
 import Image from 'next/image'
 import React from 'react'
-import { PromptAction } from './Home'
 import PromptBubble from './PromptBubble'
 
 const AuthorCard = ({author, onPrompt}: {author: AuthorConfig, onPrompt: PromptAction}) => {

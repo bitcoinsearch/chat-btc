@@ -1,8 +1,9 @@
 import { SendIcon } from "@/chakra/custom-chakra-icons";
+import { PromptAction } from "@/types";
 import { Flex, IconButton, Textarea } from "@chakra-ui/react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-const InputTextArea = ({submitInput}: {submitInput: (_x:string) => void}) => {
+const InputTextArea = ({submitInput}: {submitInput: PromptAction}) => {
   const [input, setInput] = useState("")
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -16,7 +17,7 @@ const InputTextArea = ({submitInput}: {submitInput: (_x:string) => void}) => {
   }, [input]);
 
   const handleSubmit = (e: FormEvent) => {
-    submitInput(input)
+    submitInput(input, "")
   }
   return (
     <form onSubmit={handleSubmit}>

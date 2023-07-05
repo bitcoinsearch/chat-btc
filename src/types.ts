@@ -19,3 +19,14 @@ export type FeedbackPayload = {
   rating: Ratings;
   feedbackId: string;
 };
+
+export type AuthorConfig = {
+  name: string;
+  title: string;
+  slug: string;
+  value: string;
+  imgURL: string;
+  questions: string[];
+};
+
+export type PromptAction = (input: string, author: string ) => void;

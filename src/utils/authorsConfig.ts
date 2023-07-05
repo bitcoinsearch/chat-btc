@@ -1,11 +1,5 @@
-export type AuthorConfig = {
-  name: string;
-  title: string;
-  slug: string;
-  value: string;
-  imgURL: string;
-  questions: string[];
-};
+import { AuthorConfig } from "@/types";
+
 const authorsConfig: AuthorConfig[] = [
   {
     name: "Blippy",

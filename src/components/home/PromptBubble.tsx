@@ -1,9 +1,13 @@
+import { PromptAction } from "@/types";
 import { Box, Button, Grid, Text } from "@chakra-ui/react";
 import React from "react";
 
-type PromptBubbleProps = { text: string; author: string; onPrompt: () => void };
+type PromptBubbleProps = { text: string; author: string; onPrompt: PromptAction };
 
 const PromptBubble = ({ text, author, onPrompt }: PromptBubbleProps) => {
+  const handlePromptClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    onPrompt(text, author)
+  }
   return (
     <Box
       role="button"
@@ -13,7 +17,7 @@ const PromptBubble = ({ text, author, onPrompt }: PromptBubbleProps) => {
       placeItems="center"
       p={2}
       rounded="xl"
-      onClick={onPrompt}
+      onClick={handlePromptClick}
       cursor={"pointer"}
       _hover={{ bgColor: "orange.200", color: "gray.700" }}
       _active={{ bgColor: "orange.300", color: "gray.700" }}

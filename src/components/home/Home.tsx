@@ -1,4 +1,5 @@
-import authorsConfig, { AuthorConfig } from "@/utils/authorsConfig";
+import { PromptAction } from "@/types";
+import authorsConfig from "@/utils/authorsConfig";
 import { Box, Container, Flex, Grid, Heading, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -6,11 +7,11 @@ import AuthorCard from "./AuthorCard";
 import InputTextArea from "./InputTextArea";
 import PromptBubble from "./PromptBubble";
 
-export type PromptAction = (_x?: string) => void;
+type HomePageProps = {
+  onPrompt: PromptAction;
+}
 
-const HomePage = () => {
-  const onPrompt = () => {};
-
+const HomePage = ({onPrompt}: HomePageProps) => {
   return (
     <Container maxW="container.lg" centerContent>
       <Box my={10} w="full">
