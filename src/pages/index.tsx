@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -16,6 +16,9 @@ import { v4 as uuidv4 } from "uuid";
 import { SupaBaseDatabase } from "@/database/database";
 import BackgroundHelper from "@/components/background/BackgroundHelper";
 import Rating from "@/components/rating/Rating";
+import { useRouter } from "next/router";
+import ChatScreen from "@/components/chat/ChatScreen";
+import HomePage from "@/components/home/Home";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -54,8 +57,9 @@ export default function Home() {
     },
   ]);
 
-  const messageListRef = useRef<HTMLDivElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter();
+
+  const authorQuery = router.query["author"];
 
   const idleBackground =
     !userInput.trim() && messages.length === 1 && loading === false;
@@ -76,27 +80,6 @@ export default function Home() {
     // Call the callback function to update the message in the state
     callback(typedText);
   };
-
-  // Auto scroll chat to bottom
-  useEffect(() => {
-    const messageList = messageListRef.current;
-    if (messageList) {
-      messageList.scrollTop = messageList?.scrollHeight;
-    }
-  }, [messages]);
-
-  // Focus on text field on load
-  useEffect(() => {
-    textAreaRef.current && textAreaRef.current.focus();
-  }, []);
-
-  useEffect(() => {
-    if (textAreaRef?.current) {
-      const _textarea = textAreaRef.current;
-      const _length = userInput?.split("\n")?.length;
-      _textarea.rows = _length > 3 ? 3 : (Boolean(_length) && _length) || 1;
-    }
-  }, [userInput]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(e.target.value);
@@ -163,11 +146,11 @@ export default function Home() {
   };
 
   const errorMessages = [
-    'I am not able to find an answer to this question. So please rephrase your question and ask again.',
-    'The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!',
-    'I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.',
-    'Currently server is overloaded with API calls, please try again later.'
-   ];
+    "I am not able to find an answer to this question. So please rephrase your question and ask again.",
+    "The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!",
+    "I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.",
+    "Currently server is overloaded with API calls, please try again later.",
+  ];
 
   const fetchResult = async (query: string) => {
     const errMessage = "Something went wrong. Try again later";
@@ -192,10 +175,13 @@ export default function Home() {
     return response; // Add this line to correctly access the output
   };
 
-  const handleSubmit = async (e: React.FormEvent, prompt?: string) => {
-    if (e) {
-      e.preventDefault();
-    }
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    startChatQuery()
+  }
+
+  const startChatQuery = async (prompt?: string, author?: string) => {
+
     const query = prompt ? prompt.trim() : userInput.trim();
     if (query === "") {
       return;
@@ -261,7 +247,7 @@ export default function Home() {
           rating: null,
           createdAt: new Date().toISOString(),
           updatedAt: null,
-          releasedAt: formattedDateTime
+          releasedAt: formattedDateTime,
         };
         await SupaBaseDatabase.getInstance().insertData(payload);
       } else {
@@ -273,7 +259,7 @@ export default function Home() {
           rating: null,
           createdAt: new Date().toISOString(),
           updatedAt: null,
-          releasedAt: formattedDateTime
+          releasedAt: formattedDateTime,
         };
         await SupaBaseDatabase.getInstance().insertData(payload);
       }
@@ -289,140 +275,29 @@ export default function Home() {
       ]);
     }
     setLoading(false);
-  };
+  }; 
 
-  const promptChat = async (e: any, prompt: string) => {
-    handleSubmit(e, prompt);
-  };
-
-  // Prevent blank submissions and allow for multiline input
-  const handleEnter = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      if (isMobile) {
-        e.preventDefault();
-      } else {
-        if (!e.shiftKey && userInput) {
-          handleSubmit(e);
-        }
-      }
-    }
+  const promptChat = async (prompt: string, author: string) => {
+    router.query["author"]
+    startChatQuery(prompt, author);
   };
 
   return (
     <>
-      <Box position="relative" overflow="hidden" w="full" h="full" mt={12}>
-        <Container
-          display="flex"
-          flexDir="column"
-          alignItems="center"
-          maxW={"1280px"}
-          h="100%"
-          p={4}
-          centerContent
-        >
-          <Flex
-            gap={2}
-            alignItems="center"
-            mt={{ base: 3, md: 8 }}
-            justifyContent="center"
-          >
-            <Heading as="h1" size={{ base: "2xl", md: "3xl" }}>
-              ChatBTC
-            </Heading>
-            <BitcoinIcon
-              fontSize={{ base: "4xl", md: "7xl" }}
-              color="orange.400"
-            />
-          </Flex>
-          <Flex
-            id="main"
-            width="full"
-            h="full"
-            maxW="820px"
-            my={5}
-            flexDir="column"
-            gap="4"
-            justifyContent="space-around"
-            overflow="auto"
-          >
-            <Box
-              ref={messageListRef}
-              w="full"
-              bgColor="gray.900"
-              borderRadius="md"
-              flex="1 1 0%"
-              overflow="auto"
-              maxH="100lvh"
-            >
-              {idleBackground ? (
-                <BackgroundHelper promptChat={promptChat} />
-              ) : (
-                <>
-                  {messages.length &&
-                    messages.map((message, index) => {
-                      const isApiMessage = message.type === "apiMessage";
-                      const greetMsg =
-                        message.message === "Hi there! How can I help?";
-                      return (
-                        <div key={index}>
-                          <MessageBox content={message} />
-                          {isApiMessage && !greetMsg && (
-                            <Rating
-                              feedbackId={message.uniqueId}
-                              isResponseGenerated={!loading || !streamLoading}
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                  {(loading || streamLoading) && (
-                    <MessageBox
-                      // messageId={uuidv4()}
-                      content={{
-                        message: streamLoading
-                          ? typedMessage
-                          : streamData.message,
-                        type: "apiStream",
-                        uniqueId: uuidv4(),
-                      }}
-                      loading={loading}
-                      streamLoading={streamLoading}
-                    />
-                  )}
-                </>
-              )}
-            </Box>
-            {/* <Box w="100%" maxW="100%" flex={{base: "0 0 50px", md:"0 0 100px"}} mb={{base: "70px", md: "70px"}}> */}
-            <Box w="100%">
-              <form onSubmit={handleSubmit}>
-                <Flex gap={2} alignItems="flex-end">
-                  <Textarea
-                    ref={textAreaRef}
-                    placeholder="Type your question here"
-                    name=""
-                    id="userInput"
-                    rows={1}
-                    resize="none"
-                    disabled={loading}
-                    value={userInput}
-                    onChange={handleInputChange}
-                    bg="gray.700"
-                    flexGrow={1}
-                    flexShrink={1}
-                    onKeyDown={handleEnter}
-                  />
-                  <IconButton
-                    isLoading={loading}
-                    aria-label="send chat"
-                    icon={<SendIcon />}
-                    type="submit"
-                  />
-                </Flex>
-              </form>
-            </Box>
-          </Flex>
-        </Container>
-      </Box>
+      {authorQuery ? (
+        <ChatScreen
+          messages={messages}
+          userInput={userInput}
+          typedMessage={typedMessage}
+          streamData={streamData}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          loading={loading}
+          streamLoading={streamLoading}
+        />
+      ) : (
+        <HomePage onPrompt={promptChat} />
+      )}
     </>
   );
 }
