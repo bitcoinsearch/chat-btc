@@ -16,7 +16,9 @@ const Navbar = () => {
     >
       <Flex alignItems="center" h="full" px={4}>
         <Link href="/">
-          <Text>chat<span><Text display="inline" color="orange.400">btc</Text></span></Text>
+          <Text>chat<span style={{ color: "var(--chakra-colors-orange-400)" }}>
+              btc
+            </span></Text>
         </Link>
         <Box h="full" mx={4} py={2}>
           <Divider orientation='vertical' />

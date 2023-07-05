@@ -13,7 +13,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <link rel="icon" href="/bitcoin.svg" />
       </Head>
       <Navbar />
-      {children}
+      <div className={styles.child_container}>
+        {children}
+      </div>
     </div>
   );
 };
