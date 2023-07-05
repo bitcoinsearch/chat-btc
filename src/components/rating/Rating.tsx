@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ThumbDownIcon, ThumbUpIcon } from "@/chakra/custom-chakra-icons";
 import { SupaBaseDatabase } from "@/database/database";
@@ -26,6 +26,11 @@ const defaultFeedback = {
 
 const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
   const [feedback, setFeedback] = useState<FeedbackPayload>(defaultFeedback);
+  const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const feedbackRef = useRef<HTMLDivElement | null>(null);
+
+  const showAnswerQuality =
+    feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality;
 
   useEffect(() => {
     if (isResponseGenerated) {
@@ -33,16 +38,29 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     }
   }, [isResponseGenerated]);
 
+  useEffect(() => {
+    if (showAnswerQuality) {
+      feedbackRef?.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [feedback, showAnswerQuality]);
+
   const sendFeedback = async (feedback: FeedbackPayload) => {
     setFeedback(feedback);
     if (feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality) {
       return;
     }
-
-    await SupaBaseDatabase.getInstance().addFeedback({
+    const { status, error } = await SupaBaseDatabase.getInstance().addFeedback({
       ...feedback,
       feedbackId,
     });
+
+    if (status >= 200 && status < 300 && !error) {
+      setIsFeedbackSubmitted(true);
+      console.log("Feedback sent successfully");
+    }
   };
 
   if (!isResponseGenerated) {
@@ -66,6 +84,7 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
             return (
               <Button
                 isActive={feedback.rating === Number(key)}
+                isDisabled={isFeedbackSubmitted}
                 key={key}
                 alignItems={"center"}
                 justifyContent={"center"}
@@ -101,8 +120,8 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
         </Flex>
       </Flex>
 
-      {feedback?.rating === Ratings.NEGATIVE && (
-        <Flex wrap={"wrap"} maxW={"400px"} gap={"10px"}>
+      {feedback.rating === Ratings.NEGATIVE && !isFeedbackSubmitted ? (
+        <Flex wrap={"wrap"} maxW={"400px"} gap={"10px"} ref={feedbackRef}>
           <Text fontWeight={500} fontSize={14}>
             What was the issue with this response?
           </Text>
@@ -117,7 +136,7 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
             );
           })}
         </Flex>
-      )}
+      ) : null}
     </Flex>
   );
 };

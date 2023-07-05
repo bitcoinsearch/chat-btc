@@ -46,13 +46,12 @@ export class SupaBaseDatabase {
       })
       .eq("uniqueId", feedbackId);
 
-    console.log("status", status);
-
     if (error) {
       console.error("Error inserting rating:", error);
     }
     if (data) {
       console.log("Q&A rating updated:", data);
     }
+    return { data, error, status };
   }
 }
