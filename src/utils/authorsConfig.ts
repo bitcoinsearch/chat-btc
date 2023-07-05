@@ -1,5 +1,7 @@
 import { AuthorConfig } from "@/types";
 
+export const AUTHOR_QUERY = "author"
+
 const authorsConfig: AuthorConfig[] = [
   {
     name: "Blippy",

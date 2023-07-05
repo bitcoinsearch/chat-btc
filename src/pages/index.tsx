@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   Box,
   Container,
@@ -19,6 +19,8 @@ import Rating from "@/components/rating/Rating";
 import { useRouter } from "next/router";
 import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
+import { AUTHOR_QUERY } from "@/utils/authorsConfig";
+import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -58,8 +60,10 @@ export default function Home() {
   ]);
 
   const router = useRouter();
+  const updateRouterQuery = useUpdateRouterQuery();
 
-  const authorQuery = router.query["author"];
+  const searchQuery = router.query;
+  const authorQuery = searchQuery[AUTHOR_QUERY];
 
   const idleBackground =
     !userInput.trim() && messages.length === 1 && loading === false;
@@ -278,9 +282,14 @@ export default function Home() {
   }; 
 
   const promptChat = async (prompt: string, author: string) => {
-    router.query["author"]
+    updateRouterQuery(AUTHOR_QUERY, author)
     startChatQuery(prompt, author);
   };
+
+  // const updateAuthorQuery = useCallback((authorSlug: string) => {
+  //   router.query[AUTHOR_QUERY] = authorSlug;
+  //   router.push(router, undefined, {shallow: true})
+  // }, [router])
 
   return (
     <>
