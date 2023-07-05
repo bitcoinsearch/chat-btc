@@ -23,7 +23,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "matt-corallo",
     title: "Bitcoin Core / LDK Dev",
     value: "Matt Corallo",
-    imgURL: "/images/authors/matt_corallo.jpeg",
+    imgURL: "/images/authors/matt_corallo.png",
     questions: ["Why is lightning broken?", "How do mining pools work?"],
   },
   {

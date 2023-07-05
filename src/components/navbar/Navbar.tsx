@@ -9,7 +9,7 @@ const Navbar = () => {
       h={12}
       w="full"
       boxShadow="md"
-      bgColor="blackAlpha.700"
+      bgColor="gray.900"
       fontSize="14px"
       isolation="isolate"
       zIndex={1}
