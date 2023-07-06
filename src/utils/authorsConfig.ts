@@ -19,7 +19,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "matt-corallo",
     title: "Bitcoin Core / LDK Dev",
     value: "Matt Corallo",
-    imgURL: "/images/authors/matt_corallo.png",
+    imgURL: "/images/authors/matt_corallo.jpg",
     questions: ["Why is lightning broken?", "How do mining pools work?"],
   },
   {
@@ -27,7 +27,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "pieter-wiulle",
     title: "Bitcoin Core Dev",
     value: "Pieter Wiulle",
-    imgURL: "/images/authors/pieter_wiulle.jpeg",
+    imgURL: "/images/authors/pieter_wuille.jpg",
     questions: [
       "How does taproot work?",
       "How would total ordering on mempool transactions work?",
@@ -38,7 +38,7 @@ const authorsConfig: AuthorConfig[] = [
     slug: "greg-maxwell",
     title: "Bitcoin Core Contributor",
     value: "Greg Maxwell",
-    imgURL: "/images/authors/greg_maxwell.jpeg",
+    imgURL: "/images/authors/greg_maxwell.png",
     questions: [
       "How does a sidechain two-way peg work?",
       "What is a Confidential Transaction?",
