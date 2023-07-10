@@ -6,6 +6,7 @@ const authorsConfig: AuthorConfig[] = [
   {
     name: "Blippy",
     title: "Your Bitcoin Assistant",
+    introduction: "Hi, I'm Blippy! I love to answer questions about bitcoin. I've read every single mailing post, so you can ask me just about anything. What can I help with?",
     slug: "blippy",
     value: "",
     imgURL: "/images/authors/blippy.png",
@@ -26,6 +27,7 @@ const authorsConfig: AuthorConfig[] = [
     name: "Pieter Wiulle",
     slug: "pieter-wiulle",
     title: "Bitcoin Core Dev",
+    introduction: "Hi, I'm Pieter. I work on Bitcoin Core at Chaincode.",
     value: "Pieter Wiulle",
     imgURL: "/images/authors/pieter_wuille.jpg",
     questions: [
@@ -47,3 +49,8 @@ const authorsConfig: AuthorConfig[] = [
 ];
 
 export default authorsConfig;
+
+export const deriveAuthorIntroduction = (authorname: AuthorConfig["name"]) => {
+  const firstName = authorname.trim().split(" ")[0];
+  return `Hi, I'm ${firstName}! I love to answer questions about bitcoin. What can I help with?`
+}

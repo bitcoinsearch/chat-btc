@@ -23,10 +23,15 @@ export type FeedbackPayload = {
 export type AuthorConfig = {
   name: string;
   title: string;
+  introduction?: string;
   slug: string;
   value: string;
   imgURL: string;
   questions: string[];
 };
 
-export type PromptAction = (input: string, author: string ) => void;
+type PromptOptions = {
+  startChat?: boolean
+}
+
+export type PromptAction = (input: string, author: string, options?: PromptOptions ) => void;

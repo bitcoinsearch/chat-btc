@@ -1,5 +1,5 @@
 .reference_link {
-  color: var(--chakra-colors-orange-300)
+  color: var(--chakra-colors-link-400)
 }
 .reference_link:hover {
   text-decoration: underline;

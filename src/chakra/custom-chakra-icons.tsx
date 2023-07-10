@@ -63,3 +63,20 @@ export const ThumbDownIcon = (props: ChakraProps) => (
     />
   </Icon>
 );
+export const LinkShareIcon = (props: ChakraProps) => (
+  <Icon
+    // width={props.width || "4"}
+    // height={props.height || "4"}
+    viewBox="0 0 14 14"
+    {...props}
+  >
+    <path 
+      d="M8 3H2.5C2.10218 3 1.72064 3.15804 1.43934 3.43934C1.15804 3.72064 1 4.10218 1 4.5V11.5C1 11.8978 1.15804 12.2794 1.43934 12.5607C1.72064 12.842 2.10218 13 2.5 13H9.5C9.89782 13 10.2794 12.842 10.5607 12.5607C10.842 12.2794 11 11.8978 11 11.5V6M4 10L13 1M13 1H9.5M13 1V4.5" 
+      stroke="#78A9FF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </Icon>
+);

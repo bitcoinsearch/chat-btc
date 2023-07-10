@@ -1,5 +1,5 @@
 import { PromptAction } from "@/types";
-import authorsConfig from "@/utils/authorsConfig";
+import authorsConfig from "@/config/authorsConfig";
 import { Box, Container, Flex, Grid, Heading, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -9,27 +9,30 @@ import PromptBubble from "./PromptBubble";
 
 type HomePageProps = {
   onPrompt: PromptAction;
-}
+};
 
-const HomePage = ({onPrompt}: HomePageProps) => {
+const HomePage = ({ onPrompt }: HomePageProps) => {
+  const handleLandingPagePrompt = (text: string, author: string) => {
+    onPrompt(text, author, { startChat: true })
+  }
   return (
     <Container maxW="container.lg" centerContent>
       <Box my={10} w="full">
         <Flex
           direction="column"
           alignItems="center"
-          gap={3}
-          w={{ base: "full", lg: "800px" }}
+          // gap={{base: 1, md: 2}}
+          w={{ base: "70%", md: "300px", lg: "480px" }}
           mx="auto"
           textAlign="center"
         >
-          <Heading size={{ base: "2xl", lg: "4xl" }}>
+          <Heading fontSize={{ base: "48px", md:"64px", lg: "106px" }} fontWeight={400} >
             chat
-            <span style={{ color: "var(--chakra-colors-orange-400)" }}>
+            <span style={{ color: "var(--chakra-colors-orange-300)" }}>
               btc
             </span>
           </Heading>
-          <Text fontSize={{ base: "20px", lg: "28px" }}>
+          <Text fontSize={{ base: "20px", md: "28px", lg: "36px" }} fontWeight={300}>
             Learn about bitcoin technology and history
           </Text>
         </Flex>
@@ -48,17 +51,17 @@ const HomePage = ({onPrompt}: HomePageProps) => {
             <PromptBubble
               text="What are the benefits of using miniscript?"
               author=""
-              onPrompt={onPrompt}
+              onPrompt={handleLandingPagePrompt}
             />
             <PromptBubble
               text="Why is SegWit a useful upgrade?"
               author=""
-              onPrompt={onPrompt}
+              onPrompt={handleLandingPagePrompt}
             />
             <PromptBubble
               text="Why would we want PTLCs rather than HTLCs?"
               author=""
-              onPrompt={onPrompt}
+              onPrompt={handleLandingPagePrompt}
             />
           </Grid>
           <Box w="100%">
@@ -75,14 +78,14 @@ const HomePage = ({onPrompt}: HomePageProps) => {
           Pick a bitcoiner to chat with
         </Heading>
         <Grid
-          templateColumns={{ base: "1fr 1fr", md: "1fr 1fr 1fr 1fr" }}
-          gap={{ base: 6, md: 8 }}
+          templateColumns={{ base: "1fr 1fr", sm: "1fr 1fr 1fr 1fr" }}
+          gap={{ base: 6, md: 14 }}
           mt={{ base: 6, md: 10 }}
         >
           {authorsConfig.length
             ? authorsConfig.map((author) => (
                 <AuthorCard
-                  onPrompt={onPrompt}
+                  onPrompt={handleLandingPagePrompt}
                   key={author.slug}
                   author={author}
                 />
@@ -91,41 +94,44 @@ const HomePage = ({onPrompt}: HomePageProps) => {
         </Grid>
       </Box>
       <Box my={10}>
-        <Flex direction="column" gap={10} alignItems="center">
-          <Heading
-            fontWeight={600}
-            fontSize={{ base: "24px", md: "30px" }}
-            textAlign="center"
-          >
-            About ChatBTC
-          </Heading>
-          <Flex
-            fontSize={{ base: "16px", md: "20px" }}
-            color="gray.400"
-            direction="column"
-            gap={2}
-          >
-            <Text>
-              ChatBTC is designed to help you learn about bitcoin technology and
-              the history of how it was built. All the data is sourced from the
-              bitcoin-dev mailing list, Bitcointalk, Lightning dev mailing list,
-              Bitcoin StackExchange, Bitcoin Optech, and BTC Transcripts.
-            </Text>
-            <Text>
-              All characters are, of course, fake and do not represent the
-              actual thoughts and opinions of real people. These are AI
-              responses that are informed by some of these authors public
-              writings.
+        <Container maxW="2xl">
+          <Flex direction="column" gap={10} alignItems="center">
+            <Heading
+              fontWeight={600}
+              fontSize={{ base: "24px", md: "30px" }}
+              textAlign="center"
+            >
+              About ChatBTC
+            </Heading>
+            <Flex
+              fontSize={{ base: "16px", md: "20px" }}
+              color="gray.400"
+              direction="column"
+              gap={2}
+            >
+              <Text>
+                ChatBTC is designed to help you learn about bitcoin technology
+                and the history of how it was built. All the data is sourced
+                from the bitcoin-dev mailing list, Bitcointalk, Lightning dev
+                mailing list, Bitcoin StackExchange, Bitcoin Optech, and BTC
+                Transcripts.
+              </Text>
+              <Text>
+                All characters are, of course, fake and do not represent the
+                actual thoughts and opinions of real people. These are AI
+                responses that are informed by some of these authors public
+                writings.
+              </Text>
+            </Flex>
+            <Text
+              fontSize={{ base: "16px", md: "20px" }}
+              color="gray.200"
+              textAlign="center"
+            >
+              Built with ❤️ by Chaincode Labs.
             </Text>
           </Flex>
-          <Text
-            fontSize={{ base: "16px", md: "20px" }}
-            color="gray.200"
-            textAlign="center"
-          >
-            Built with ❤️ by Chaincode Labs.
-          </Text>
-        </Flex>
+        </Container>
       </Box>
     </Container>
   );

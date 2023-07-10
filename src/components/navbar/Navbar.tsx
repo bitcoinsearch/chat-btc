@@ -23,7 +23,6 @@ const Navbar = () => {
         <Box h="full" mx={4} py={2}>
           <Divider orientation='vertical' />
         </Box>
-        <Text>New chat</Text>
       </Flex>
     </Box>
   )

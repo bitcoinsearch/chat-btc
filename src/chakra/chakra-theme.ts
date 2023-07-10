@@ -11,6 +11,9 @@ const theme = extendTheme({
       bg50: "#0D2333",
       bg100: "#102E44",
     },
+    link: {
+      400: "#78A9FF"
+    },
     button: {
       primary: "#0F62FE",
       tertiary: "#C6C6C6",

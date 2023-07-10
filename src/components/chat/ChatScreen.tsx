@@ -1,37 +1,67 @@
-import Head from "next/head";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { SendIcon } from "@/chakra/custom-chakra-icons";
+import MessageBox, { Message } from "@/components/message/message";
+import Rating from "@/components/rating/Rating";
+import { PromptAction } from "@/types";
+import authorsConfig, { AUTHOR_QUERY, deriveAuthorIntroduction } from "@/config/authorsConfig";
 import {
   Box,
   Container,
-  Flex,
-  Heading,
-  IconButton,
-  Textarea,
+  Flex, IconButton,
+  Text,
+  Textarea
 } from "@chakra-ui/react";
-import { BitcoinIcon, SendIcon } from "@/chakra/custom-chakra-icons";
-import { isMobile } from "react-device-detect";
-import MessageBox, { Message } from "@/components/message/message";
-import { defaultErrorMessage } from "@/config/error-config";
-import { v4 as uuidv4 } from "uuid";
-import { SupaBaseDatabase } from "@/database/database";
-import BackgroundHelper from "@/components/background/BackgroundHelper";
-import Rating from "@/components/rating/Rating";
+import Image from "next/image";
 import { useRouter } from "next/router";
+import { FormEvent, useEffect, useMemo, useRef } from "react";
+import { isMobile } from "react-device-detect";
+import { v4 as uuidv4 } from "uuid";
 
 type ChatProps = {
   userInput: string;
   typedMessage: string;
   streamData: Message;
   messages: Message[];
-  handleSubmit: (e:FormEvent, prompt?: string) => void;
+  promptChat: PromptAction;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   loading: boolean;
   streamLoading: boolean;
-}
+  resetChat: () => void;
+};
 
-const ChatScreen = ({userInput, typedMessage, streamData, messages, handleSubmit, handleInputChange, loading, streamLoading}: ChatProps) => {
+const blippy = authorsConfig[0];
+
+
+const ChatScreen = ({
+  userInput,
+  typedMessage,
+  streamData,
+  messages,
+  promptChat,
+  handleInputChange,
+  loading,
+  streamLoading,
+  resetChat,
+}: ChatProps) => {
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const router = useRouter();
+  const authorQuery = router.query[AUTHOR_QUERY];
+
+  const author = useMemo(() => {
+    return authorsConfig.find((authorConfig) => authorConfig.value === authorQuery) ||
+    blippy;
+  }, [authorQuery])
+
+  const authorInitialDialogue: Message = useMemo(() => {
+    return {
+      type: "authorMessage",
+      message: author.introduction ?? deriveAuthorIntroduction(author.name),
+      uniqueId: ""
+    }
+  }, [author])
+
+  const chatList: Message[] = [authorInitialDialogue, ...messages]
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -39,7 +69,12 @@ const ChatScreen = ({userInput, typedMessage, streamData, messages, handleSubmit
     if (messageList) {
       messageList.scrollTop = messageList?.scrollHeight;
     }
-  }, [messages]);
+  }, [typedMessage, messages]);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    promptChat(userInput, author.value, { startChat: true})
+  }
 
   // Prevent blank submissions and allow for multiline input
   const handleEnter = (e: React.KeyboardEvent) => {
@@ -65,7 +100,9 @@ const ChatScreen = ({userInput, typedMessage, streamData, messages, handleSubmit
 
   // Focus on text field on load
   useEffect(() => {
-    textAreaRef.current && textAreaRef.current.focus();
+    if (!isMobile) {
+      textAreaRef.current && textAreaRef.current.focus();
+    }
   }, []);
 
   return (
@@ -78,33 +115,48 @@ const ChatScreen = ({userInput, typedMessage, streamData, messages, handleSubmit
           maxW={"1280px"}
           h="100%"
           p={4}
-          centerContent
+          // centerContent
         >
-          <Flex
-            gap={2}
-            alignItems="center"
-            mt={{ base: 3, md: 8 }}
-            justifyContent="center"
-          >
-            <Heading as="h1" size={{ base: "2xl", md: "3xl" }}>
-              ChatBTC
-            </Heading>
-            <BitcoinIcon
-              fontSize={{ base: "4xl", md: "7xl" }}
-              color="orange.400"
-            />
-          </Flex>
           <Flex
             id="main"
             width="full"
             h="full"
             maxW="820px"
-            my={5}
+            my={4}
             flexDir="column"
             gap="4"
             justifyContent="space-around"
             overflow="auto"
           >
+            <Flex
+              w="full"
+              gap={4}
+              alignItems="center"
+              // mt={{ base: 3, md: 8 }}
+              // justifyContent="center"
+            >
+              <Box w="75px">
+                <Box
+                  position="relative"
+                  pt="100%"
+                  w="full"
+                  rounded="full"
+                  overflow="hidden"
+                  bgColor="blackAlpha.400"
+                >
+                  <Image
+                    src={author.imgURL}
+                    alt={`author-${author.slug}`}
+                    fill={true}
+                    // sizes="50px"
+                  />
+                </Box>
+              </Box>
+              <Box>
+                <Text fontSize={{base:"18px", md: "24px"}} fontWeight={500}>{author.name}</Text>
+                <Text fontSize={{base:"12px", md: "16px"}} fontWeight={300}>{author.title}</Text>
+              </Box>
+            </Flex>
             <Box
               ref={messageListRef}
               w="full"
@@ -114,37 +166,34 @@ const ChatScreen = ({userInput, typedMessage, streamData, messages, handleSubmit
               overflow="auto"
               maxH="100lvh"
             >
-                {messages.length &&
-                  messages.map((message, index) => {
-                    const isApiMessage = message.type === "apiMessage";
-                    const greetMsg =
-                      message.message === "Hi there! How can I help?";
-                    return (
-                      <div key={index}>
-                        <MessageBox content={message} />
-                        {isApiMessage && !greetMsg && (
-                          <Rating
-                            feedbackId={message.uniqueId}
-                            isResponseGenerated={!loading || !streamLoading}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                {(loading || streamLoading) && (
-                  <MessageBox
-                    // messageId={uuidv4()}
-                    content={{
-                      message: streamLoading
-                        ? typedMessage
-                        : streamData.message,
-                      type: "apiStream",
-                      uniqueId: uuidv4(),
-                    }}
-                    loading={loading}
-                    streamLoading={streamLoading}
-                  />
-                )}
+              {chatList.length &&
+                chatList.map((message, index) => {
+                  const isApiMessage = message.type === "apiMessage";
+                  return (
+                    <div key={index}>
+                      <MessageBox author={author.name} content={message} />
+                      {isApiMessage && (
+                        <Rating
+                          feedbackId={message.uniqueId}
+                          isResponseGenerated={!loading || !streamLoading}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              {(loading || streamLoading) && (
+                <MessageBox
+                  // messageId={uuidv4()}
+                  author={author.name}
+                  content={{
+                    message: streamLoading ? typedMessage : streamData.message,
+                    type: "apiStream",
+                    uniqueId: uuidv4(),
+                  }}
+                  loading={loading}
+                  streamLoading={streamLoading}
+                />
+              )}
             </Box>
             {/* <Box w="100%" maxW="100%" flex={{base: "0 0 50px", md:"0 0 100px"}} mb={{base: "70px", md: "70px"}}> */}
             <Box w="100%">

@@ -15,8 +15,8 @@ const PromptBubble = ({ text, author, onPrompt }: PromptBubbleProps) => {
       // maxW="224px"
       bgColor={"gray.500"}
       placeItems="center"
-      p={2}
-      rounded="xl"
+      p={{base: "4px", md: "8px"}}
+      rounded={{base: "md", md: "xl"}}
       onClick={handlePromptClick}
       cursor={"pointer"}
       _hover={{ bgColor: "orange.200", color: "gray.700" }}
@@ -24,7 +24,7 @@ const PromptBubble = ({ text, author, onPrompt }: PromptBubbleProps) => {
     >
       <Text
         fontSize={{ base: "10px", md: "14px" }}
-        fontWeight={{ base: 600, md: 500 }}
+        fontWeight={500}
         textAlign="center"
       >
         {text}

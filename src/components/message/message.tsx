@@ -1,20 +1,22 @@
-import { Box, Flex, Heading, Text } from "@chakra-ui/react";
+import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
 import styles from "./message.module.css"
+import NextLink from "next/link";
+import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
+import { USER_REFERENCE_NAME } from "@/config/ui-config";
+import { separateLinksFromApiMessage } from "@/utils/links";
 
+type MessageType = "userMessage" | "authorMessage" | "apiMessage" | "errorMessage" | "apiStream";
 export interface Message {
   message: string;
-  type: "userMessage" | "apiMessage" | "errorMessage" | "apiStream";
+  type: MessageType;
   uniqueId: string;
 }
-
-type MessageType = "userMessage" | "apiMessage" | "errorMessage" | "apiStream";
 
 type MessageConfig = {
   [key in MessageType]: {
     color: string | null;
     bg: string;
-    text: string;
     headingColor: string;
   };
 };
@@ -23,35 +25,38 @@ const messageConfig: MessageConfig = {
   apiMessage: {
     color: null,
     bg: "gray.600",
-    text: "ChatBTC",
+    headingColor: "orange.400",
+  },
+  authorMessage: {
+    color: null,
+    bg: "gray.600",
     headingColor: "orange.400",
   },
   userMessage: {
     color: null,
     bg: "gray.800",
-    text: "You",
     headingColor: "purple.400",
   },
   errorMessage: {
     color: "red.200",
     bg: "gray.600",
-    text: "ChatBTC",
     headingColor: "red.500",
   },
   apiStream: {
     color: null,
     bg: "gray.600",
-    text: "ChatBTC",
     headingColor: "orange.400",
   },
 };
 
 const MessageBox = ({
   content,
+  author,
   loading,
   streamLoading,
 }: {
   content: Message;
+  author: string;
   loading?: boolean;
   streamLoading?: boolean;
 }) => {
@@ -77,7 +82,7 @@ const MessageBox = ({
         fontSize="sm"
         fontWeight={600}
       >
-        {messageConfig[type].text}
+        {type === "userMessage" ? USER_REFERENCE_NAME : author}
       </Heading>
       {loading ? (
         <BeatLoader color="white" />
@@ -93,30 +98,34 @@ const MessageBox = ({
 export default MessageBox;
 
 const MessageContent = ({message, type}: Message) => {
-  const splitRegex = /(^\[\d+\]:\s.*)/gm
-  const chunks = message?.split(splitRegex).filter(value => (value.length>1))
-  const messageBody = chunks[0]
-  const messageLinks = chunks.slice(1)
+  const { messageBody, messageLinks } = separateLinksFromApiMessage(message)
 
   const ClickableLink = ({linkString}: {linkString: string}) => {
     let url = linkString.split(" ")[1].trim()
-    return <a href={url} target="_blank" rel="noreferrer" className={styles.reference_link}>{linkString}</a>
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className={styles.reference_link}>
+        {linkString} <span style={{marginLeft: "5px"}}><LinkShareIcon /></span>
+      </a>
+    )
   }
 
-  if (!chunks) return null
+  if (!messageBody.trim()) return null
 
   return (
     <>
       <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>
-        {messageBody}
+        {messageBody.trim()}
       </Text>
-      <Box>
-        {messageLinks.map((link, idx) => (
-          <div key={idx}>
-            <ClickableLink linkString={link} />
-          </div>
-        ))}
-      </Box>
+      {Boolean(messageLinks.length) && 
+        <Box>
+          <Text fontSize="14px" fontWeight={500}>Sources</Text>
+          {messageLinks.map((link, idx) => (
+            <div key={idx}>
+              <ClickableLink linkString={link} />
+            </div>
+          ))}
+        </Box>
+      }
     </>
   )
 }
@@ -125,7 +134,7 @@ const StreamMessageContent = ({message, type}: Message) => {
   return (
     <>
       <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>
-        {message}
+        {message.trim()}
       </Text>
     </>
   )

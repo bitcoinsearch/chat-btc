@@ -19,8 +19,11 @@ import Rating from "@/components/rating/Rating";
 import { useRouter } from "next/router";
 import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
-import { AUTHOR_QUERY } from "@/utils/authorsConfig";
+import { AUTHOR_QUERY } from "@/config/authorsConfig";
 import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
+import { PromptAction } from "@/types";
+import { separateLinksFromApiMessage } from "@/utils/links";
+import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -51,13 +54,7 @@ export default function Home() {
   const [streamLoading, setStreamLoading] = useState(false);
   const [streamData, setStreamData] = useState<Message>(initialStream);
   const [typedMessage, setTypedMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      message: "Hi there! How can I help?",
-      type: "apiMessage",
-      uniqueId: "",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const router = useRouter();
   const updateRouterQuery = useUpdateRouterQuery();
@@ -65,8 +62,20 @@ export default function Home() {
   const searchQuery = router.query;
   const authorQuery = searchQuery[AUTHOR_QUERY];
 
-  const idleBackground =
-    !userInput.trim() && messages.length === 1 && loading === false;
+  const resetChat = () => {
+    setUserInput("");
+    setLoading(false)
+    setStreamData(initialStream)
+    setStreamLoading(false)
+    setTypedMessage("")
+    setMessages([])
+  }
+
+  useEffect(() => {
+    if (authorQuery === undefined) {
+      resetChat();
+    }
+  }, [authorQuery])
 
   // add typing effect
   const addTypingEffect = async (
@@ -75,14 +84,16 @@ export default function Home() {
   ) => {
     setTypedMessage("");
 
+    const { messageBody } = separateLinksFromApiMessage(message)
+    
     let typedText = "";
-    for (const char of message) {
+    for (const char of messageBody) {
       typedText += char;
       setTypedMessage(typedText);
-      await new Promise((resolve) => setTimeout(resolve, 15)); // Adjust 15ms to change typing speed
+      await new Promise((resolve) => setTimeout(resolve, TYPING_DELAY_IN_MILLISECONDS)); // Adjust 15ms to change typing speed
     }
     // Call the callback function to update the message in the state
-    callback(typedText);
+    callback(message);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -134,7 +145,7 @@ export default function Home() {
     return data;
   };
 
-  const fetchESResult = async (query: string) => {
+  const fetchESResult = async (query: string, author?: string) => {
     const response = await fetch("/api/search", {
       method: "POST",
       headers: {
@@ -143,6 +154,7 @@ export default function Home() {
       body: JSON.stringify({
         inputs: {
           question: query,
+          author: author,
         },
       }),
     });
@@ -156,9 +168,9 @@ export default function Home() {
     "Currently server is overloaded with API calls, please try again later.",
   ];
 
-  const fetchResult = async (query: string) => {
+  const fetchResult = async (query: string, author?: string) => {
     const errMessage = "Something went wrong. Try again later";
-    const searchResults = await fetchESResult(query); // Remove ": Response" type here
+    const searchResults = await fetchESResult(query, author); // Remove ": Response" type here
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
@@ -203,7 +215,7 @@ export default function Home() {
     const errMessage = "Something went wrong. Try again later";
 
     try {
-      const response: Response = await fetchResult(query);
+      const response: Response = await fetchResult(query, author);
       if (!response.ok) {
         throw new Error(errMessage);
       }
@@ -281,15 +293,14 @@ export default function Home() {
     setLoading(false);
   }; 
 
-  const promptChat = async (prompt: string, author: string) => {
+  const promptChat: PromptAction = async (prompt, author, options) => {
     updateRouterQuery(AUTHOR_QUERY, author)
-    startChatQuery(prompt, author);
+    if (options?.startChat) {
+      startChatQuery(prompt, author);
+    } else {
+      setUserInput(prompt)
+    }
   };
-
-  // const updateAuthorQuery = useCallback((authorSlug: string) => {
-  //   router.query[AUTHOR_QUERY] = authorSlug;
-  //   router.push(router, undefined, {shallow: true})
-  // }, [router])
 
   return (
     <>
@@ -300,9 +311,10 @@ export default function Home() {
           typedMessage={typedMessage}
           streamData={streamData}
           handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
+          promptChat={promptChat}
           loading={loading}
           streamLoading={streamLoading}
+          resetChat={resetChat}
         />
       ) : (
         <HomePage onPrompt={promptChat} />
