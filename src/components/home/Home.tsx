@@ -1,6 +1,6 @@
 import { PromptAction } from "@/types";
 import authorsConfig from "@/config/authorsConfig";
-import { Box, Container, Flex, Grid, Heading, Text } from "@chakra-ui/react";
+import { Box, Container, Flex, Grid, Heading, Text, Link } from "@chakra-ui/react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import AuthorCard from "./AuthorCard";
@@ -128,8 +128,20 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
               color="gray.200"
               textAlign="center"
             >
-              Built with ❤️ by Chaincode Labs.
+              Built with ❤️ by {" "}
+              <Link href="https://chaincode.com" isExternal color="yellow.200">
+                Chaincode Labs
+              </Link>
             </Text>
+            <Link
+              href="https://cryptpad.fr/form/#/2/form/view/3P2CsohsHOkcH7C+WdtX0-tvqjBHqXnAmz5D9yx0e04/"
+              isExternal
+              fontSize={{ base: "12px", md: "16px" }}
+              color="orange.200"
+              textAlign="center"
+            >
+              Submit Feedback
+            </Link>
           </Flex>
         </Container>
       </Box>
