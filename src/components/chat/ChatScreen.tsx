@@ -213,6 +213,7 @@ const ChatScreen = ({
                     flexGrow={1}
                     flexShrink={1}
                     onKeyDown={handleEnter}
+                    isDisabled={loading || streamLoading}
                   />
                   <IconButton
                     isLoading={loading}
