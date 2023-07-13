@@ -16,7 +16,7 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Pieter Wuille Widget",
+    name: '"Pieter Wuille Widget"',
     slug: "pieter-wuille",
     title: "Bitcoin Core Developer",
     introduction: "Hi, I'm Sipa. I work on Bitcoin Core at Chaincode Labs. I have authored or contributed to projects like SegWit, Taproot, Secp256k1, and lots of others. I have a beard.",
@@ -28,7 +28,7 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Mechanized Matt Corallo",
+    name: '"Mechanized Matt Corallo"',
     slug: "matt-corallo",
     title: "LDK & Bitcoin Core Dev",
     introduction: "I'm BlueMatt. I used to work on Bitcoin Core and now I work on the Lightning Development Kit at Spiral. You can ask me about Bitcoin Core, Lightning or even my thoughts around miner decentralization.",
@@ -40,7 +40,7 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Greg Maxwell Machine",
+    name: '"Greg Maxwell Machine"',
     slug: "greg-maxwell",
     title: "Bitcoin Core Contributor",
     introduction: "Hello, I'm Greg. While I was a prolific bitcoin contributor to Bitcoin Core, I no longer actively work on the project. I still have a beard though.",

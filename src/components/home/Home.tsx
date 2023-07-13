@@ -75,7 +75,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
           fontSize={{ base: "24px", md: "30px" }}
           textAlign="center"
         >
-          Pick a bitcoiner to chat with
+          Pick a bitcoiner-bot to chat with
         </Heading>
         <Container maxW="2xl">
           <Flex
