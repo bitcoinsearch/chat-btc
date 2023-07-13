@@ -36,6 +36,39 @@ interface FeedbackStatus {
   [messageId: string]: "submitted" | undefined;
 }
 
+function createReadableStream(text: string) {
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+      start(controller) {
+          controller.enqueue(encoder.encode(text));
+          controller.close();
+      },
+  });
+  return readable;
+}
+
+const getCachedAnswer = async (question: string, author?: string) => {
+  question = question.toLowerCase();
+  author = author?.toLocaleLowerCase();
+  const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(question, author);
+
+  if (!answers || answers.length === 0) {
+    console.error("Error fetching answer: No answers found.");
+    return null;
+  }
+
+  // Use JavaScript .find() method to get first element where answer is not an empty string
+  const nonEmptyAnswer = answers.find((item) => item.answer.trim() !== "");
+
+  if (!nonEmptyAnswer) {
+    console.error("Error fetching answer: No non-empty answers found.");
+    return null;
+  }
+
+  // Return the nonEmptyAnswer directly as a string
+  return createReadableStream(nonEmptyAnswer.answer);
+}
+
 function formatDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based, so we need to add 1
@@ -215,11 +248,19 @@ export default function Home() {
     const errMessage = "Something went wrong. Try again later";
 
     try {
-      const response: Response = await fetchResult(query, author);
-      if (!response.ok) {
-        throw new Error(errMessage);
+
+      const cachedAnswer = await getCachedAnswer(query, author);
+      let data = null;
+      if (!cachedAnswer) {
+        const response: Response = await fetchResult(query, author);
+        if (!response.ok) {
+          throw new Error(errMessage);
+        }
+        data = response.body;
+      } else {
+        data = cachedAnswer;
       }
-      const data = response.body;
+
       const reader = data?.getReader();
       let done = false;
       let finalAnswerWithLinks = "";
@@ -244,10 +285,11 @@ export default function Home() {
         }
       }
 
-      let question = userInput;
+      let question = query;
+      let author_name = author?.toLocaleLowerCase();
       let answer = finalAnswerWithLinks;
       let uniqueIDD = uuid;
-      let dateString = "03-07-2023"; // DD-MM-YY
+      let dateString = "13-07-2023"; // DD-MM-YY
       let timeString = "00:00:00";
 
       const dateTimeString =
@@ -260,6 +302,7 @@ export default function Home() {
           uniqueId: uniqueIDD,
           question: question,
           answer: answer,
+          author_name: author_name,
           rating: null,
           createdAt: new Date().toISOString(),
           updatedAt: null,
@@ -272,6 +315,7 @@ export default function Home() {
           uniqueId: uniqueIDD,
           question: question,
           answer: null, // Set answer as null
+          author_name: author_name,
           rating: null,
           createdAt: new Date().toISOString(),
           updatedAt: null,

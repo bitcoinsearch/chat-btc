@@ -27,12 +27,13 @@ export class SupaBaseDatabase {
     }
   }
   async insertData(payload: any) {
+    payload.question = payload.question.toLowerCase();
+    payload.author_name = payload.author_name.toLowerCase();
     const { data, error } = await supabase.from(DB_NAME).insert([payload]);
-
     if (error) {
       console.error("Error inserting Q&A:", error);
     } else {
-      console.log("Q&A inserted:", data);
+      console.log("Q&A inserted.");
     }
   }
   async addFeedback(payload: FeedbackPayload) {
@@ -53,5 +54,32 @@ export class SupaBaseDatabase {
       console.log("Q&A rating updated:", data);
     }
     return { data, error, status };
+  }
+  async getAnswerByQuestion(question: string, author?: string) {
+    const oneDayBefore = new Date();
+    oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+    let query = supabase
+      .from(DB_NAME)
+      .select("answer, createdAt")
+      .eq('question', question);
+
+      // If author exists, add .eq('author_name', author) to the query
+      if(author){
+          query = query.eq('author_name', author);
+      }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching answer:", error);
+      return null;
+    } else {
+      // filter data where createdAt is one day before
+      const filteredData = data.filter(d => new Date(d.createdAt) >= oneDayBefore);
+      // order filtered data
+      const orderedData = filteredData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Here we return null if no data found or orderedData if found
+      return orderedData.length > 0 ? orderedData : null;
+    }
   }
 }
