@@ -9,9 +9,9 @@ type Props = {
 }
 
 const textBubbles: TextBubble[] = [
-  {text: "What are the benefits of using miniscript?", type: "prompt"},
-  {text: "We don't log your IP address or any personal info", type: "about"},
   {text: "Why is SegWit a useful upgrade?", type: "prompt"},
+  {text: "We don't log your IP address or any personal info", type: "about"},
+  {text: "what is the difference between BIP8 and BIP9 soft-fork activation methods?", type: "prompt"},
   {text: "Data sourced from bitcoin-dev mailing list, Bitcointalk, Lightning dev mailing list, Bitcoin StackExchange, Bitcoin Optech, & BTC Transcripts", type: "about"},
   {text: "Why would we want PTLCs rather than HTLCs?", type: "prompt"},
   {text: "Built with ❤️ by Chaincode Labs.", type: "about"},

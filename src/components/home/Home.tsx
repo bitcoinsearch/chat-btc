@@ -77,6 +77,22 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
         >
           Pick a bitcoiner to chat with
         </Heading>
+        <Container maxW="2xl">
+          <Flex
+            fontSize={{ base: "12px", md: "16px" }}
+            color="gray.400"
+            direction="column"
+            gap={2}
+            mt={4}
+          >
+            <Text>
+              All characters are, of course, fake and do not represent the
+              actual thoughts and opinions of real people. These are AI
+              responses that are informed by some of these authors public
+              writings.
+            </Text>
+          </Flex>
+        </Container>
         <Grid
           templateColumns={{ base: "1fr 1fr", sm: "1fr 1fr 1fr 1fr" }}
           gap={{ base: 6, md: 14 }}
@@ -115,12 +131,6 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                 from the bitcoin-dev mailing list, Bitcointalk, Lightning dev
                 mailing list, Bitcoin StackExchange, Bitcoin Optech, and BTC
                 Transcripts.
-              </Text>
-              <Text>
-                All characters are, of course, fake and do not represent the
-                actual thoughts and opinions of real people. These are AI
-                responses that are informed by some of these authors public
-                writings.
               </Text>
             </Flex>
             <Text
