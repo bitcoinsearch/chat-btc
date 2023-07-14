@@ -87,6 +87,7 @@ const ChatScreen = ({
       const scrollBottom = messageList.scrollHeight - messageList.clientHeight
       messageList.scrollTo({top: scrollBottom, behavior: "smooth"});
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
   const handleSubmit = (e: FormEvent) => {
@@ -121,7 +122,6 @@ const ChatScreen = ({
       }
       // return hijackedScroll back to generator
       if (hasScrolledToBottom && streamLoading && userHijackedScroll) {
-        console.log("reset scroll to gen")
         setUserHijackedScroll(false)
       }
     }
