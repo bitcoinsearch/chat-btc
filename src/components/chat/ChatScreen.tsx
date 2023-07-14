@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { FormEvent, useEffect, useMemo, useRef } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { v4 as uuidv4 } from "uuid";
 
@@ -44,6 +44,7 @@ const ChatScreen = ({
 }: ChatProps) => {
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const initMessageListHeight = useRef(messageListRef.current?.scrollHeight ?? 0)
 
   const router = useRouter();
   const authorQuery = router.query[AUTHOR_QUERY];
@@ -61,18 +62,36 @@ const ChatScreen = ({
     }
   }, [author])
 
+  const [userHijackedScroll, setUserHijackedScroll] = useState(false)
+
   const chatList: Message[] = [authorInitialDialogue, ...messages]
 
   // Auto scroll chat to bottom
   useEffect(() => {
     const messageList = messageListRef.current;
-    if (messageList) {
-      messageList.scrollTop = messageList?.scrollHeight;
+    if (userHijackedScroll) return
+    if (!messageList) return
+    const listHeight = messageList.scrollHeight;
+    const scrollBottom = messageList.scrollHeight - messageList.clientHeight
+    if (listHeight > initMessageListHeight.current) {
+      messageList.scrollTo({top: scrollBottom, behavior: "smooth"});
+      initMessageListHeight.current = listHeight
     }
-  }, [typedMessage, messages]);
+  }, [typedMessage, userHijackedScroll]);
+
+  // scroll to last message (user text after submit)
+  useEffect(() => {
+    if (userHijackedScroll || streamLoading) return
+    const messageList = messageListRef.current;
+    if (messageList) {
+      const scrollBottom = messageList.scrollHeight - messageList.clientHeight
+      messageList.scrollTo({top: scrollBottom, behavior: "smooth"});
+    }
+  }, [messages]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
+    setUserHijackedScroll(false)
     promptChat(userInput, author.value, { startChat: true})
   }
 
@@ -88,6 +107,29 @@ const ChatScreen = ({
       }
     }
   };
+
+  useEffect(() => {
+    const messageListBox = messageListRef.current;
+    if (!messageListBox) return
+    let initScroll = messageListBox.scrollTop
+    const handleScroll = (e: Event) => {
+      const hasScrolledUp = messageListBox.scrollTop < initScroll
+      const hasScrolledToBottom = messageListBox.scrollTop + messageListBox.clientHeight === messageListBox.scrollHeight
+      initScroll = messageListBox.scrollTop
+      if (hasScrolledUp && streamLoading) {
+        setUserHijackedScroll(true)
+      }
+      // return hijackedScroll back to generator
+      if (hasScrolledToBottom && streamLoading && userHijackedScroll) {
+        console.log("reset scroll to gen")
+        setUserHijackedScroll(false)
+      }
+    }
+    messageListBox.addEventListener("scroll", handleScroll)
+    return () => {
+      messageListBox.removeEventListener("scroll", handleScroll)
+    }
+  }, [messageListRef, streamLoading, userHijackedScroll])
 
   // add columns to textarea for multiline text
   useEffect(() => {
@@ -206,17 +248,16 @@ const ChatScreen = ({
                     id="userInput"
                     rows={1}
                     resize="none"
-                    disabled={loading}
+                    disabled={loading || streamLoading}
                     value={userInput}
                     onChange={handleInputChange}
                     bg="gray.700"
                     flexGrow={1}
                     flexShrink={1}
                     onKeyDown={handleEnter}
-                    isDisabled={loading || streamLoading}
                   />
                   <IconButton
-                    isLoading={loading}
+                    isLoading={loading || streamLoading}
                     aria-label="send chat"
                     icon={<SendIcon />}
                     type="submit"
