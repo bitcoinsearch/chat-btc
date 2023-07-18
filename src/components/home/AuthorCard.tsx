@@ -2,7 +2,6 @@ import { AuthorConfig, PromptAction } from "@/types";
 import { Box, Flex, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 import PromptBubble from "./PromptBubble";
 
 const AuthorCard = ({
@@ -15,7 +14,7 @@ const AuthorCard = ({
   return (
     <>
       <Flex direction="column" gap={3}>
-        <Link href={`?author=${author.value}`} shallow={true}>
+        <Link href={`?author=${author.slug}`} shallow={true}>
           <Flex w="full" maxW="150px" mx="auto">
             <Box
               position="relative"
@@ -36,11 +35,13 @@ const AuthorCard = ({
                 src={author.imgURL}
                 alt={`author-${author.slug}`}
                 fill={true}
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 33vw"
+                style={{borderRadius: "100%"}}
               />
             </Box>
           </Flex>
         </Link>
-        <Link href={`?author=${author.value}`} shallow={true}>
+        <Link href={`?author=${author.slug}`} shallow={true}>
           <Box textAlign="center" role="group">
             <Text fontWeight={600} _groupHover={{color: "orange.200"}}>{author.name}</Text>
             <Text fontSize="14px" color="gray.400">
@@ -53,7 +54,7 @@ const AuthorCard = ({
             <PromptBubble
               key={index}
               onPrompt={onPrompt}
-              author={author.value}
+              author={author.slug}
               text={question}
             />
           ))}

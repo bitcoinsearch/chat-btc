@@ -19,7 +19,7 @@ import Rating from "@/components/rating/Rating";
 import { useRouter } from "next/router";
 import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
-import { AUTHOR_QUERY } from "@/config/authorsConfig";
+import authorsConfig, { AUTHOR_QUERY } from "@/config/authorsConfig";
 import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
 import { PromptAction } from "@/types";
 import { separateLinksFromApiMessage } from "@/utils/links";
@@ -339,8 +339,9 @@ export default function Home() {
 
   const promptChat: PromptAction = async (prompt, author, options) => {
     updateRouterQuery(AUTHOR_QUERY, author)
+    const authorValue = authorsConfig.find(_author => author === _author.slug)?.value ?? ""
     if (options?.startChat) {
-      startChatQuery(prompt, author);
+      startChatQuery(prompt, authorValue);
     } else {
       setUserInput(prompt)
     }
@@ -355,7 +356,7 @@ export default function Home() {
           typedMessage={typedMessage}
           streamData={streamData}
           handleInputChange={handleInputChange}
-          promptChat={promptChat}
+          startChat={startChatQuery}
           loading={loading}
           streamLoading={streamLoading}
           resetChat={resetChat}

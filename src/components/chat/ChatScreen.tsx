@@ -21,7 +21,7 @@ type ChatProps = {
   typedMessage: string;
   streamData: Message;
   messages: Message[];
-  promptChat: PromptAction;
+  startChat: (prompt?: string, author?: string) => void;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   loading: boolean;
   streamLoading: boolean;
@@ -36,7 +36,7 @@ const ChatScreen = ({
   typedMessage,
   streamData,
   messages,
-  promptChat,
+  startChat,
   handleInputChange,
   loading,
   streamLoading,
@@ -50,7 +50,7 @@ const ChatScreen = ({
   const authorQuery = router.query[AUTHOR_QUERY];
 
   const author = useMemo(() => {
-    return authorsConfig.find((authorConfig) => authorConfig.value === authorQuery) ||
+    return authorsConfig.find((authorConfig) => authorConfig.slug === authorQuery) ||
     blippy;
   }, [authorQuery])
 
@@ -93,7 +93,7 @@ const ChatScreen = ({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     setUserHijackedScroll(false)
-    promptChat(userInput, author.value, { startChat: true})
+    startChat(userInput, author.value)
   }
 
   // Prevent blank submissions and allow for multiline input

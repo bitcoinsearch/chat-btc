@@ -15,7 +15,7 @@ const PromptBubble = ({ text, author, onPrompt }: PromptBubbleProps) => {
       // maxW="224px"
       bgColor={"gray.500"}
       placeItems="center"
-      p={{base: "4px", md: "8px"}}
+      p={{base: "6px", md: "8px"}}
       rounded={{base: "md", md: "xl"}}
       onClick={handlePromptClick}
       cursor={"pointer"}

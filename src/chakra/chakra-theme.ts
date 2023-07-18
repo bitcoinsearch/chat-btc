@@ -10,6 +10,7 @@ const theme = extendTheme({
     brand: {
       bg50: "#0D2333",
       bg100: "#102E44",
+      bg_base_purple: "#24243e"
     },
     link: {
       400: "#78A9FF"
