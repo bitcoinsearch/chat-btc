@@ -21,7 +21,7 @@ import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
 import authorsConfig, { AUTHOR_QUERY } from "@/config/authorsConfig";
 import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
-import { PromptAction } from "@/types";
+import { GeneratingErrorMessages, PromptAction } from "@/types";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
 
@@ -39,10 +39,10 @@ interface FeedbackStatus {
 function createReadableStream(text: string) {
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
-      start(controller) {
-          controller.enqueue(encoder.encode(text));
-          controller.close();
-      },
+    start(controller) {
+      controller.enqueue(encoder.encode(text));
+      controller.close();
+    },
   });
   return readable;
 }
@@ -50,7 +50,10 @@ function createReadableStream(text: string) {
 const getCachedAnswer = async (question: string, author?: string) => {
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
-  const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(question, author);
+  const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
+    question,
+    author
+  );
 
   if (!answers || answers.length === 0) {
     console.error("Error fetching answer: No answers found.");
@@ -67,7 +70,7 @@ const getCachedAnswer = async (question: string, author?: string) => {
 
   // Return the nonEmptyAnswer directly as a string
   return createReadableStream(nonEmptyAnswer.answer);
-}
+};
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -95,38 +98,52 @@ export default function Home() {
   const searchQuery = router.query;
   const authorQuery = searchQuery[AUTHOR_QUERY];
 
-  const resetChat = () => {
+  const abortTypingRef = useRef<AbortController>();
+
+  const resetChat = async () => {
+    streamLoading && abortTypingRef.current?.abort();
     setUserInput("");
-    setLoading(false)
-    setStreamData(initialStream)
-    setStreamLoading(false)
-    setTypedMessage("")
-    setMessages([])
-  }
+    setLoading(false);
+    setStreamData(initialStream);
+    setStreamLoading(false);
+    setTypedMessage("");
+    setMessages([]);
+  };
 
   useEffect(() => {
     if (authorQuery === undefined) {
       resetChat();
     }
-  }, [authorQuery])
+  }, [authorQuery]);
 
   // add typing effect
-  const addTypingEffect = async (
-    message: string,
-    callback: (typedText: string) => void
-  ) => {
+  const addTypingEffect = (message: string) => {
+    // instantiate new AbortController
+    const typingAbortController = new AbortController();
+    abortTypingRef.current = typingAbortController;
     setTypedMessage("");
-
-    const { messageBody } = separateLinksFromApiMessage(message)
-    
+    const { messageBody } = separateLinksFromApiMessage(message);
     let typedText = "";
-    for (const char of messageBody) {
-      typedText += char;
-      setTypedMessage(typedText);
-      await new Promise((resolve) => setTimeout(resolve, TYPING_DELAY_IN_MILLISECONDS)); // Adjust 15ms to change typing speed
-    }
-    // Call the callback function to update the message in the state
-    callback(message);
+    let index = 0;
+    let messageInterval: NodeJS.Timer;
+
+    return new Promise((resolve, reject) => {
+      messageInterval = setInterval(() => {
+        if (index >= messageBody.length - 1) {
+          clearInterval(messageInterval);
+          resolve(typedText);
+        }
+        typedText += messageBody[index];
+        index += 1;
+        setTypedMessage(typedText);
+      }, TYPING_DELAY_IN_MILLISECONDS);
+
+      typingAbortController.signal.addEventListener("abort", () => {
+        clearInterval(messageInterval);
+        abortTypingRef.current = undefined;
+        reject(new Error("Operation aborted"));
+      });
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -135,19 +152,38 @@ export default function Home() {
 
   const updateMessages = async (finalText: string, uuid: string) => {
     // Call the addTypingEffect function to add a typing effect to the finalText
-    await addTypingEffect(finalText, (messageWithTypingEffect: string) => {
-      setStreamLoading(false);
-      setStreamData(initialStream);
+    await addTypingEffect(finalText)
+      .then((res) => {
+        setStreamLoading(false);
+        setStreamData(initialStream);
 
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          message: messageWithTypingEffect,
-          type: "apiMessage",
-          uniqueId: uuid,
-        },
-      ]);
-    });
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            message: finalText,
+            type: "apiMessage",
+            uniqueId: uuid,
+          },
+        ]);
+      })
+      .catch((err) => {
+        if (err.message === GeneratingErrorMessages.abortTyping) {
+          setStreamLoading(false);
+          setStreamData(initialStream);
+
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              message: typedMessage,
+              type: "apiMessage",
+              uniqueId: uuid,
+            },
+          ]);
+        }
+      })
+      .finally(() => {
+        setTypedMessage("");
+      });
   };
 
   const addDocumentToMongoDB = async (payload: any) => {
@@ -225,12 +261,11 @@ export default function Home() {
   };
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    startChatQuery()
-  }
+    e.preventDefault();
+    startChatQuery();
+  };
 
   const startChatQuery = async (prompt?: string, author?: string) => {
-
     const query = prompt ? prompt.trim() : userInput.trim();
     if (query === "") {
       return;
@@ -248,7 +283,6 @@ export default function Home() {
     const errMessage = "Something went wrong. Try again later";
 
     try {
-
       const cachedAnswer = await getCachedAnswer(query, author);
       let data = null;
       if (!cachedAnswer) {
@@ -335,20 +369,24 @@ export default function Home() {
       ]);
     }
     setLoading(false);
-  }; 
+  };
 
   const promptChat: PromptAction = async (prompt, author, options) => {
-    updateRouterQuery(AUTHOR_QUERY, author)
-    const authorValue = authorsConfig.find(_author => author === _author.slug)?.value ?? ""
+    updateRouterQuery(AUTHOR_QUERY, author);
+    const authorValue =
+      authorsConfig.find((_author) => author === _author.slug)?.value ?? "";
     if (options?.startChat) {
       startChatQuery(prompt, authorValue);
     } else {
-      setUserInput(prompt)
+      setUserInput(prompt);
     }
   };
 
   return (
     <>
+      <button onClick={() => abortTypingRef.current?.abort()}>
+        test abort
+      </button>
       {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}

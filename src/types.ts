@@ -5,6 +5,10 @@ export const AnswerQuality = {
   other: "Other",
 } as const;
 
+export const GeneratingErrorMessages = {
+  abortTyping: "Operation was aborted"
+} as const
+
 export type AnswerQualityType = (typeof AnswerQuality)[keyof typeof AnswerQuality];
 
 export enum Ratings {
