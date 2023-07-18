@@ -102,7 +102,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                 mx="auto"
               >
                 <PromptBubble
-                  text="What are the benefits of using miniscript?"
+                  text="what are some mitigations of fee sniping?"
                   author=""
                   onPrompt={handleLandingPagePrompt}
                 />
@@ -229,15 +229,9 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                 <Text>
                   ChatBTC is designed to help you learn about bitcoin technology
                   and the history of how it was built. All the data is sourced
-                  from the bitcoin-dev mailing list, Bitcointalk, Lightning dev
+                  from the bitcoin-dev mailing list, Lightning dev
                   mailing list, Bitcoin StackExchange, Bitcoin Optech, and BTC
                   Transcripts.
-                </Text>
-                <Text>
-                  All characters are, of course, fake and do not represent the
-                  actual thoughts and opinions of real people. These are AI
-                  responses that are informed by some of these authors public
-                  writings.
                 </Text>
               </Flex>
               <Text
