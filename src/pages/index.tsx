@@ -384,9 +384,6 @@ export default function Home() {
 
   return (
     <>
-      <button onClick={() => abortTypingRef.current?.abort()}>
-        test abort
-      </button>
       {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}
