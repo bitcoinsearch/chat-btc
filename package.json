@@ -1,0 +1,49 @@
+{
+  "name": "chat-btc-next",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.4.9",
+    "@elastic/elasticsearch": "^8.8.1",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@next/font": "13.1.6",
+    "@supabase/supabase-js": "^2.21.0",
+    "@types/node": "18.13.0",
+    "@types/react": "18.0.28",
+    "@types/react-dom": "18.0.10",
+    "@vespaiach/axios-fetch-adapter": "^0.3.1",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "eslint": "8.34.0",
+    "eslint-config-next": "13.1.6",
+    "eventsource-parser": "^0.1.0",
+    "framer-motion": "^9.0.2",
+    "http-adapter": "^0.0.2",
+    "keyword-extractor": "^0.0.25",
+    "langchain": "^0.0.91",
+    "mongodb": "^5.3.0",
+    "next": "13.1.6",
+    "next-axiom": "^0.17.0",
+    "next-connect": "^0.13.0",
+    "openai": "^3.2.1",
+    "react": "18.2.0",
+    "react-device-detect": "^2.2.3",
+    "react-dom": "18.2.0",
+    "react-spinners": "^0.13.8",
+    "typescript": "4.9.5",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/next": "^9.0.0",
+    "@types/uuid": "^9.0.1",
+    "next-transpile-modules": "^10.0.0",
+    "webpack": "^5.86.0"
+  }
+}
