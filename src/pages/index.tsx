@@ -101,7 +101,7 @@ export default function Home() {
   const abortTypingRef = useRef<AbortController>();
 
   const resetChat = async () => {
-    streamLoading && abortTypingRef.current?.abort();
+    streamLoading && abortTypingRef.current?.abort(GeneratingErrorMessages.resetChat);
     setUserInput("");
     setLoading(false);
     setStreamData(initialStream);
@@ -141,7 +141,11 @@ export default function Home() {
       typingAbortController.signal.addEventListener("abort", () => {
         clearInterval(messageInterval);
         abortTypingRef.current = undefined;
-        reject(new Error("Operation aborted"));
+        if (typingAbortController.signal.reason === GeneratingErrorMessages.resetChat) {
+          reject(new Error(GeneratingErrorMessages.resetChat));
+        } else {
+          reject(new Error(GeneratingErrorMessages.abortTyping));
+        }
       });
     });
   };
@@ -168,13 +172,14 @@ export default function Home() {
       })
       .catch((err) => {
         if (err.message === GeneratingErrorMessages.abortTyping) {
+          const cutoffMessage = typedMessage;
           setStreamLoading(false);
           setStreamData(initialStream);
 
           setMessages((prevMessages) => [
             ...prevMessages,
             {
-              message: typedMessage,
+              message: cutoffMessage,
               type: "apiMessage",
               uniqueId: uuid,
             },

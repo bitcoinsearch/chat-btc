@@ -6,7 +6,8 @@ export const AnswerQuality = {
 } as const;
 
 export const GeneratingErrorMessages = {
-  abortTyping: "Operation was aborted"
+  abortTyping: "Operation was aborted",
+  resetChat: "Chat was reset",
 } as const
 
 export type AnswerQualityType = (typeof AnswerQuality)[keyof typeof AnswerQuality];
