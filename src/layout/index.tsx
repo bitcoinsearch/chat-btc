@@ -7,7 +7,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Head>
-        <title>Chat BTC</title>
+        <title>ChatBTC</title>
         <meta name="description" content="Your technical bitcoin copilot" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/bitcoin.svg" />

@@ -103,17 +103,17 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
               >
                 <PromptBubble
                   text="What are some approaches to mitigating fee sniping?"
-                  author=""
+                  author="holocat"
                   onPrompt={handleLandingPagePrompt}
                 />
                 <PromptBubble
                   text="Why is SegWit a useful upgrade?"
-                  author=""
+                  author="holocat"
                   onPrompt={handleLandingPagePrompt}
                 />
                 <PromptBubble
                   text="Why would we want PTLCs rather than HTLCs?"
-                  author=""
+                  author="holocat"
                   onPrompt={handleLandingPagePrompt}
                 />
               </Grid>
