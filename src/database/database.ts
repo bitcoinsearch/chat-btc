@@ -1,5 +1,5 @@
 import { FeedbackPayload } from "@/types";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import getConfig from "next/config";
 
 // Access the environment variables
@@ -10,26 +10,32 @@ const DB_NAME = publicRuntimeConfig.DB_NAME;
 
 export const isSupabaseInitialized = SUPABASE_URL !== undefined && SUPABASE_ANON_KEY !== undefined && SUPABASE_URL !== "" && SUPABASE_ANON_KEY !== "";
 
-// Initialize Supabase client
-let supabase = null;
+let supabase: SupabaseClient | null;
 
 if (SUPABASE_URL) {
   supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 } else {
+  supabase = null;
   console.error('SUPABASE_URL is not defined in .env file');
 }
 
 // Example usage: Fetch all rows from a table named "tasks"
 export class SupaBaseDatabase {
-  static getInstance() {
+  private client: SupabaseClient;
+
+  constructor(client: SupabaseClient) {
+    this.client = client;
+  }
+
+  static getInstance(): SupaBaseDatabase {
     if (!supabase) {
       throw new Error('Supabase has not been initialized because SUPABASE_URL is not defined');
     }
-    return new SupaBaseDatabase();
+    return new SupaBaseDatabase(supabase);
   }
 
   async fetchData() {
-    const { data, error } = await supabase.from(DB_NAME).select("*");
+    const { data, error } = await this.client.from(DB_NAME).select("*");
 
     if (error) {
       console.error("Error fetching tasks:", error);
@@ -38,9 +44,15 @@ export class SupaBaseDatabase {
     }
   }
   async insertData(payload: any) {
+    if (!this.client) {
+      throw new Error('Supabase client is not initialized');
+    }
+
     payload.question = payload.question.toLowerCase();
     payload.author_name = payload.author_name.toLowerCase();
-    const { data, error } = await supabase.from(DB_NAME).insert([payload]);
+
+    const { data, error } = await this.client.from(DB_NAME).insert([payload]);
+
     if (error) {
       console.error("Error inserting Q&A:", error);
     } else {
@@ -49,7 +61,7 @@ export class SupaBaseDatabase {
   }
   async addFeedback(payload: FeedbackPayload) {
     const { answerQuality, feedbackId, rating, timestamp } = payload;
-    const { data, error, status } = await supabase
+    const { data, error, status } = await this.client
       .from(DB_NAME)
       .update({
         answerQuality,
@@ -69,7 +81,7 @@ export class SupaBaseDatabase {
   async getAnswerByQuestion(question: string, author?: string) {
     const oneDayBefore = new Date();
     oneDayBefore.setDate(oneDayBefore.getDate() - 1);
-    let query = supabase
+    let query = this.client
       .from(DB_NAME)
       .select("answer, createdAt")
       .eq('question', question);
