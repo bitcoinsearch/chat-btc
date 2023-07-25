@@ -191,34 +191,6 @@ export default function Home() {
       });
   };
 
-  const addDocumentToMongoDB = async (payload: any) => {
-    const response = await fetch("/api/mongo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const { data } = await response.json();
-    return data;
-  };
-  const getDocumentInMongoDB = async (uniqueId: string) => {
-    const response = await fetch("/api/mongo?unique=" + uniqueId, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-    const { data } = await response.json();
-    return data;
-  };
-
-  const updateDocumentInMongoDB = async (uniqueId: string, payload: any) => {
-    const response = await fetch("/api/mongo?unique=" + uniqueId, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const { data } = await response.json();
-    return data;
-  };
-
   const fetchESResult = async (query: string, author?: string) => {
     const response = await fetch("/api/search", {
       method: "POST",
