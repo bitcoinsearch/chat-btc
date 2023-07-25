@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { ThumbDownIcon, ThumbUpIcon } from "@/chakra/custom-chakra-icons";
-import { SupaBaseDatabase } from "@/database/database";
+import { isSupabaseInitialized, addFeedback } from "@/database/database";
 import { AnswerQuality, FeedbackPayload, Ratings } from "@/types";
 import { Button, Flex, Text } from "@chakra-ui/react";
 
@@ -52,15 +52,13 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     if (feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality) {
       return;
     }
-    const { status, error } = await SupaBaseDatabase.getInstance().addFeedback({
-      ...feedback,
-      feedbackId,
-    });
 
-    if (status >= 200 && status < 300 && !error) {
-      setIsFeedbackSubmitted(true);
-      console.log("Feedback sent successfully");
+    if (isSupabaseInitialized) {
+      await addFeedback(feedback, feedbackId);
+    } else {
+      console.error('Cannot submit rating because supabase is not initialized');
     }
+    setIsFeedbackSubmitted(true);
   };
 
   if (!isResponseGenerated) {
