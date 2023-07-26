@@ -17,8 +17,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <meta property="og:description" content="A conversational AI based on technical bitcoin sources"></meta>
         <meta name="twitter:card" content="summary"></meta>
         <meta name="twitter:image" content="https://chat.bitcoinsearch.xyz/chat-btc-landscape_v1.png"></meta>
-        <meta name="twitter:site" content="@chaincodelabs"></meta>
-        <meta name="twitter:creator" content="@chaincodelabs"></meta>
       </Head>
       <div className={styles.app_container}>
         <Navbar />

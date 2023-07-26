@@ -1,21 +1,8 @@
-import Head from "next/head";
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Container,
-  Flex,
-  Heading,
-  IconButton,
-  Textarea,
-} from "@chakra-ui/react";
-import { BitcoinIcon, SendIcon } from "@/chakra/custom-chakra-icons";
-import { isMobile } from "react-device-detect";
-import MessageBox, { Message } from "@/components/message/message";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { Message } from "@/components/message/message";
 import { defaultErrorMessage } from "@/config/error-config";
 import { v4 as uuidv4 } from "uuid";
 import { SupaBaseDatabase } from "@/database/database";
-import BackgroundHelper from "@/components/background/BackgroundHelper";
-import Rating from "@/components/rating/Rating";
 import { useRouter } from "next/router";
 import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
@@ -31,10 +18,6 @@ const initialStream: Message = {
   uniqueId: "",
 };
 const matchFinalWithLinks = /(^\[\d+\]:\shttps:\/\/)/gm;
-
-interface FeedbackStatus {
-  [messageId: string]: "submitted" | undefined;
-}
 
 function createReadableStream(text: string) {
   const encoder = new TextEncoder();
