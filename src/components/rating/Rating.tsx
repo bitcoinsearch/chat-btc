@@ -54,10 +54,14 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     }
 
     if (isSupabaseInitialized) {
+      // TODO: Since this function returns true or false, we should assign the
+      // return value to a variable and check if the feedback was submitted
       await addFeedback(feedback, feedbackId);
     } else {
       console.error('Cannot submit rating because supabase is not initialized');
     }
+    // TODO: properly replace this to close negative ratings
+    // without indicating it was properly sent
     setIsFeedbackSubmitted(true);
   };
 
