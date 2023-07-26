@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-
 import { ThumbDownIcon, ThumbUpIcon } from "@/chakra/custom-chakra-icons";
 import { SupaBaseDatabase } from "@/database/database";
 import { AnswerQuality, FeedbackPayload, Ratings } from "@/types";

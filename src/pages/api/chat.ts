@@ -1,6 +1,4 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-// import { DustStream } from "@/utils/dustStream";
-// import { processInput } from "@/utils/langchain_btc";
 import { processInput } from "@/utils/openaiChat";
 import type { PageConfig } from "next";
 
@@ -28,8 +26,6 @@ export default async function handler(req: Request): Promise<Response> {
         status: 400,
       });
     }
-
-    // const keywords = await extractKeywords(question);
 
     const result = await processInput(searchResults, question);
     return new Response(result);

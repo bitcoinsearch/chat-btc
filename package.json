@@ -27,7 +27,6 @@
     "framer-motion": "^9.0.2",
     "http-adapter": "^0.0.2",
     "keyword-extractor": "^0.0.25",
-    "langchain": "^0.0.91",
     "next": "13.1.6",
     "next-axiom": "^0.17.0",
     "next-connect": "^0.13.0",

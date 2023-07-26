@@ -1,7 +1,6 @@
 import { Box, Flex, Heading, Link, Text } from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
 import styles from "./message.module.css"
-import NextLink from "next/link";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
 import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
@@ -61,10 +60,6 @@ const MessageBox = ({
   streamLoading?: boolean;
 }) => {
   const {message, type} = content
-
-  // const bodyRegex = /^\[\d+\]:/gm
-  // const urlRegex = /^\[\d+\]:(.*)/gm
-  // const messageLinks = message?.match(urlRegex)
 
   return (
     <Flex

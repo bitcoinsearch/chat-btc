@@ -236,17 +236,10 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
               </Flex>
               <Text
                 fontSize={{ base: "16px", md: "20px" }}
-                color="gray.200"
+                color="grey.200"
                 textAlign="center"
               >
-                Built with ❤️ by{" "}
-                <Link
-                  href="https://chaincode.com"
-                  isExternal
-                  color="yellow.200"
-                >
-                  Chaincode Labs
-                </Link>
+                Built with ❤️ by bitcoiners
               </Text>
               <Link
                 href="https://cryptpad.fr/form/#/2/form/view/3P2CsohsHOkcH7C+WdtX0-tvqjBHqXnAmz5D9yx0e04/"
