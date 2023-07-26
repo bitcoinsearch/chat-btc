@@ -13,7 +13,7 @@ import { isMobile } from "react-device-detect";
 import MessageBox, { Message } from "@/components/message/message";
 import { defaultErrorMessage } from "@/config/error-config";
 import { v4 as uuidv4 } from "uuid";
-import { SupaBaseDatabase } from "@/database/database";
+import { isSupabaseInitialized, getCachedAnswer, addDocumentToSupabase } from "@/database/database";
 import BackgroundHelper from "@/components/background/BackgroundHelper";
 import Rating from "@/components/rating/Rating";
 import { useRouter } from "next/router";
@@ -35,42 +35,6 @@ const matchFinalWithLinks = /(^\[\d+\]:\shttps:\/\/)/gm;
 interface FeedbackStatus {
   [messageId: string]: "submitted" | undefined;
 }
-
-function createReadableStream(text: string) {
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    start(controller) {
-      controller.enqueue(encoder.encode(text));
-      controller.close();
-    },
-  });
-  return readable;
-}
-
-const getCachedAnswer = async (question: string, author?: string) => {
-  question = question.toLowerCase();
-  author = author?.toLocaleLowerCase();
-  const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
-    question,
-    author
-  );
-
-  if (!answers || answers.length === 0) {
-    console.error("Error fetching answer: No answers found.");
-    return null;
-  }
-
-  // Use JavaScript .find() method to get first element where answer is not an empty string
-  const nonEmptyAnswer = answers.find((item) => item.answer.trim() !== "");
-
-  if (!nonEmptyAnswer) {
-    console.error("Error fetching answer: No non-empty answers found.");
-    return null;
-  }
-
-  // Return the nonEmptyAnswer directly as a string
-  return createReadableStream(nonEmptyAnswer.answer);
-};
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -260,16 +224,24 @@ export default function Home() {
     const errMessage = "Something went wrong. Try again later";
 
     try {
-      const cachedAnswer = await getCachedAnswer(query, author);
-      let data = null;
-      if (!cachedAnswer) {
+      let data;
+      if (isSupabaseInitialized) {
+        const cachedAnswer = await getCachedAnswer(query, author);
+        if (!cachedAnswer) {
+          const response: Response = await fetchResult(query, author);
+          if (!response.ok) {
+            throw new Error(errMessage);
+          }
+          data = response.body;
+        } else {
+          data = cachedAnswer;
+        }
+      } else {
         const response: Response = await fetchResult(query, author);
         if (!response.ok) {
           throw new Error(errMessage);
         }
         data = response.body;
-      } else {
-        data = cachedAnswer;
       }
 
       const reader = data?.getReader();
@@ -308,7 +280,7 @@ export default function Home() {
       const dateObject = new Date(dateTimeString);
       const formattedDateTime = formatDate(dateObject);
 
-      if (!errorMessages.includes(answer)) {
+      if (isSupabaseInitialized && !errorMessages.includes(answer)) {
         let payload = {
           uniqueId: uniqueIDD,
           question: question,
@@ -319,8 +291,8 @@ export default function Home() {
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        await SupaBaseDatabase.getInstance().insertData(payload);
-      } else {
+        addDocumentToSupabase(payload);
+      } else if (isSupabaseInitialized) {
         // If answer contains error messages, only add the question to DB
         let payload = {
           uniqueId: uniqueIDD,
@@ -332,7 +304,7 @@ export default function Home() {
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        await SupaBaseDatabase.getInstance().insertData(payload);
+        addDocumentToSupabase(payload);
       }
       await updateMessages(finalAnswerWithLinks, uuid);
     } catch (err: any) {

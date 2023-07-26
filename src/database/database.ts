@@ -1,5 +1,5 @@
 import { FeedbackPayload } from "@/types";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import getConfig from "next/config";
 
 // Access the environment variables
@@ -8,17 +8,40 @@ const SUPABASE_URL = publicRuntimeConfig.SUPABASE_URL;
 const SUPABASE_ANON_KEY = publicRuntimeConfig.SUPABASE_ANON_KEY;
 const DB_NAME = publicRuntimeConfig.DB_NAME;
 
-// Initialize Supabase client
-let supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase: SupabaseClient | null;
+
+// Empty string and undefined will both resolve to false
+const hasCredentials = SUPABASE_URL?.trim() && SUPABASE_ANON_KEY?.trim()
+
+try {
+  if (!hasCredentials) {
+    throw new Error("Credentials are missing")
+  }
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+} catch (err) {
+  supabase = null
+  console.error(err)
+}
+
+export const isSupabaseInitialized = Boolean(supabase)
 
 // Example usage: Fetch all rows from a table named "tasks"
 export class SupaBaseDatabase {
-  static getInstance() {
-    return new SupaBaseDatabase();
+  private client: SupabaseClient;
+
+  constructor(client: SupabaseClient) {
+    this.client = client;
+  }
+
+  static getInstance(): SupaBaseDatabase {
+    if (!supabase) {
+      throw new Error('Supabase has not been initialized because SUPABASE_URL is not defined');
+    }
+    return new SupaBaseDatabase(supabase);
   }
 
   async fetchData() {
-    const { data, error } = await supabase.from(DB_NAME).select("*");
+    const { data, error } = await this.client.from(DB_NAME).select("*");
 
     if (error) {
       console.error("Error fetching tasks:", error);
@@ -27,9 +50,15 @@ export class SupaBaseDatabase {
     }
   }
   async insertData(payload: any) {
+    if (!this.client) {
+      throw new Error('Supabase client is not initialized');
+    }
+
     payload.question = payload.question.toLowerCase();
     payload.author_name = payload.author_name.toLowerCase();
-    const { data, error } = await supabase.from(DB_NAME).insert([payload]);
+
+    const { data, error } = await this.client.from(DB_NAME).insert([payload]);
+
     if (error) {
       console.error("Error inserting Q&A:", error);
     } else {
@@ -38,7 +67,7 @@ export class SupaBaseDatabase {
   }
   async addFeedback(payload: FeedbackPayload) {
     const { answerQuality, feedbackId, rating, timestamp } = payload;
-    const { data, error, status } = await supabase
+    const { data, error, status } = await this.client
       .from(DB_NAME)
       .update({
         answerQuality,
@@ -58,7 +87,7 @@ export class SupaBaseDatabase {
   async getAnswerByQuestion(question: string, author?: string) {
     const oneDayBefore = new Date();
     oneDayBefore.setDate(oneDayBefore.getDate() - 1);
-    let query = supabase
+    let query = this.client
       .from(DB_NAME)
       .select("answer, createdAt")
       .eq('question', question);
@@ -83,3 +112,56 @@ export class SupaBaseDatabase {
     }
   }
 }
+
+export const getCachedAnswer = async (question: string, author?: string) => {
+  question = question.toLowerCase();
+  author = author?.toLowerCase();
+  const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
+    question,
+    author
+  );
+
+  if (!answers || answers.length === 0) {
+    console.error("Error fetching answer: No answers found.");
+    return null;
+  }
+
+  // Use JavaScript .find() method to get first element where answer is not an empty string
+  const nonEmptyAnswer = answers.find((item) => item.answer.trim() !== "");
+
+  if (!nonEmptyAnswer) {
+    console.error("Error fetching answer: No non-empty answers found.");
+    return null;
+  }
+
+  // Return the nonEmptyAnswer directly as a string
+  return createReadableStream(nonEmptyAnswer.answer);
+};
+
+export const addDocumentToSupabase = async (payload: any) => {
+  await SupaBaseDatabase.getInstance().insertData(payload);
+};
+
+function createReadableStream(text: string) {
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(text));
+      controller.close();
+    },
+  });
+  return readable;
+}
+
+export const addFeedback = async (feedback: FeedbackPayload, feedbackId: string) => {
+  const { status, error } = await SupaBaseDatabase.getInstance().addFeedback({
+    ...feedback,
+    feedbackId,
+  });
+
+  if (status >= 200 && status < 300 && !error) {
+    console.log("Feedback sent successfully");
+    return true;
+  }
+  return false;
+};
