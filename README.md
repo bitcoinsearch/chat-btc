@@ -26,10 +26,11 @@ yarn dev
 pnpm dev
 ```
 
-3. Add your API keys to a `.env.local` file in the root directory including:
+3. Add your API keys to a `.env.local` file in the root directory. You will need two things - documents on elasticsearch and an OpenAI account. Track those down and include the following variables:
 
 ```
-ES_URL=
+ES_CLOUD_ID=
+ES_INDEX=
 ES_AUTHORIZATION_TOKEN=
 OPENAI_API_KEY=
 ```
