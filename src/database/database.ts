@@ -8,16 +8,22 @@ const SUPABASE_URL = publicRuntimeConfig.SUPABASE_URL;
 const SUPABASE_ANON_KEY = publicRuntimeConfig.SUPABASE_ANON_KEY;
 const DB_NAME = publicRuntimeConfig.DB_NAME;
 
-export const isSupabaseInitialized = SUPABASE_URL !== undefined && SUPABASE_ANON_KEY !== undefined && SUPABASE_URL !== "" && SUPABASE_ANON_KEY !== "";
-
 let supabase: SupabaseClient | null;
 
-if (SUPABASE_URL) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} else {
-  supabase = null;
-  console.error('SUPABASE_URL is not defined in .env file');
+// Empty string and undefined will both resolve to false
+const hasCredentials = SUPABASE_URL?.trim() && SUPABASE_ANON_KEY?.trim()
+
+try {
+  if (!hasCredentials) {
+    throw new Error("Credentials are missing")
+  }
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+} catch (err) {
+  supabase = null
+  console.error(err)
 }
+
+export const isSupabaseInitialized = Boolean(supabase)
 
 // Example usage: Fetch all rows from a table named "tasks"
 export class SupaBaseDatabase {
@@ -109,7 +115,7 @@ export class SupaBaseDatabase {
 
 export const getCachedAnswer = async (question: string, author?: string) => {
   question = question.toLowerCase();
-  author = author?.toLocaleLowerCase();
+  author = author?.toLowerCase();
   const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
     question,
     author
