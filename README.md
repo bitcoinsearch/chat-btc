@@ -13,11 +13,13 @@ This project is a chat application built using Next.js, Chakra UI. These instruc
 ### Installing
 
 1. Clone the repository
+
 ```sh
 git clone git@github.com:bitcoinsearch/chat-btc.git
 ```
 
 2. Install NPM packages
+
 ```bash
 npm run dev
 # or
@@ -56,3 +58,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 ## Feedback and Contributions
 
 ...are welcome!
+
+## For LSAT IMPLEMENTATION
+
+Read the BOLTWALL doc [here](./boltwallServer/BOLTWALL.md)
