@@ -1,5 +1,4 @@
 import authorsConfig from "@/config/authorsConfig";
-import useScrollEffectContainer from "@/hooks/useScrollEffectContainer";
 import { PromptAction } from "@/types";
 import {
   Box,
@@ -25,7 +24,6 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
     onPrompt(text, author, { startChat: true });
   };
   const fullScreenContainer = useRef<HTMLDivElement>(null);
-  useScrollEffectContainer({ containerRef: fullScreenContainer });
 
   return (
     <>
