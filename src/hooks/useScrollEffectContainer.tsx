@@ -1,9 +1,10 @@
 import { useRouter } from 'next/router';
-import { RefObject, useEffect } from 'react';
+import { RefObject, useEffect, useState } from 'react';
 
 const paddingAccounting = 48;
 
 const useScrollEffectContainer = ({containerRef}: {containerRef: RefObject<HTMLDivElement>}) => {
+  const [currentSegment, setCurrentSegment] = useState("chat")
   const router = useRouter()
   useEffect(() => {
     const fullScreenElement = containerRef.current
@@ -16,7 +17,8 @@ const useScrollEffectContainer = ({containerRef}: {containerRef: RefObject<HTMLD
     const scrollToSection = (id: string | undefined, el: Element) => {
       if (!id) {
         el.scrollIntoView({behavior: "smooth"})
-      } else if (id && window.location.hash !== `#${id}`) {
+      } 
+      if (id && window.location.hash !== `#${id}`) {
         router.replace(`#${id}`)
       }
     }
@@ -33,13 +35,15 @@ const useScrollEffectContainer = ({containerRef}: {containerRef: RefObject<HTMLD
         const {top} = currentChild.getBoundingClientRect();
         
         if (isScrollDown) {
-          if (top > paddingAccounting && top < (partialSectionToEnableScrollDown)) {
-            scrollToSection(id, currentChild)
+          if (top >= paddingAccounting && top < (partialSectionToEnableScrollDown - 400)) {
+            // scrollToSection(id, currentChild)
+            setCurrentSegment(id)
           }
         }
         else if (isScrollUp) {
-          if (top <= paddingAccounting && top > (partialSectionToEnableScrollUp)) {
-            scrollToSection(id, currentChild)
+          if (top <= paddingAccounting && top > (partialSectionToEnableScrollUp + 400)) {
+            // scrollToSection(id, currentChild)
+            setCurrentSegment(id)
           }
         }
         else {
@@ -57,6 +61,8 @@ const useScrollEffectContainer = ({containerRef}: {containerRef: RefObject<HTMLD
       })
     }
   }, [containerRef])
+
+  return currentSegment;
 }
 
 export default useScrollEffectContainer
