@@ -35,6 +35,11 @@ export type AuthorConfig = {
   questions: string[];
 };
 
+export type Invoice = {
+  payment_request: string;
+  r_hash: string;
+};
+
 type PromptOptions = {
   startChat?: boolean
 }
