@@ -1,20 +1,25 @@
 import { SendIcon } from "@/chakra/custom-chakra-icons";
 import MessageBox, { Message } from "@/components/message/message";
 import Rating from "@/components/rating/Rating";
-import { PromptAction } from "@/types";
-import authorsConfig, { AUTHOR_QUERY, deriveAuthorIntroduction } from "@/config/authorsConfig";
+import authorsConfig, {
+  AUTHOR_QUERY,
+  deriveAuthorIntroduction,
+} from "@/config/authorsConfig";
 import {
   Box,
   Container,
-  Flex, IconButton,
+  Flex,
+  IconButton,
   Text,
-  Textarea
+  Textarea,
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { v4 as uuidv4 } from "uuid";
+import InvoiceModal from "../invoice/modal";
+import { usePaymentContext } from "@/contexts/payment-context";
 
 type ChatProps = {
   userInput: string;
@@ -30,7 +35,6 @@ type ChatProps = {
 
 const blippy = authorsConfig[0];
 
-
 const ChatScreen = ({
   userInput,
   typedMessage,
@@ -42,59 +46,77 @@ const ChatScreen = ({
   streamLoading,
   resetChat,
 }: ChatProps) => {
+  const { setIsPaymentSettled, requestPayment, isPaymentSettled } =
+    usePaymentContext();
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const initMessageListHeight = useRef(messageListRef.current?.scrollHeight ?? 0)
+  const initMessageListHeight = useRef(
+    messageListRef.current?.scrollHeight ?? 0
+  );
 
   const router = useRouter();
   const authorQuery = router.query[AUTHOR_QUERY];
 
   const author = useMemo(() => {
-    return authorsConfig.find((authorConfig) => authorConfig.slug === authorQuery) ||
-    blippy;
-  }, [authorQuery])
+    return (
+      authorsConfig.find((authorConfig) => authorConfig.slug === authorQuery) ||
+      blippy
+    );
+  }, [authorQuery]);
 
   const authorInitialDialogue: Message = useMemo(() => {
     return {
       type: "authorMessage",
       message: author.introduction ?? deriveAuthorIntroduction(author.name),
-      uniqueId: ""
-    }
-  }, [author])
+      uniqueId: "",
+    };
+  }, [author]);
 
-  const [userHijackedScroll, setUserHijackedScroll] = useState(false)
+  const [userHijackedScroll, setUserHijackedScroll] = useState(false);
 
-  const chatList: Message[] = [authorInitialDialogue, ...messages]
+  const chatList: Message[] = [authorInitialDialogue, ...messages];
 
   // Auto scroll chat to bottom
   useEffect(() => {
     const messageList = messageListRef.current;
-    if (userHijackedScroll) return
-    if (!messageList) return
+    if (userHijackedScroll) return;
+    if (!messageList) return;
     const listHeight = messageList.scrollHeight;
-    const scrollBottom = messageList.scrollHeight - messageList.clientHeight
+    const scrollBottom = messageList.scrollHeight - messageList.clientHeight;
     if (listHeight > initMessageListHeight.current) {
-      messageList.scrollTo({top: scrollBottom, behavior: "smooth"});
-      initMessageListHeight.current = listHeight
+      messageList.scrollTo({ top: scrollBottom, behavior: "smooth" });
+      initMessageListHeight.current = listHeight;
     }
   }, [typedMessage, userHijackedScroll]);
 
   // scroll to last message (user text after submit)
   useEffect(() => {
-    if (userHijackedScroll || streamLoading) return
+    if (userHijackedScroll || streamLoading) return;
     const messageList = messageListRef.current;
     if (messageList) {
-      const scrollBottom = messageList.scrollHeight - messageList.clientHeight
-      messageList.scrollTo({top: scrollBottom, behavior: "smooth"});
+      const scrollBottom = messageList.scrollHeight - messageList.clientHeight;
+      messageList.scrollTo({ top: scrollBottom, behavior: "smooth" });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setUserHijackedScroll(false)
-    startChat(userInput, author.value)
-  }
+  useEffect(() => {
+    if (isPaymentSettled) {
+      startChat(userInput, author.value);
+    } else {
+      return;
+    }
+    console.log({ isPaymentSettled }, "useEffect");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaymentSettled, startChat]);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setUserHijackedScroll(false);
+
+    const { payment_request, r_hash } = await requestPayment();
+    if (!payment_request || !r_hash) return;
+  };
 
   // Prevent blank submissions and allow for multiline input
   const handleEnter = (e: React.KeyboardEvent) => {
@@ -111,25 +133,27 @@ const ChatScreen = ({
 
   useEffect(() => {
     const messageListBox = messageListRef.current;
-    if (!messageListBox) return
-    let initScroll = messageListBox.scrollTop
+    if (!messageListBox) return;
+    let initScroll = messageListBox.scrollTop;
     const handleScroll = (e: Event) => {
-      const hasScrolledUp = messageListBox.scrollTop < initScroll
-      const hasScrolledToBottom = messageListBox.scrollTop + messageListBox.clientHeight === messageListBox.scrollHeight
-      initScroll = messageListBox.scrollTop
+      const hasScrolledUp = messageListBox.scrollTop < initScroll;
+      const hasScrolledToBottom =
+        messageListBox.scrollTop + messageListBox.clientHeight ===
+        messageListBox.scrollHeight;
+      initScroll = messageListBox.scrollTop;
       if (hasScrolledUp && streamLoading) {
-        setUserHijackedScroll(true)
+        setUserHijackedScroll(true);
       }
       // return hijackedScroll back to generator
       if (hasScrolledToBottom && streamLoading && userHijackedScroll) {
-        setUserHijackedScroll(false)
+        setUserHijackedScroll(false);
       }
-    }
-    messageListBox.addEventListener("scroll", handleScroll)
+    };
+    messageListBox.addEventListener("scroll", handleScroll);
     return () => {
-      messageListBox.removeEventListener("scroll", handleScroll)
-    }
-  }, [messageListRef, streamLoading, userHijackedScroll])
+      messageListBox.removeEventListener("scroll", handleScroll);
+    };
+  }, [messageListRef, streamLoading, userHijackedScroll]);
 
   // add columns to textarea for multiline text
   useEffect(() => {
@@ -194,9 +218,14 @@ const ChatScreen = ({
                   />
                 </Box>
               </Box>
+              <InvoiceModal />
               <Box>
-                <Text fontSize={{base:"18px", md: "24px"}} fontWeight={500}>{author.name}</Text>
-                <Text fontSize={{base:"12px", md: "16px"}} fontWeight={300}>{author.title}</Text>
+                <Text fontSize={{ base: "18px", md: "24px" }} fontWeight={500}>
+                  {author.name}
+                </Text>
+                <Text fontSize={{ base: "12px", md: "16px" }} fontWeight={300}>
+                  {author.title}
+                </Text>
               </Box>
             </Flex>
             <Box

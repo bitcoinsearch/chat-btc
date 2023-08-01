@@ -23,6 +23,9 @@ module.exports = {
     ES_USERNAME:process.env.ES_USERNAME,
     ES_PASSWORD:process.env.ES_PASSWORD,
     ES_INDEX:process.env.ES_INDEX,
+    MACAROON:process.env.MACAROON,
+    JWT_SECRET:process.env.JWT_SECRET,
+    LND_URL:process.env.LND_URL,
   },
   publicRuntimeConfig: {
     SUPABASE_URL: process.env.SUPABASE_URL,
@@ -36,5 +39,8 @@ module.exports = {
     ES_USERNAME:process.env.ES_USERNAME,
     ES_PASSWORD:process.env.ES_PASSWORD,
     ES_INDEX:process.env.ES_INDEX,
+    MACAROON:process.env.MACAROON,
+    JWT_SECRET:process.env.JWT_SECRET,
+    LND_URL:process.env.LND_URL,
   },
 }
