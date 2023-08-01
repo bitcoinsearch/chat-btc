@@ -33,26 +33,28 @@ function createReadableStream(text: string) {
 const getCachedAnswer = async (question: string, author?: string) => {
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
-  const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
-    question,
-    author
-  );
+  try {
+    const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
+      question,
+      author
+    );
 
-  if (!answers || answers.length === 0) {
-    console.error("Error fetching answer: No answers found.");
+    if (!answers || answers.length === 0) {
+      console.error("Error fetching answer: No answers found.");
+      return null;
+    }
+
+    // Use JavaScript .find() method to get first element where answer is not an empty string
+    const nonEmptyAnswer = answers.find((item) => item.answer?.trim() !== "");
+
+    if (!nonEmptyAnswer) {
+      console.error("Error fetching answer: No non-empty answers found.");
+      return null;
+    }
+    return createReadableStream(nonEmptyAnswer.answer);
+  } catch (error) {
     return null;
   }
-
-  // Use JavaScript .find() method to get first element where answer is not an empty string
-  const nonEmptyAnswer = answers.find((item) => item.answer.trim() !== "");
-
-  if (!nonEmptyAnswer) {
-    console.error("Error fetching answer: No non-empty answers found.");
-    return null;
-  }
-
-  // Return the nonEmptyAnswer directly as a string
-  return createReadableStream(nonEmptyAnswer.answer);
 };
 
 function formatDate(date: Date) {
@@ -291,7 +293,7 @@ export default function Home() {
       const dateObject = new Date(dateTimeString);
       const formattedDateTime = formatDate(dateObject);
 
-      if (!errorMessages.includes(answer)) {
+      if (answer?.trim() && !errorMessages.includes(answer)) {
         let payload = {
           uniqueId: uniqueIDD,
           question: question,
