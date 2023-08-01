@@ -20,13 +20,14 @@ import { isMobile } from "react-device-detect";
 import { v4 as uuidv4 } from "uuid";
 import InvoiceModal from "../invoice/modal";
 import { usePaymentContext } from "@/contexts/payment-context";
+import { PromptAction } from "@/types";
 
 type ChatProps = {
   userInput: string;
   typedMessage: string;
   streamData: Message;
   messages: Message[];
-  startChat: (prompt?: string, author?: string) => void;
+  startChat: PromptAction;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   loading: boolean;
   streamLoading: boolean;
@@ -103,9 +104,7 @@ const ChatScreen = ({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setUserHijackedScroll(false);
-
-    const { payment_request, r_hash } = await requestPayment();
-    if (!payment_request || !r_hash) return;
+    startChat(userInput, author.slug, { startChat: true })
   };
 
   // Prevent blank submissions and allow for multiline input
