@@ -24,7 +24,7 @@ import { usePaymentContext } from "@/contexts/payment-context";
 function InvoiceModal() {
   const toast = useToast();
   const { onClose } = useDisclosure();
-  const { invoice, loading, isPaymentModalOpen, closePaymentModal } =
+  const { invoice, error, setError, loading, isPaymentModalOpen, closePaymentModal, payWithWebln } =
     usePaymentContext();
   const copy = useCopyToClipboard();
   const truncatedStr = useTruncatedString(invoice.payment_request, 10);
@@ -38,6 +38,18 @@ function InvoiceModal() {
       isClosable: true,
     });
   };
+
+  if (error) {
+    toast({
+      title: "Error",
+      status: "error",
+      description: error,
+      duration: null,
+      isClosable: true,
+      position: "top-right"
+    });
+    setError("")
+  }
 
   return (
     <Modal
@@ -68,24 +80,26 @@ function InvoiceModal() {
             />
           ) : (
             <>
-              <Box
-                height={"auto"}
-                margin={"0 auto"}
-                maxWidth={200}
-                width={"100%"}
-                border={"1px solid"}
-                padding={2}
-                bg={"white"}
-                bgColor={"white"}
-                borderRadius={"md"}
-              >
-                <QRCode
-                  size={256}
-                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                  value={invoice.payment_request}
-                  viewBox={`0 0 256 256`}
-                  level={"Q"}
-                />
+              <Box maxWidth={200} width={"100%"}>
+                <Box
+                  height={"auto"}
+                  margin={"0 auto"}
+                  width={"100%"}
+                  border={"1px solid"}
+                  padding={2}
+                  bg={"white"}
+                  bgColor={"white"}
+                  borderRadius={"md"}
+                >
+                  <QRCode
+                    size={256}
+                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                    value={invoice.payment_request}
+                    viewBox={`0 0 256 256`}
+                    level={"Q"}
+                  />
+                </Box>
+                <Button mt={5} variant="link" color="orange.200" onClick={payWithWebln}>Pay with webln?</Button>
               </Box>
               <Flex flexDir={"column"}>
                 <Code
