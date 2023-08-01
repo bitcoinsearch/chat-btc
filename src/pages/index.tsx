@@ -21,8 +21,8 @@ import { separateLinksFromApiMessage } from "@/utils/links";
 import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
+import { shouldUserPay } from "@/utils/token";
 
-const NUMBER_OF_FREE_CHAT = 1;
 const initialStream: Message = {
   type: "apiStream",
   message: "",
@@ -365,20 +365,9 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function shouldUserPay(numberOfUserMessage: number) {
-    const hasExceededLimit = window.localStorage.getItem("hasExceededLimit") === "true";
-    if (hasExceededLimit) {
-      return true
-    } else {
-      if (numberOfUserMessage >= NUMBER_OF_FREE_CHAT) {
-        localStorage.setItem("hasExceededLimit", "true")
-      }
-      return false
-    }
-  }
-
   const promptChat: PromptAction = async (prompt, author, options) => {
     updateRouterQuery(AUTHOR_QUERY, author);
+    if (!prompt?.trim()) return
     const authorValue =
       authorsConfig.find((_author) => author === _author.slug)?.value ?? "";
     if (options?.startChat) {
@@ -415,7 +404,7 @@ export default function Home() {
           typedMessage={typedMessage}
           streamData={streamData}
           handleInputChange={handleInputChange}
-          startChat={startChatQuery}
+          startChat={promptChat}
           loading={loading}
           streamLoading={streamLoading}
           resetChat={resetChat}

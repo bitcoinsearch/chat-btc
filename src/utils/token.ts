@@ -2,6 +2,8 @@ import * as jose from "jose";
 
 import { ENV } from "@/config/env";
 
+const NUMBER_OF_FREE_CHAT = 1;
+
 export async function generateToken(invoice: string) {
   const jwt = await new jose.SignJWT({ invoice })
     .setProtectedHeader({ alg: "HS256" })
@@ -28,5 +30,18 @@ export async function isValidPaymentToken(token: string) {
   } catch (e) {
     console.error(e);
     return false;
+  }
+}
+
+export function shouldUserPay(numberOfUserMessage: number) {
+  const hasExceededLimit = window.localStorage.getItem("hasExceededLimit") === "true";
+  if (hasExceededLimit) {
+    return true
+  } else {
+    if (numberOfUserMessage >= NUMBER_OF_FREE_CHAT) {
+      localStorage.setItem("hasExceededLimit", "true")
+      return true;
+    }
+    return false
   }
 }
