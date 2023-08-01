@@ -22,6 +22,7 @@ import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
 
+const NUMBER_OF_FREE_CHAT = 1;
 const initialStream: Message = {
   type: "apiStream",
   message: "",
@@ -364,6 +365,20 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function shouldUserPay(numberOfUserMessage: number) {
+    console.log("exceeded", window.localStorage.getItem("hasExceededLimit"))
+    console.log("infoPay", window.localStorage.getItem("showInfoPaymentToast"))
+    const hasExceededLimit = window.localStorage.getItem("hasExceededLimit") === "true";
+    if (hasExceededLimit) {
+      return true
+    } else {
+      if (numberOfUserMessage >= NUMBER_OF_FREE_CHAT) {
+        localStorage.setItem("hasExceededLimit", "true")
+      }
+      return false
+    }
+  }
+
   const promptChat: PromptAction = async (prompt, author, options) => {
     updateRouterQuery(AUTHOR_QUERY, author);
     const authorValue =
@@ -371,11 +386,16 @@ export default function Home() {
     if (options?.startChat) {
       setUserInput(prompt)
       setSelectedAuthor(authorValue);
-      // const { payment_request, r_hash } = await requestPayment();
-      // if (!payment_request && !r_hash) {
-      //   return;
-      // }
-      startChatQuery(prompt, authorValue);
+      const userMessages = messages.filter((message) => message.type === "userMessage")
+      const shouldPay = shouldUserPay(userMessages.length)
+      if (shouldPay) {
+        const { payment_request, r_hash } = await requestPayment();
+        if (!payment_request && !r_hash) {
+          return;
+        }
+      } else {
+        startChatQuery(prompt, authorValue);
+      }
     } else {
       setUserInput(prompt);
     }

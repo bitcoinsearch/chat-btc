@@ -5,8 +5,10 @@ import useTruncatedString from "@/hooks/useTruncatedString";
 import {
   Box,
   Button,
+  Checkbox,
   Code,
   Flex,
+  IconButton,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -20,6 +22,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { usePaymentContext } from "@/contexts/payment-context";
+import { useEffect } from "react";
 
 function InvoiceModal() {
   const toast = useToast();
@@ -51,6 +54,35 @@ function InvoiceModal() {
     setError("")
   }
 
+  useEffect(() => {
+    const showPaymentToast = !Boolean(window.localStorage.getItem("showInfoPaymentToast") === "false")
+    const handleInfoToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.checked) {
+        window.localStorage.setItem("showInfoPaymentToast", "false")
+      } else {
+        window.localStorage.setItem("showInfoPaymentToast", "true")
+      }
+    }
+    if (showPaymentToast && isPaymentModalOpen) {
+      toast({
+        duration: 10000,
+        isClosable: true,
+        position: "top",
+        render: (props) => (
+          <Box py={2} px={4} bgColor="blue.800" rounded="md" position="relative">
+            <Box position="absolute" top={0} right={0} mr={3} role="button" fontSize="lg" fontWeight={700} color="red.400" onClick={() => props.onClose()}>x</Box>
+            <Text fontSize="lg" fontWeight={600} textAlign="center">Free Chat Exhausted</Text>
+            <Text fontSize="sm">You have exhausted your free chat on ChatBTC. All subsequent chat queries must be paid for</Text>
+            <Text fontSize="sm">You can pay with webln using alby, pay a lightning invoice, or scan the QR code below with a lightning enabled wallet</Text>
+            <Box ml="auto" display="flex" justifyContent="flex-end" w="full">
+              <Checkbox ml="auto" width="fit-content" onChange={handleInfoToggle}>Do not show again</Checkbox>
+            </Box>
+          </Box>
+        )
+      });
+    }
+  }, [toast, isPaymentModalOpen])
+  
   return (
     <Modal
       isCentered
