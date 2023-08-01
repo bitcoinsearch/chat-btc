@@ -3,6 +3,7 @@ import React, { createContext } from "react";
 
 import { Invoice } from "@/types";
 import { generateToken } from "@/utils/token";
+import { requestProvider } from "webln";
 
 type PaymentContextType = {
   invoice: Invoice;
@@ -13,6 +14,11 @@ type PaymentContextType = {
   requestPayment: () => Promise<Invoice>;
   requestPaymentToken: () => Promise<{ token: string }>;
   setIsPaymentSettled: (isPaymentSettled: boolean) => void;
+};
+
+const defaultInvoice = {
+  payment_request: "",
+  r_hash: "",
 };
 
 const PaymentContext = createContext<PaymentContextType>(null!);
@@ -43,11 +49,24 @@ export const PaymentContextProvider = ({
     if (response.status !== 200) {
       setError("Error generating invoice");
       setLoading(false);
-      return { payment_request: "", r_hash: "" };
+      return defaultInvoice;
     }
     const { payment_request, r_hash } = response.data;
     setInvoice({ payment_request, r_hash });
     setLoading(false);
+    try {
+      const webln = await requestProvider();
+      if (!webln) {
+        console.log("Error: webln not available");
+      }
+      const res = await webln.sendPayment(payment_request);
+      if (res instanceof Error) {
+        alert("Error: could not pay with webln");
+      }
+    } catch (error) {
+      alert("Error: could not pay with webln");
+      console.log("error", error);
+    }
     return { payment_request, r_hash };
   }, []);
 
@@ -63,7 +82,7 @@ export const PaymentContextProvider = ({
 
   const closePaymentModal = React.useCallback(() => {
     if (!isPaymentSettled) {
-      setInvoice({ payment_request: "", r_hash: "" });
+      setInvoice(defaultInvoice);
     }
     setLoading(false);
     setIsPaymentSettled(false);
