@@ -40,7 +40,8 @@
     "react-qr-code": "^2.0.11",
     "react-spinners": "^0.13.8",
     "typescript": "4.9.5",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "webln": "^0.3.2"
   },
   "devDependencies": {
     "@types/next": "^9.0.0",

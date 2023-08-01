@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    webln: any;
+  }
+}
+
 export const AnswerQuality = {
   inaccurate: "Inaccurate information",
   poor: "Poorly worded",
