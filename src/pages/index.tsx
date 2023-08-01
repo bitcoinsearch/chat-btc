@@ -20,6 +20,7 @@ import { GeneratingErrorMessages, PromptAction } from "@/types";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
 import { usePaymentContext } from "@/contexts/payment-context";
+import InvoiceModal from "@/components/invoice/modal";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -369,7 +370,7 @@ export default function Home() {
     const authorValue =
       authorsConfig.find((_author) => author === _author.slug)?.value ?? "";
     if (options?.startChat) {
-      setPromptValue(prompt);
+      setUserInput(prompt)
       setSelectedAuthor(authorValue);
       const { payment_request, r_hash } = await requestPayment();
       if (!payment_request && !r_hash) {
@@ -382,7 +383,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isPaymentSettled) {
-      startChatQuery(promptValue, selectedAuthor);
+      startChatQuery(userInput, selectedAuthor);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaymentSettled, startChatQuery]);
@@ -404,6 +405,7 @@ export default function Home() {
       ) : (
         <HomePage onPrompt={promptChat} />
       )}
+      <InvoiceModal />
     </>
   );
 }

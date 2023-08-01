@@ -73,7 +73,6 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
           </Flex>
         </Container>
       </Box>
-      <InvoiceModal />
       <Box
         className={styles.full_screen_section}
         ref={fullScreenContainer}

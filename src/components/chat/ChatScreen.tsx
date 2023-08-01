@@ -100,16 +100,6 @@ const ChatScreen = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
-  useEffect(() => {
-    if (isPaymentSettled) {
-      startChat(userInput, author.value);
-    } else {
-      return;
-    }
-    console.log({ isPaymentSettled }, "useEffect");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaymentSettled, startChat]);
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setUserHijackedScroll(false);
@@ -218,7 +208,6 @@ const ChatScreen = ({
                   />
                 </Box>
               </Box>
-              <InvoiceModal />
               <Box>
                 <Text fontSize={{ base: "18px", md: "24px" }} fontWeight={500}>
                   {author.name}
