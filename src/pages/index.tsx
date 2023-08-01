@@ -366,8 +366,6 @@ export default function Home() {
   }, []);
 
   function shouldUserPay(numberOfUserMessage: number) {
-    console.log("exceeded", window.localStorage.getItem("hasExceededLimit"))
-    console.log("infoPay", window.localStorage.getItem("showInfoPaymentToast"))
     const hasExceededLimit = window.localStorage.getItem("hasExceededLimit") === "true";
     if (hasExceededLimit) {
       return true
