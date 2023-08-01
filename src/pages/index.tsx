@@ -97,7 +97,6 @@ export default function Home() {
   const [selectedAuthor, setSelectedAuthor] = useState<string | undefined>(
     undefined
   );
-  const [promptValue, setPromptValue] = useState<string | undefined>(undefined);
 
   const { requestPayment, isPaymentSettled } = usePaymentContext();
 
@@ -372,10 +371,11 @@ export default function Home() {
     if (options?.startChat) {
       setUserInput(prompt)
       setSelectedAuthor(authorValue);
-      const { payment_request, r_hash } = await requestPayment();
-      if (!payment_request && !r_hash) {
-        return;
-      }
+      // const { payment_request, r_hash } = await requestPayment();
+      // if (!payment_request && !r_hash) {
+      //   return;
+      // }
+      startChatQuery(prompt, authorValue);
     } else {
       setUserInput(prompt);
     }
