@@ -19,6 +19,15 @@ const initialStream: Message = {
 };
 const matchFinalWithLinks = /(^\[\d+\]:\shttps:\/\/)/gm;
 
+const errorMessages = [
+  "I am not able to find an answer to this question. So please rephrase your question and ask again.",
+  "The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!",
+  "I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.",
+  "Currently server is overloaded with API calls, please try again later.",
+  "null",
+  "undefined"
+];
+
 function createReadableStream(text: string) {
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
@@ -44,8 +53,7 @@ const getCachedAnswer = async (question: string, author?: string) => {
       return null;
     }
 
-    // Use JavaScript .find() method to get first element where answer is not an empty string
-    const nonEmptyAnswer = answers.find((item) => item.answer?.trim() !== "");
+    const nonEmptyAnswer = answers.find((item) => Boolean(item.answer && item.answer?.trim() && !errorMessages.includes(item.answer)));
 
     if (!nonEmptyAnswer) {
       console.error("Error fetching answer: No non-empty answers found.");
@@ -191,13 +199,6 @@ export default function Home() {
     });
     return response.json(); // Add this line
   };
-
-  const errorMessages = [
-    "I am not able to find an answer to this question. So please rephrase your question and ask again.",
-    "The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!",
-    "I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.",
-    "Currently server is overloaded with API calls, please try again later.",
-  ];
 
   const fetchResult = async (query: string, author?: string) => {
     const errMessage = "Something went wrong. Try again later";
