@@ -35,7 +35,7 @@ async function extractESresults(
   Keywords: string,
   question: string,
   author?: string
-): Promise<any[] | undefined> {
+): Promise<any[] | null> {
   let searchResults = await getSearchResults(Keywords, author);
 
   if (!searchResults || searchResults.length === 0) {
@@ -43,7 +43,7 @@ async function extractESresults(
   }
 
   if (!searchResults || searchResults.length === 0) {
-    return undefined;
+    return null;
   }
 
   // If searchResults are found, return them
@@ -84,7 +84,7 @@ async function getSearchResults(
                           match_phrase: {
                             authors: {
                               query: author,
-                              analyzer: "analyzer_search", // Use the analyzer with synonym filter for filtering
+                              // analyzer: "analyzer_search", // Use the analyzer with synonym filter for filtering
                             },
                           },
                         },
@@ -99,7 +99,7 @@ async function getSearchResults(
     });
     return response.hits.hits;
   } catch (error) {
-    return undefined;
+    return null;
   }
 }
 
