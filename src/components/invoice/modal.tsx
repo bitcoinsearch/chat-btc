@@ -5,7 +5,9 @@ import useTruncatedString from "@/hooks/useTruncatedString";
 import {
   Box,
   Button,
+  ChakraProps,
   Checkbox,
+  CheckboxProps,
   Code,
   Flex,
   IconButton,
@@ -17,20 +19,47 @@ import {
   ModalHeader,
   ModalOverlay,
   Spinner,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Text,
   useDisclosure,
+  useRadio,
+  UseRadioProps,
   useToast,
 } from "@chakra-ui/react";
-import { usePaymentContext } from "@/contexts/payment-context";
-import { useEffect } from "react";
+import {
+  PaymentTier,
+  paymentTierList,
+  usePaymentContext,
+} from "@/contexts/payment-context";
+import { useEffect, useState } from "react";
 
 function InvoiceModal() {
   const toast = useToast();
   const { onClose } = useDisclosure();
-  const { invoice, error, setError, loading, isPaymentModalOpen, closePaymentModal, payWithWebln } =
-    usePaymentContext();
+  const {
+    invoice,
+    error,
+    setError,
+    loading,
+    isPaymentModalOpen,
+    closePaymentModal,
+    payWithWebln,
+    autoPaymentInvoice,
+    autoPaymentTier,
+    autoPaymentLoading,
+    isAutoPaymentSettled,
+    selectTieredPayment,
+  } = usePaymentContext();
   const copy = useCopyToClipboard();
   const truncatedStr = useTruncatedString(invoice.payment_request, 10);
+  const truncatedAutoPayInvoice = useTruncatedString(
+    autoPaymentInvoice.payment_request,
+    10
+  );
 
   const handleCopy = () => {
     copy(invoice.payment_request);
@@ -49,40 +78,74 @@ function InvoiceModal() {
       description: error,
       duration: null,
       isClosable: true,
-      position: "top-right"
+      position: "top-right",
     });
-    setError("")
+    setError("");
   }
 
   useEffect(() => {
-    const showPaymentToast = !Boolean(window.localStorage.getItem("showInfoPaymentToast") === "false")
+    const showPaymentToast = !Boolean(
+      window.localStorage.getItem("showInfoPaymentToast") === "false"
+    );
     const handleInfoToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
-        window.localStorage.setItem("showInfoPaymentToast", "false")
+        window.localStorage.setItem("showInfoPaymentToast", "false");
       } else {
-        window.localStorage.setItem("showInfoPaymentToast", "true")
+        window.localStorage.setItem("showInfoPaymentToast", "true");
       }
-    }
+    };
     if (showPaymentToast && isPaymentModalOpen) {
       toast({
         duration: 10000,
         isClosable: true,
         position: "top",
         render: (props) => (
-          <Box py={2} px={4} bgColor="blue.800" rounded="md" position="relative">
-            <Box position="absolute" top={0} right={0} mr={3} role="button" fontSize="lg" fontWeight={700} color="red.400" onClick={() => props.onClose()}>x</Box>
-            <Text fontSize="lg" fontWeight={600} textAlign="center">Free Chat Exhausted</Text>
-            <Text fontSize="sm">You have exhausted your free chat on ChatBTC. All subsequent chat queries must be paid for</Text>
-            <Text fontSize="sm">You can pay with webln using alby, pay a lightning invoice, or scan the QR code below with a lightning enabled wallet</Text>
+          <Box
+            py={2}
+            px={4}
+            bgColor="blue.800"
+            rounded="md"
+            position="relative"
+          >
+            <Box
+              position="absolute"
+              top={0}
+              right={0}
+              mr={3}
+              role="button"
+              fontSize="lg"
+              fontWeight={700}
+              color="red.400"
+              onClick={() => props.onClose()}
+            >
+              x
+            </Box>
+            <Text fontSize="lg" fontWeight={600} textAlign="center">
+              Free Chat Exhausted
+            </Text>
+            <Text fontSize="sm">
+              You have exhausted your free chat on ChatBTC. All subsequent chat
+              queries must be paid for
+            </Text>
+            <Text fontSize="sm">
+              You can pay with webln using alby, pay a lightning invoice, or
+              scan the QR code below with a lightning enabled wallet
+            </Text>
             <Box ml="auto" display="flex" justifyContent="flex-end" w="full">
-              <Checkbox ml="auto" width="fit-content" onChange={handleInfoToggle}>Do not show again</Checkbox>
+              <Checkbox
+                ml="auto"
+                width="fit-content"
+                onChange={handleInfoToggle}
+              >
+                Do not show again
+              </Checkbox>
             </Box>
           </Box>
-        )
+        ),
       });
     }
-  }, [toast, isPaymentModalOpen])
-  
+  }, [toast, isPaymentModalOpen]);
+
   return (
     <Modal
       isCentered
@@ -93,7 +156,7 @@ function InvoiceModal() {
       <ModalOverlay />
       <ModalContent bgColor={"#0D2333"}>
         <ModalHeader textAlign={"center"} color={"white"}>
-          Scan to pay
+          Choose payment type
         </ModalHeader>
         <ModalCloseButton
           color={"white"}
@@ -102,58 +165,181 @@ function InvoiceModal() {
             closePaymentModal();
           }}
         />
-        <ModalBody display={"flex"} justifyContent={"center"} columnGap={4}>
-          {loading && !invoice.payment_request ? (
-            <Spinner
-              size="xl"
-              color={"blue.500"}
-              emptyColor="gray.200"
-              thickness="4px"
-            />
-          ) : (
-            <>
-              <Box maxWidth={200} width={"100%"}>
-                <Box
-                  height={"auto"}
-                  margin={"0 auto"}
-                  width={"100%"}
-                  border={"1px solid"}
-                  padding={2}
-                  bg={"white"}
-                  bgColor={"white"}
-                  borderRadius={"md"}
-                >
-                  <QRCode
-                    size={256}
-                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                    value={invoice.payment_request}
-                    viewBox={`0 0 256 256`}
-                    level={"Q"}
-                  />
+        <ModalBody>
+          <Tabs isFitted size={{ base: "sm", md: "md" }} variant="enclosed">
+            <TabList mb={4}>
+              <Tab>Pay Per Chat</Tab>
+              <Tab>Buy credits (auto-pay)</Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel px={0}>
+                <Box display={"flex"} justifyContent={"center"} columnGap={4}>
+                  {loading && !invoice.payment_request ? (
+                    <Spinner
+                      size="xl"
+                      color={"blue.500"}
+                      emptyColor="gray.200"
+                      thickness="4px"
+                    />
+                  ) : (
+                    <>
+                      <Box maxWidth={200} width={"100%"}>
+                        <Box
+                          height={"auto"}
+                          margin={"0 auto"}
+                          width={"100%"}
+                          border={"1px solid"}
+                          padding={2}
+                          bg={"white"}
+                          bgColor={"white"}
+                          borderRadius={"md"}
+                        >
+                          <QRCode
+                            size={256}
+                            style={{
+                              height: "auto",
+                              maxWidth: "100%",
+                              width: "100%",
+                            }}
+                            value={invoice.payment_request}
+                            viewBox={`0 0 256 256`}
+                            level={"Q"}
+                          />
+                        </Box>
+                        <Button
+                          mt={5}
+                          variant="link"
+                          color="orange.200"
+                          onClick={payWithWebln}
+                        >
+                          Pay with webln?
+                        </Button>
+                      </Box>
+                      <Flex flexDir={"column"}>
+                        <Code
+                          bg={"none"}
+                          color={"white"}
+                          fontSize={14}
+                          textAlign={"center"}
+                        >
+                          {truncatedStr}
+                        </Code>
+                        <Flex justifyContent={"center"} marginY={2}>
+                          <Button
+                            colorScheme={"blue"}
+                            size={"sm"}
+                            onClick={handleCopy}
+                          >
+                            Copy invoice
+                          </Button>
+                        </Flex>
+                        <Text
+                          color={"white"}
+                          textAlign={"center"}
+                          fontSize={15}
+                          mt={4}
+                        >
+                          Scan this QR code or copy and paste it in your
+                          lightning enabled wallet.
+                        </Text>
+                      </Flex>
+                    </>
+                  )}
                 </Box>
-                <Button mt={5} variant="link" color="orange.200" onClick={payWithWebln}>Pay with webln?</Button>
-              </Box>
-              <Flex flexDir={"column"}>
-                <Code
-                  bg={"none"}
-                  color={"white"}
-                  fontSize={14}
-                  textAlign={"center"}
-                >
-                  {truncatedStr}
-                </Code>
-                <Flex justifyContent={"center"} marginY={2}>
-                  <Button colorScheme={"blue"} size={"sm"} onClick={handleCopy}>
-                    Copy invoice
-                  </Button>
-                </Flex>
-                <Text color={"white"} textAlign={"center"} fontSize={15} mt={4}>
-                  Scan this QR code or copy and paste it in your lightning
-                  enabled wallet.
-                </Text>
-              </Flex>
-            </>
-          )}
+              </TabPanel>
+              <TabPanel px={0}>
+                <Box mb={{sm: 4, md: 8}}>
+                  <Text fontWeight={600} fontSize="sm" pb={2}>
+                    Select a tier
+                  </Text>
+                  <Flex gap={4} justifyContent="space-between">
+                    {paymentTierList.map((tier, index) => (
+                      <TierCard
+                        key={index}
+                        priceInSats={tier.priceInSats}
+                        timeInHours={tier.timeInHours}
+                        handleClick={() => selectTieredPayment(tier)}
+                        isActive={autoPaymentTier?.id === tier.id}
+                      />
+                    ))}
+                  </Flex>
+                </Box>
+                  {autoPaymentLoading ? (
+                    <Flex alignItems="center" justifyContent="center" w="full">
+                      <Spinner
+                        size="xl"
+                        color={"blue.500"}
+                        emptyColor="gray.200"
+                        thickness="4px"
+                      />
+                    </Flex>
+                  ) : autoPaymentInvoice.payment_request ? (
+                    <Flex gap={4}>
+                      <Box maxWidth={200} width={"100%"}>
+                        <Box
+                          height={"auto"}
+                          margin={"0 auto"}
+                          width={"100%"}
+                          border={"1px solid"}
+                          padding={2}
+                          bg={"white"}
+                          bgColor={"white"}
+                          borderRadius={"md"}
+                        >
+                          <QRCode
+                            size={256}
+                            style={{
+                              height: "auto",
+                              maxWidth: "100%",
+                              width: "100%",
+                            }}
+                            value={autoPaymentInvoice.payment_request}
+                            viewBox={`0 0 256 256`}
+                            level={"Q"}
+                          />
+                        </Box>
+                        <Button
+                          mt={5}
+                          variant="link"
+                          color="orange.200"
+                          onClick={payWithWebln}
+                        >
+                          Pay with webln?
+                        </Button>
+                      </Box>
+                      <Flex flexDir={"column"}>
+                        <Code
+                          bg={"none"}
+                          color={"white"}
+                          fontSize={14}
+                          textAlign={"center"}
+                        >
+                          {truncatedAutoPayInvoice}
+                        </Code>
+                        <Flex justifyContent={"center"} marginY={2}>
+                          <Button
+                            colorScheme={"blue"}
+                            size={"sm"}
+                            onClick={handleCopy}
+                          >
+                            Copy invoice
+                          </Button>
+                        </Flex>
+                        <Text
+                          color={"white"}
+                          textAlign={"center"}
+                          fontSize={15}
+                          mt={4}
+                        >
+                          Scan this QR code or copy and paste it in your
+                          lightning enabled wallet.
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  ) : null}
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </ModalBody>
         <ModalFooter>
           <Button
@@ -174,3 +360,50 @@ function InvoiceModal() {
 }
 
 export default InvoiceModal;
+
+const TierCard = ({
+  handleClick,
+  priceInSats,
+  timeInHours,
+  isActive,
+}: {
+  handleClick: (priceInSats: number) => void;
+  priceInSats: number;
+  timeInHours: number;
+  isActive: boolean;
+}) => {
+  return (
+    <Button
+      display="flex"
+      flexGrow={1}
+      flexDir={"column"}
+      h="auto"
+      py={4}
+      rounded="md"
+      bg={isActive ? "orange.200" : "blackAlpha.400"}
+      colorScheme="blue"
+      onClick={() => handleClick && handleClick(priceInSats)}
+      _disabled={{
+        bg: "orange.200",
+        _hover: { bg: "orange.200" },
+        cursor: "not-allowed",
+      }}
+      isDisabled={isActive}
+    >
+      <Box
+        display="flex"
+        alignItems="end"
+        gap={1}
+        color={isActive ? "gray.800" : "white"}
+      >
+        <Text fontSize="2xl" fontWeight={600}>
+          {priceInSats}
+        </Text>
+        <Text fontSize="sm">sats</Text>
+      </Box>
+      <Text py={4} fontSize="12px" color={isActive ? "gray.800" : "white"}>
+        {timeInHours} hours
+      </Text>
+    </Button>
+  );
+};
