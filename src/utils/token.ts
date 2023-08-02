@@ -33,9 +33,19 @@ export async function isValidPaymentToken(token: string) {
   }
 }
 
+export async function saveAutoPayToken (invoice: string) {
+  const token = await generateToken(invoice)
+  window.localStorage.setItem("paymentToken", token)
+}
+
 export function shouldUserPay(numberOfUserMessage: number) {
   const hasExceededLimit = window.localStorage.getItem("hasExceededLimit") === "true";
   if (hasExceededLimit) {
+    const paymentToken = window.localStorage.getItem("paymentToken");
+    const isValidToken = paymentToken ? isValidPaymentToken(paymentToken) : false
+    if (isValidToken) {
+      return false
+    }
     return true
   } else {
     if (numberOfUserMessage >= NUMBER_OF_FREE_CHAT) {

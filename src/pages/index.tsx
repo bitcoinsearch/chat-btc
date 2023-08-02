@@ -99,7 +99,7 @@ export default function Home() {
     undefined
   );
 
-  const { requestPayment, isPaymentSettled } = usePaymentContext();
+  const { requestPayment, isPaymentSettled, isAutoPaymentSettled } = usePaymentContext();
 
   const router = useRouter();
   const updateRouterQuery = useUpdateRouterQuery();
@@ -389,11 +389,11 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (isPaymentSettled) {
+    if (isPaymentSettled || isAutoPaymentSettled) {
       startChatQuery(userInput, selectedAuthor);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaymentSettled, startChatQuery]);
+  }, [isPaymentSettled, isAutoPaymentSettled, startChatQuery]);
 
   return (
     <>
