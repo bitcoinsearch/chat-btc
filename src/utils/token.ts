@@ -2,7 +2,7 @@ import * as jose from "jose";
 
 import { ENV } from "@/config/env";
 
-const NUMBER_OF_FREE_CHAT = 1;
+const NUMBER_OF_FREE_CHAT = 3;
 
 export async function generateToken(invoice: string, expiresIn = "720h") {
   const expiresAt = expiresIn + "h"
