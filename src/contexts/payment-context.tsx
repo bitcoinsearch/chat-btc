@@ -48,10 +48,7 @@ export const PaymentContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [invoice, setInvoice] = React.useState({
-    payment_request: "",
-    r_hash: "",
-  });
+  const [invoice, setInvoice] = React.useState(defaultInvoice);
   const [autoPaymentInvoice, setAutoPaymentInvoice] = React.useState(defaultInvoice);
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -91,7 +88,6 @@ export const PaymentContextProvider = ({
       setAutoPaymentLoading(false);
       return defaultInvoice;
     }
-    console.log("response", response.data)
     const { payment_request, r_hash } = response.data;
     setAutoPaymentInvoice({ payment_request, r_hash });
     setAutoPaymentLoading(false);
@@ -158,14 +154,14 @@ export const PaymentContextProvider = ({
             if (settled) {
               setIsPaymentSettled(true);
               setIsPaymentModalOpen(false);
-              setInvoice({ payment_request: "", r_hash: "" });
+              setInvoice(defaultInvoice);
               clearInterval(intervalId);
             }
           }
         } catch (error) {
           console.log("Error polling payment status:", error);
         }
-      }, 3000000);
+      }, 3000);
 
       return () => {
         clearInterval(intervalId);
