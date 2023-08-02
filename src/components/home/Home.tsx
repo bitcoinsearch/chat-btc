@@ -282,8 +282,15 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                     fontSize={{ base: "16px", md: "20px" }}
                     color="grey.200"
                     textAlign="center"
-                  >
-                    Built with ❤️ by bitcoiners
+                    >
+                    Built with ❤️ by{" "}
+                    <Link
+                      href="https://bitcoindevs.xyz"
+                      isExternal
+                      color="orange.200"
+                    >
+                      The Bitcoin Dev Project
+                    </Link>
                   </Text>
                   <Link
                     href="https://cryptpad.fr/form/#/2/form/view/3P2CsohsHOkcH7C+WdtX0-tvqjBHqXnAmz5D9yx0e04/"
