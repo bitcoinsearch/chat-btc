@@ -1,3 +1,5 @@
+import ERROR_MESSAGES from "@/config/error-config";
+
 interface ElementType {
   type: "paragraph" | "heading";
   text: string;
@@ -97,7 +99,7 @@ async function SummaryGenerate(question: string, ans: string): Promise<string> {
           },
           {
             role: "user",
-            content: `You are given the following extracted parts of a long document and a question. Provide a conversational detailed answer in the same writing style as based on the context provided. DO NOT include any external references or links in the answers. If you are absolutely certain that the answer cannot be found in the context below, just say 'I cannot find the proper answer to your question. Although I'm not entirely certain, further research on the topic may provide you with more accurate information.' Don't try to make up an answer. If the question is not related to the context, politely respond that 'There is no answer to the question you asked based on the given context, but further research on the topic may help you find the information you're seeking.'Question: ${question} ========= ${ans}=========`,
+            content: `You are given the following extracted parts of a long document and a question. Provide a conversational detailed answer in the same writing style as based on the context provided. DO NOT include any external references or links in the answers. If you are absolutely certain that the answer cannot be found in the context below, just say '${ERROR_MESSAGES.NO_ANSWER_WITH_LINKS}' Don't try to make up an answer. If the question is not related to the context, politely respond that '${ERROR_MESSAGES.NO_ANSWER}'Question: ${question} ========= ${ans}=========`,
           },
         ],
         temperature: 0.7,
@@ -119,7 +121,7 @@ async function SummaryGenerate(question: string, ans: string): Promise<string> {
       if (!response.ok) {
         // if response is not ok (status code is not 2xx), throw an error to handle it in the catch block
         console.log(response);
-        return "I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.";
+        return ERROR_MESSAGES.NO_RESPONSE;
       }
       const jsonResponse = await response.json();
       return jsonResponse?.choices?.[0]?.message?.content || "";
@@ -127,7 +129,7 @@ async function SummaryGenerate(question: string, ans: string): Promise<string> {
       if (retry < 2) {
         return SummaryGenerateCall(question, ans, retry + 1);
       } else {
-        return "Currently server is overloaded with API calls, please try again later.";
+        return ERROR_MESSAGES.OVERLOAD;
       }
     }
   }
@@ -166,7 +168,7 @@ export async function processInput(
 ): Promise<string> {
   try {
     if (!searchResults) {
-      let output_string: string = `I am not able to find an answer to this question. So please rephrase your question and ask again.`;
+      let output_string: string = ERROR_MESSAGES.NO_ANSWER;
       return output_string;
     } else {
       const intermediateContent: (CustomContent | null)[] = searchResults
@@ -227,6 +229,6 @@ export async function processInput(
       return finalAnswer.data;
     }
   } catch (error) {
-    return "The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!";
+    return ERROR_MESSAGES.OVERLOAD;
   }
 }

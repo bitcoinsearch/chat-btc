@@ -6,7 +6,6 @@ import {
   useState,
 } from "react";
 import { Message } from "@/components/message/message";
-import { defaultErrorMessage } from "@/config/error-config";
 import { v4 as uuidv4 } from "uuid";
 import { SupaBaseDatabase } from "@/database/database";
 import { useRouter } from "next/router";
@@ -17,6 +16,7 @@ import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
 import { GeneratingErrorMessages, PromptAction } from "@/types";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
+import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
 import { shouldUserPay } from "@/utils/token";
@@ -28,6 +28,7 @@ const initialStream: Message = {
 };
 const matchFinalWithLinks = /(^\[\d+\]:\shttps:\/\/)/gm;
 
+// temporary concat
 const errorMessages = [
   "I am not able to find an answer to this question. So please rephrase your question and ask again.",
   "The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!",
@@ -35,7 +36,7 @@ const errorMessages = [
   "Currently server is overloaded with API calls, please try again later.",
   "null",
   "undefined"
-];
+].concat(getAllErrorMessages())
 
 function createReadableStream(text: string) {
   const encoder = new TextEncoder();
@@ -222,18 +223,8 @@ export default function Home() {
     return response.json(); // Add this line
   };
 
-  const errorMessages = useMemo(
-    () => [
-      "I am not able to find an answer to this question. So please rephrase your question and ask again.",
-      "The system is overloaded with requests, can you please ask your question in 5 seconds again? Thank you!",
-      "I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.",
-      "Currently server is overloaded with API calls, please try again later.",
-    ],
-    []
-  );
 
   const fetchResult = useCallback(async (query: string, author?: string) => {
-    const errMessage = "Something went wrong. Try again later";
     const searchResults = await fetchESResult(query, author); // Remove ": Response" type here
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -250,7 +241,7 @@ export default function Home() {
       }),
     });
     if (!response.ok) {
-      throw new Error(errMessage);
+      throw new Error(ERROR_MESSAGES.UNKNOWN);
     }
     return response; // Add this line to correctly access the output
   }, []);
@@ -271,15 +262,13 @@ export default function Home() {
       ]);
       setUserInput("");
 
-      const errMessage = "Something went wrong. Try again later";
-
       try {
         const cachedAnswer = await getCachedAnswer(query, author);
         let data = null;
         if (!cachedAnswer) {
           const response: Response = await fetchResult(query, author);
           if (!response.ok) {
-            throw new Error(errMessage);
+            throw new Error(ERROR_MESSAGES.UNKNOWN);
           }
           data = response.body;
         } else {
@@ -290,25 +279,25 @@ export default function Home() {
         let done = false;
         let finalAnswerWithLinks = "";
 
-        if (!reader) throw new Error(errMessage);
-        const decoder = new TextDecoder();
-        setLoading(false);
-        setStreamLoading(true);
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          const chunk = decoder.decode(value);
-          if (matchFinalWithLinks.test(chunk)) {
-            finalAnswerWithLinks = chunk;
-          } else {
-            finalAnswerWithLinks += chunk; // Store the plain text in finalAnswerWithLinks
-            setStreamData((data) => {
-              const _updatedData = { ...data };
-              _updatedData.message += chunk;
-              return _updatedData;
-            });
-          }
+      if (!reader) throw new Error(ERROR_MESSAGES.UNKNOWN);
+      const decoder = new TextDecoder();
+      setLoading(false);
+      setStreamLoading(true);
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunk = decoder.decode(value);
+        if (matchFinalWithLinks.test(chunk)) {
+          finalAnswerWithLinks = chunk;
+        } else {
+          finalAnswerWithLinks += chunk; // Store the plain text in finalAnswerWithLinks
+          setStreamData((data) => {
+            const _updatedData = { ...data };
+            _updatedData.message += chunk;
+            return _updatedData;
+          });
         }
+      }
 
         let question = query;
         let author_name = author?.toLocaleLowerCase();
@@ -353,7 +342,7 @@ export default function Home() {
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          message: err?.message ?? defaultErrorMessage,
+          message: err?.message ?? ERROR_MESSAGES.UNKNOWN,
           type: "errorMessage",
           uniqueId: uuidv4(),
         },
