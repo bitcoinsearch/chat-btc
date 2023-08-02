@@ -216,7 +216,7 @@ function InvoiceModal() {
                           mt={5}
                           variant="link"
                           color="orange.200"
-                          onClick={payWithWebln}
+                          onClick={() => payWithWebln()}
                         >
                           Pay with webln?
                         </Button>
@@ -315,7 +315,7 @@ function InvoiceModal() {
                         mt={5}
                         variant="link"
                         color="orange.200"
-                        onClick={payWithWebln}
+                        onClick={() => payWithWebln(true)}
                       >
                         Pay with webln?
                       </Button>
