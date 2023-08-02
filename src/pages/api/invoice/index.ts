@@ -28,9 +28,9 @@ export default async function handler(
     if (hasAutoPayment) {
       finalAmountInSatoshis = Number(req.body.autoPayment)
     } else {
-      const tokensPriceInUSD = 0.01; // 0.002 per 1k * 4 = 4k max message length + 0.002 charges = 0.01
-      const amountInSatoshis = await convertUSDToSats(tokensPriceInUSD);
-      finalAmountInSatoshis = amountInSatoshis;
+      // const tokensPriceInUSD = 0.01; // 0.002 per 1k * 4 = 4k max message length + 0.002 charges = 0.01
+      // const amountInSatoshis = await convertUSDToSats(tokensPriceInUSD);
+      finalAmountInSatoshis = 21; // 21 satoshis
     }
     const response = await LND_NODE.post("/v1/invoices", {
       value: finalAmountInSatoshis,
