@@ -16,7 +16,7 @@ type PaymentContextType = {
   requestPayment: () => Promise<Invoice>;
   requestPaymentToken: () => Promise<{ token: string }>;
   setIsPaymentSettled: (isPaymentSettled: boolean) => void;
-  payWithWebln: () => void;
+  payWithWebln: (isAutoPayment?: boolean) => void;
   selectTieredPayment: (tier: PaymentTier) => Promise<void>;
   autoPaymentInvoice: Invoice;
   autoPaymentTier: PaymentTier | null;
@@ -100,13 +100,14 @@ export const PaymentContextProvider = ({
     return { payment_request, r_hash };
   }, []);
 
-  const payWithWebln = async () => {
+  const payWithWebln = async (isAutoPayment?: boolean) => {
+    const payment_request = isAutoPayment ? autoPaymentInvoice.payment_request : invoice.payment_request
     try {
       const webln = await requestProvider();
       if (!webln) {
         setError("webln not available");
       }
-      const res = await webln.sendPayment(invoice.payment_request);
+      const res = await webln.sendPayment(payment_request);
       if (res instanceof Error) {
         setError("could not pay with webln");
       }
