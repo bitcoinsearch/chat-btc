@@ -84,7 +84,6 @@ async function getSearchResults(
                           match_phrase: {
                             authors: {
                               query: author,
-                              // analyzer: "analyzer_search", // Use the analyzer with synonym filter for filtering
                             },
                           },
                         },
