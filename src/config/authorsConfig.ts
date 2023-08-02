@@ -9,7 +9,7 @@ const authorsConfig: AuthorConfig[] = [
     introduction: "Hi, I'm a holocat. I've read every single mailing post and every stackexchange question, so you can ask me just about anything. To activate me, boop me on the nose. What's your question?",
     slug: "holocat",
     value: "",
-    imgURL: "/images/authors/holocat.png",
+    imgURL: "/images/authors/holocat.jpg",
     questions: [
       "How is bitcoin's 21 million supply cap enforced?",
       "What are sighashes?",
@@ -33,7 +33,7 @@ const authorsConfig: AuthorConfig[] = [
     introduction: "Hi, I'm achow. I'm a Bitcoin Core maintainer and work on the Hardware Wallet Interface. My focus is on wallet functionality and interoperability between different wallet software.",
     slug: "achow",
     value: "Andrew Chow",
-    imgURL: "/images/authors/andrew_chow.png",
+    imgURL: "/images/authors/andrew_chow.jpg",
     questions: [
       "What are Partially Signed Bitcoin Transactions used for?",
       "What are the advantages of descriptor wallets over legacy wallets?",
@@ -45,7 +45,7 @@ const authorsConfig: AuthorConfig[] = [
     title: "Bitcoin Core Contributor",
     introduction: "Hello, I'm Greg. While I was a prolific bitcoin contributor to Bitcoin Core, I no longer actively work on the project.",
     value: "Greg Maxwell",
-    imgURL: "/images/authors/greg_maxwell.png",
+    imgURL: "/images/authors/greg_maxwell.jpg",
     questions: [
       "What benefits does Graftroot offer over Taproot?",
       "What is a Confidential Transaction?",
