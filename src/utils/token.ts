@@ -4,11 +4,12 @@ import { ENV } from "@/config/env";
 
 const NUMBER_OF_FREE_CHAT = 1;
 
-export async function generateToken(invoice: string) {
+export async function generateToken(invoice: string, expiresIn = "720h") {
+  const expiresAt = expiresIn + "h"
   const jwt = await new jose.SignJWT({ invoice })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("720h")
+    .setExpirationTime(expiresAt)
     .sign(Buffer.from(ENV.JWT_SECRET));
 
   return jwt;

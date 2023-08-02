@@ -26,16 +26,14 @@ import {
   Tabs,
   Text,
   useDisclosure,
-  useRadio,
-  UseRadioProps,
   useToast,
 } from "@chakra-ui/react";
 import {
-  PaymentTier,
   paymentTierList,
+  PRICE_PER_PROMPT,
   usePaymentContext,
 } from "@/contexts/payment-context";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 function InvoiceModal() {
   const toast = useToast();
@@ -51,7 +49,6 @@ function InvoiceModal() {
     autoPaymentInvoice,
     autoPaymentTier,
     autoPaymentLoading,
-    isAutoPaymentSettled,
     selectTieredPayment,
   } = usePaymentContext();
   const copy = useCopyToClipboard();
@@ -61,8 +58,17 @@ function InvoiceModal() {
     10
   );
 
-  const handleCopy = () => {
+  const handleCopyInvoice = () => {
     copy(invoice.payment_request);
+    toast({
+      title: "Invoice copied to clipboard",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+  const handleCopyAutoPayInvoice = () => {
+    copy(autoPaymentInvoice.payment_request);
     toast({
       title: "Invoice copied to clipboard",
       status: "success",
@@ -121,15 +127,15 @@ function InvoiceModal() {
               x
             </Box>
             <Text fontSize="lg" fontWeight={600} textAlign="center">
-              Free Chat Exhausted
+              We hope you are enjoying ChatBTC
             </Text>
             <Text fontSize="sm">
-              You have exhausted your free chat on ChatBTC. All subsequent chat
-              queries must be paid for
+              To keep this service sustainable (and guard against DDOS) we must
+              ask you to pay a few sats.
             </Text>
             <Text fontSize="sm">
-              You can pay with webln using alby, pay a lightning invoice, or
-              scan the QR code below with a lightning enabled wallet
+              You can pay with WebLN using Alby, pay a lightning invoice, or
+              scan the QR code below with a lightning enabled wallet.
             </Text>
             <Box ml="auto" display="flex" justifyContent="flex-end" w="full">
               <Checkbox
@@ -217,6 +223,13 @@ function InvoiceModal() {
                       </Box>
                       <Flex flexDir={"column"}>
                         <Code
+                          fontSize={14}
+                          fontWeight={600}
+                          textAlign={"center"}
+                        >
+                          {PRICE_PER_PROMPT} SATS / prompt
+                        </Code>
+                        <Code
                           bg={"none"}
                           color={"white"}
                           fontSize={14}
@@ -228,7 +241,7 @@ function InvoiceModal() {
                           <Button
                             colorScheme={"blue"}
                             size={"sm"}
-                            onClick={handleCopy}
+                            onClick={handleCopyInvoice}
                           >
                             Copy invoice
                           </Button>
@@ -248,7 +261,7 @@ function InvoiceModal() {
                 </Box>
               </TabPanel>
               <TabPanel px={0}>
-                <Box mb={{sm: 4, md: 8}}>
+                <Box mb={{ sm: 4, md: 8 }}>
                   <Text fontWeight={600} fontSize="sm" pb={2}>
                     Select a tier
                   </Text>
@@ -264,79 +277,79 @@ function InvoiceModal() {
                     ))}
                   </Flex>
                 </Box>
-                  {autoPaymentLoading ? (
-                    <Flex alignItems="center" justifyContent="center" w="full">
-                      <Spinner
-                        size="xl"
-                        color={"blue.500"}
-                        emptyColor="gray.200"
-                        thickness="4px"
-                      />
-                    </Flex>
-                  ) : autoPaymentInvoice.payment_request ? (
-                    <Flex gap={4}>
-                      <Box maxWidth={200} width={"100%"}>
-                        <Box
-                          height={"auto"}
-                          margin={"0 auto"}
-                          width={"100%"}
-                          border={"1px solid"}
-                          padding={2}
-                          bg={"white"}
-                          bgColor={"white"}
-                          borderRadius={"md"}
-                        >
-                          <QRCode
-                            size={256}
-                            style={{
-                              height: "auto",
-                              maxWidth: "100%",
-                              width: "100%",
-                            }}
-                            value={autoPaymentInvoice.payment_request}
-                            viewBox={`0 0 256 256`}
-                            level={"Q"}
-                          />
-                        </Box>
-                        <Button
-                          mt={5}
-                          variant="link"
-                          color="orange.200"
-                          onClick={payWithWebln}
-                        >
-                          Pay with webln?
-                        </Button>
+                {autoPaymentLoading ? (
+                  <Flex alignItems="center" justifyContent="center" w="full">
+                    <Spinner
+                      size="xl"
+                      color={"blue.500"}
+                      emptyColor="gray.200"
+                      thickness="4px"
+                    />
+                  </Flex>
+                ) : autoPaymentInvoice.payment_request ? (
+                  <Flex gap={4}>
+                    <Box maxWidth={200} width={"100%"}>
+                      <Box
+                        height={"auto"}
+                        margin={"0 auto"}
+                        width={"100%"}
+                        border={"1px solid"}
+                        padding={2}
+                        bg={"white"}
+                        bgColor={"white"}
+                        borderRadius={"md"}
+                      >
+                        <QRCode
+                          size={256}
+                          style={{
+                            height: "auto",
+                            maxWidth: "100%",
+                            width: "100%",
+                          }}
+                          value={autoPaymentInvoice.payment_request}
+                          viewBox={`0 0 256 256`}
+                          level={"Q"}
+                        />
                       </Box>
-                      <Flex flexDir={"column"}>
-                        <Code
-                          bg={"none"}
-                          color={"white"}
-                          fontSize={14}
-                          textAlign={"center"}
+                      <Button
+                        mt={5}
+                        variant="link"
+                        color="orange.200"
+                        onClick={payWithWebln}
+                      >
+                        Pay with webln?
+                      </Button>
+                    </Box>
+                    <Flex flexDir={"column"}>
+                      <Code
+                        bg={"none"}
+                        color={"white"}
+                        fontSize={14}
+                        textAlign={"center"}
+                      >
+                        {truncatedAutoPayInvoice}
+                      </Code>
+                      <Flex justifyContent={"center"} marginY={2}>
+                        <Button
+                          colorScheme={"blue"}
+                          size={"sm"}
+                          onClick={handleCopyAutoPayInvoice}
                         >
-                          {truncatedAutoPayInvoice}
-                        </Code>
-                        <Flex justifyContent={"center"} marginY={2}>
-                          <Button
-                            colorScheme={"blue"}
-                            size={"sm"}
-                            onClick={handleCopy}
-                          >
-                            Copy invoice
-                          </Button>
-                        </Flex>
-                        <Text
-                          color={"white"}
-                          textAlign={"center"}
-                          fontSize={15}
-                          mt={4}
-                        >
-                          Scan this QR code or copy and paste it in your
-                          lightning enabled wallet.
-                        </Text>
+                          Copy invoice
+                        </Button>
                       </Flex>
+                      <Text
+                        color={"white"}
+                        textAlign={"center"}
+                        fontSize={15}
+                        mt={4}
+                      >
+                        Scan this QR code or copy and paste it in your lightning
+                        enabled wallet.
+                      </Text>
                     </Flex>
-                  ) : null}
+                  </Flex>
+                ) : null}
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -369,7 +382,7 @@ const TierCard = ({
 }: {
   handleClick: (priceInSats: number) => void;
   priceInSats: number;
-  timeInHours: number;
+  timeInHours: string;
   isActive: boolean;
 }) => {
   return (
@@ -399,7 +412,7 @@ const TierCard = ({
         <Text fontSize="2xl" fontWeight={600}>
           {priceInSats}
         </Text>
-        <Text fontSize="sm">sats</Text>
+        <Text fontSize="sm">SATS</Text>
       </Box>
       <Text py={4} fontSize="12px" color={isActive ? "gray.800" : "white"}>
         {timeInHours} hours
