@@ -4,8 +4,8 @@ import { ENV } from "@/config/env";
 
 const NUMBER_OF_FREE_CHAT = 3;
 
-export async function generateToken(invoice: string, expiresIn = "720h") {
-  const expiresAt = expiresIn + "h"
+export async function generateToken(invoice: string, expiresIn = "720") {
+  const expiresAt = expiresIn + "h";
   const jwt = await new jose.SignJWT({ invoice })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -34,25 +34,28 @@ export async function isValidPaymentToken(token: string) {
   }
 }
 
-export async function saveAutoPayToken (invoice: string) {
-  const token = await generateToken(invoice)
-  window.localStorage.setItem("paymentToken", token)
+export async function saveAutoPayToken(invoice: string) {
+  const token = await generateToken(invoice);
+  localStorage.setItem("paymentToken", token);
 }
 
 export function shouldUserPay(numberOfUserMessage: number) {
-  const hasExceededLimit = window.localStorage.getItem("hasExceededLimit") === "true";
+  const hasExceededLimit =
+    window.localStorage.getItem("hasExceededLimit") === "true";
   if (hasExceededLimit) {
     const paymentToken = window.localStorage.getItem("paymentToken");
-    const isValidToken = paymentToken ? isValidPaymentToken(paymentToken) : false
+    const isValidToken = paymentToken
+      ? isValidPaymentToken(paymentToken)
+      : false;
     if (isValidToken) {
-      return false
+      return false;
     }
-    return true
+    return true;
   } else {
     if (numberOfUserMessage >= NUMBER_OF_FREE_CHAT) {
-      localStorage.setItem("hasExceededLimit", "true")
+      localStorage.setItem("hasExceededLimit", "true");
       return true;
     }
-    return false
+    return false;
   }
 }
