@@ -101,7 +101,9 @@ export const PaymentContextProvider = ({
   }, []);
 
   const payWithWebln = async (isAutoPayment?: boolean) => {
-    const payment_request = isAutoPayment ? autoPaymentInvoice.payment_request : invoice.payment_request
+    const payment_request = isAutoPayment
+      ? autoPaymentInvoice.payment_request
+      : invoice.payment_request;
     try {
       const webln = await requestProvider();
       if (!webln) {
@@ -152,6 +154,8 @@ export const PaymentContextProvider = ({
 
   React.useEffect(() => {
     if (invoice.r_hash) {
+      setIsPaymentSettled(false);
+      setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
         try {
           const response = await axios.post("/api/invoice/status", {
@@ -176,11 +180,12 @@ export const PaymentContextProvider = ({
         clearInterval(intervalId);
       };
     }
-    setIsPaymentSettled(false);
   }, [invoice.r_hash]);
 
   React.useEffect(() => {
     if (autoPaymentInvoice.r_hash) {
+      setIsPaymentSettled(false);
+      setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
         try {
           const response = await axios.post("/api/invoice/status", {
@@ -192,6 +197,7 @@ export const PaymentContextProvider = ({
               setIsAutoPaymentSettled(true);
               setIsPaymentModalOpen(false);
               setAutoPaymentInvoice(defaultInvoice);
+              setInvoice(defaultInvoice);
               clearInterval(intervalId);
               await saveAutoPayToken(autoPaymentInvoice.r_hash);
             }
@@ -205,7 +211,6 @@ export const PaymentContextProvider = ({
         clearInterval(intervalId);
       };
     }
-    setIsPaymentSettled(false);
   }, [autoPaymentInvoice.r_hash]);
 
   return (
