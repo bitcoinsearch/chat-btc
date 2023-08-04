@@ -28,15 +28,15 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Andrew Chow Bot",
-    title: "Bitcoin Core Maintainer",
-    introduction: "Hi, I'm achow. I'm a Bitcoin Core maintainer and work on the Hardware Wallet Interface. My focus is on wallet functionality and interoperability between different wallet software.",
-    slug: "achow",
-    value: "Andrew Chow",
-    imgURL: "/images/authors/andrew_chow.jpg",
+    name: "Andreas Antonopoulos Bot",
+    title: "Speaker & Educator",
+    introduction: "Hi, I'm Andreas. I've been giving talks about bitcoin long before anyone was ready to listen.",
+    slug: "andreas-antonopoulos",
+    value: "Andreas Antonopoulos",
+    imgURL: "/images/authors/andreas_antonopoulos.jpg",
     questions: [
-      "What are Partially Signed Bitcoin Transactions used for?",
-      "What are the advantages of descriptor wallets over legacy wallets?",
+      "What are the advantages of Schnorr signatures over ECDSA?",
+      "Is is seed splitting a good idea?",
     ],
   },
   {
