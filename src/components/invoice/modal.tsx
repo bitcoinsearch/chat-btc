@@ -34,6 +34,7 @@ import {
   usePaymentContext,
 } from "@/contexts/payment-context";
 import { useEffect } from "react";
+import { isMobile } from "react-device-detect";
 
 function InvoiceModal() {
   const toast = useToast();
@@ -212,14 +213,7 @@ function InvoiceModal() {
                             level={"Q"}
                           />
                         </Box>
-                        <Button
-                          mt={5}
-                          variant="link"
-                          color="orange.200"
-                          onClick={() => payWithWebln()}
-                        >
-                          Pay with webln?
-                        </Button>
+                        <PayWithWebLN clickHandler={() => payWithWebln()} />
                       </Box>
                       <Flex flexDir={"column"}>
                         <Code
@@ -311,14 +305,7 @@ function InvoiceModal() {
                           level={"Q"}
                         />
                       </Box>
-                      <Button
-                        mt={5}
-                        variant="link"
-                        color="orange.200"
-                        onClick={() => payWithWebln(true)}
-                      >
-                        Pay with webln?
-                      </Button>
+                      <PayWithWebLN clickHandler={() => payWithWebln(true)} />
                     </Box>
                     <Flex flexDir={"column"}>
                       <Code
@@ -380,7 +367,7 @@ const TierCard = ({
   timeInHours,
   isActive,
 }: {
-  handleClick: (priceInSats: number) => void;
+  handleClick: () => void;
   priceInSats: number;
   timeInHours: string;
   isActive: boolean;
@@ -395,7 +382,7 @@ const TierCard = ({
       rounded="md"
       bg={isActive ? "orange.200" : "blackAlpha.400"}
       colorScheme="blue"
-      onClick={() => handleClick && handleClick(priceInSats)}
+      onClick={handleClick}
       _disabled={{
         bg: "orange.200",
         _hover: { bg: "orange.200" },
@@ -417,6 +404,15 @@ const TierCard = ({
       <Text py={4} fontSize="12px" color={isActive ? "gray.800" : "white"}>
         {timeInHours} hours
       </Text>
+    </Button>
+  );
+};
+
+const PayWithWebLN = ({ clickHandler }: { clickHandler: () => void }) => {
+  if (isMobile) return null;
+  return (
+    <Button mt={5} variant="link" color="orange.200" onClick={clickHandler}>
+      Pay with webln?
     </Button>
   );
 };
