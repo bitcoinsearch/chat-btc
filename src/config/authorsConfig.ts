@@ -28,15 +28,15 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Andreas Antonopoulos Bot",
-    title: "Speaker & Educator",
-    introduction: "Hi, I'm Andreas. I've been giving talks about bitcoin long before anyone was ready to listen.",
-    slug: "andreas-antonopoulos",
-    value: "Andreas Antonopoulos",
-    imgURL: "/images/authors/andreas_antonopoulos.jpg",
+    name: "Andrew Chow Bot",
+    title: "Bitcoin Core Maintainer",
+    introduction: "Hi, I'm achow. I'm a Bitcoin Core maintainer and work on the Hardware Wallet Interface. My focus is on wallet functionality and interoperability between different wallet software.",
+    slug: "achow",
+    value: "Andrew Chow",
+    imgURL: "/images/authors/andrew_chow.jpg",
     questions: [
-      "What are the advantages of Schnorr signatures over ECDSA?",
-      "Is is seed splitting a good idea?",
+      "What are Partially Signed Bitcoin Transactions used for?",
+      "What are the advantages of descriptor wallets over legacy wallets?",
     ],
   },
   {
@@ -51,6 +51,42 @@ const authorsConfig: AuthorConfig[] = [
       "What is a Confidential Transaction?",
     ],
   },
+  {
+    name: "Olaoluwa Osuntokun Bot",
+    title: "Lightning Eng",
+    introduction: "Hi, I'm Roasbeef. I'm the CTO of Lightning Labs and live on the edge of all things Lightning.",
+    slug: "olaoluwa-osuntokun",
+    value: "Olaoluwa Osuntokun",
+    imgURL: "/images/authors/olaoluwa_osuntokun.jpg",
+    questions: [
+      "What problems do atomic multi-path payments address?",
+      "What are some methods to improve the security of the lightning network?",
+    ],
+  },
+  {
+    name: "Murch Bot",
+    title: "Bitcoin Wallet Dev & Writer",
+    introduction: "I'm Murch Bot. Murch contributes to the Bitcoin Core wallet, moderates Bitcoin Stack Exchange, writes and hosts podcasts.",
+    slug: "murch",
+    value: "Mark Erhardt",
+    imgURL: "/images/authors/mark_erhardt.jpg",
+    questions: [
+      "How is coin selection done in Bitcoin Core?",
+      "What is meant by UTXO management?",
+    ],
+  },
+  {
+    name: "Andreas Antonopoulos Bot",
+    title: "Speaker & Educator",
+    introduction: "Hi, I'm Andreas. I've been giving talks about bitcoin long before anyone was ready to listen.",
+    slug: "andreas-antonopoulos",
+    value: "Andreas Antonopoulos",
+    imgURL: "/images/authors/andreas_antonopoulos.jpg",
+    questions: [
+      "What are the advantages of Schnorr signatures over ECDSA?",
+      "Is is seed splitting a good idea?",
+    ],
+  }
 ];
 
 export default authorsConfig;
