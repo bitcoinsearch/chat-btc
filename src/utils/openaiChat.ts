@@ -17,7 +17,7 @@ interface CustomContent {
   link: string;
 }
 
-interface Result {
+export interface Result {
   _source: {
     title: string;
     body: string;
@@ -137,12 +137,13 @@ async function SummaryGenerate(question: string, ans: string): Promise<string> {
   return SummaryGenerateCall(question, ans);
 }
 
-function removeDuplicatesByID(arr: (CustomContent | null)[]): (CustomContent | null)[] {
+function removeDuplicatesByID(arr: CustomContent[]): CustomContent[] {
   const seen = new Set();
   const filteredArr = arr.filter((item) => {
-    if (item === null) return false;
     const isDuplicate = seen.has(item.link);
-    seen.add(item.link);
+    if (!isDuplicate) {
+      seen.add(item.link);
+    }
     return !isDuplicate;
   });
   return filteredArr;
@@ -163,55 +164,43 @@ async function getFinalAnswer(
 }
 
 export async function processInput(
-  searchResults: any[] | undefined,
+  searchResults: Result[] | undefined,
   question: string
 ): Promise<string> {
   try {
-    if (!searchResults) {
+    if (!searchResults?.length) {
       let output_string: string = ERROR_MESSAGES.NO_ANSWER;
       return output_string;
     } else {
-      const intermediateContent: (CustomContent | null)[] = searchResults
-      .map((result: Result) => {
-        let results = result._source
+      const intermediateContent: CustomContent[] = []
+
+      for (const result of searchResults) {
+        let { _source: source} = result
         const isQuestionOnStackExchange =
-        results.type === "question" &&
-        results.url.includes("stackexchange");
-        const isMarkdown = results.body_type === "markdown";
-        const snippet = isMarkdown
-        ? concatenateTextFields(results.body)
-        : results.body;
-        return isQuestionOnStackExchange
-        ? null
-        : {
-          title: results.title,
-          snippet: snippet,
-          link: results.url,
-        };
-      });
+        source.type === "question" &&
+        source.url.includes("stackexchange");
+        if (!isQuestionOnStackExchange) {
+          const isMarkdown = source.body_type === "markdown";
+          const snippet = isMarkdown
+          ? concatenateTextFields(source.body)
+          : source.body;
+          intermediateContent.push({
+            title: source.title,
+            snippet: snippet,
+            link: source.url,
+          });
+        }
+      }
 
       const deduplicatedContent = removeDuplicatesByID(intermediateContent);
 
-      const extractedContent: CustomContent[] = deduplicatedContent.filter(
-        (item: CustomContent | null) => item !== null
-        ) as CustomContent[];
+      if (!deduplicatedContent.length) {
+        throw new Error(ERROR_MESSAGES.NO_ANSWER)
+      }
 
-      const cleanedContent = extractedContent
-        .slice(0, 6)
-        .map((content) => ({
-          title: cleanText(content.title),
-          snippet: cleanText(content.snippet),
-          link: content.link,
-        }));
-
-      const cleanedTextWithLink = cleanedContent.map((content: Content) => ({
-        cleaned_text: content.snippet,
-        link: content.link,
-      }));
-
-      const slicedTextWithLink = cleanedTextWithLink.map(
-        (content: SummaryData) => ({
-          cleaned_text: content.cleaned_text.slice(0, 2000),
+      const slicedTextWithLink: SummaryData[] = deduplicatedContent.map(
+        (content) => ({
+          cleaned_text: cleanText(content.snippet).slice(0, 2000),
           link: content.link,
         })
       );
@@ -228,7 +217,8 @@ export async function processInput(
 
       return finalAnswer.data;
     }
-  } catch (error) {
-    return ERROR_MESSAGES.OVERLOAD;
+  } catch (error: any) {
+    const errMessage = error?.message ? error.message : ERROR_MESSAGES.OVERLOAD
+    return errMessage;
   }
 }
