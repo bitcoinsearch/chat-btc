@@ -36,16 +36,13 @@ export default async function handler(req: Request) {
     const esResults = await fetchESResult(query, author);
     
     if (!esResults || !esResults.length) {
-      console.log("no results")
       return new Response(ERROR_MESSAGES.NO_ANSWER)
     }
 
     try {
       const result = await processInput(esResults, query);
-      // console.log("🚀 ~ file: server.ts:64 ~ handler ~ result:", result)
       return new Response(result)
     } catch (error: any) {
-      console.log("🚀 ~ file: server.ts:68 ~ handler ~ error:", error)
       
       const errMessage = error?.message ? error.message : ERROR_MESSAGES.UNKNOWN
       return new Response(JSON.stringify({error: errMessage}), { status: 400 })

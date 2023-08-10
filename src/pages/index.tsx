@@ -241,7 +241,6 @@ export default function Home() {
       } else {
         startChatQuery(prompt, authorValue);
       }
-      startChatQuery(prompt, authorValue);
     } else {
       setUserInput(prompt);
     }

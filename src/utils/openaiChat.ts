@@ -147,7 +147,6 @@ const _example = (question: string, summaries: SummaryData[]): string => {
                 }
                 const jsonData = JSON.parse(data)
                 text = jsonData?.choices[0]?.delta?.content || ''
-                console.log({text})
                 
                 const queue = encoder.encode(text);
                 controller.enqueue(queue);
@@ -229,15 +228,11 @@ export async function processInput(
         }
       }
 
-      console.log("first int content", intermediateContent[0].title)
-
       const deduplicatedContent = removeDuplicatesByID(intermediateContent);
 
       if (!deduplicatedContent.length) {
         throw new Error(ERROR_MESSAGES.NO_ANSWER)
       }
-
-      console.log("first dedupedcontent", deduplicatedContent[0].title)
 
       const slicedTextWithLink: SummaryData[] = deduplicatedContent.map(
         (content) => ({
@@ -246,15 +241,9 @@ export async function processInput(
         })
       );
 
-      console.log("slicedText", slicedTextWithLink[0].link)
-
       const prompt = _example(question, slicedTextWithLink);
 
-      console.log("prompt length", prompt.length)
-
       const summary = await SummaryGenerate(question, prompt, slicedTextWithLink);
-      // console.log("🚀 ~ file: openaiChat.ts:283 ~ summary:", summary)
-
       return summary
     }
   } catch (error: any) {
