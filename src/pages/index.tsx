@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Message } from "@/components/message/message";
 import { v4 as uuidv4 } from "uuid";
 import { SupaBaseDatabase } from "@/database/database";
@@ -20,6 +14,7 @@ import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
 import { shouldUserPay } from "@/utils/token";
+import { createReadableStream } from "@/utils/stream";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -35,19 +30,8 @@ const errorMessages = [
   "I am not able to provide you with a proper answer to the question, but you can follow up with the links provided to find the answer on your own. Sorry for the inconvenience.",
   "Currently server is overloaded with API calls, please try again later.",
   "null",
-  "undefined"
-].concat(getAllErrorMessages())
-
-function createReadableStream(text: string) {
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    start(controller) {
-      controller.enqueue(encoder.encode(text));
-      controller.close();
-    },
-  });
-  return readable;
-}
+  "undefined",
+].concat(getAllErrorMessages());
 
 const getCachedAnswer = async (question: string, author?: string) => {
   question = question.toLowerCase();
@@ -63,7 +47,13 @@ const getCachedAnswer = async (question: string, author?: string) => {
       return null;
     }
 
-    const nonEmptyAnswer = answers.find((item) => Boolean(item.answer && item.answer?.trim() && !errorMessages.includes(item.answer)));
+    const nonEmptyAnswer = answers.find((item) =>
+      Boolean(
+        item.answer &&
+          item.answer?.trim() &&
+          !errorMessages.includes(item.answer)
+      )
+    );
 
     if (!nonEmptyAnswer) {
       console.error("Error fetching answer: No non-empty answers found.");
@@ -92,13 +82,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [streamLoading, setStreamLoading] = useState(false);
   const [streamData, setStreamData] = useState<Message>(initialStream);
-  const [typedMessage, setTypedMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedAuthor, setSelectedAuthor] = useState<string | undefined>(
     undefined
   );
 
-  const { requestPayment, isPaymentSettled, isAutoPaymentSettled } = usePaymentContext();
+  const { requestPayment, isPaymentSettled, isAutoPaymentSettled } =
+    usePaymentContext();
 
   const router = useRouter();
   const updateRouterQuery = useUpdateRouterQuery();
@@ -115,7 +105,6 @@ export default function Home() {
     setLoading(false);
     setStreamData(initialStream);
     setStreamLoading(false);
-    setTypedMessage("");
     setMessages([]);
   };
 
@@ -126,43 +115,6 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authorQuery]);
 
-  // add typing effect
-  const addTypingEffect = (message: string) => {
-    // instantiate new AbortController
-    const typingAbortController = new AbortController();
-    abortTypingRef.current = typingAbortController;
-    setTypedMessage("");
-    const { messageBody } = separateLinksFromApiMessage(message);
-    let typedText = "";
-    let index = 0;
-    let messageInterval: NodeJS.Timer;
-
-    return new Promise((resolve, reject) => {
-      messageInterval = setInterval(() => {
-        if (index >= messageBody.length - 1) {
-          clearInterval(messageInterval);
-          resolve(typedText);
-        }
-        typedText += messageBody[index];
-        index += 1;
-        setTypedMessage(typedText);
-      }, TYPING_DELAY_IN_MILLISECONDS);
-
-      typingAbortController.signal.addEventListener("abort", () => {
-        clearInterval(messageInterval);
-        abortTypingRef.current = undefined;
-        if (
-          typingAbortController.signal.reason ===
-          GeneratingErrorMessages.resetChat
-        ) {
-          reject(new Error(GeneratingErrorMessages.resetChat));
-        } else {
-          reject(new Error(GeneratingErrorMessages.abortTyping));
-        }
-      });
-    });
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(e.target.value);
   };
@@ -170,41 +122,21 @@ export default function Home() {
   const updateMessages = useCallback(
     async (finalText: string, uuid: string) => {
       // Call the addTypingEffect function to add a typing effect to the finalText
-      await addTypingEffect(finalText)
-        .then((_res) => {
-          setStreamLoading(false);
-          setStreamData(initialStream);
+      setTimeout(() => {
+        setStreamLoading(false);
+        setStreamData(initialStream);
 
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              message: finalText,
-              type: "apiMessage",
-              uniqueId: uuid,
-            },
-          ]);
-        })
-        .catch((err) => {
-          if (err.message === GeneratingErrorMessages.abortTyping) {
-            const cutoffMessage = typedMessage;
-            setStreamLoading(false);
-            setStreamData(initialStream);
-
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              {
-                message: cutoffMessage,
-                type: "apiMessage",
-                uniqueId: uuid,
-              },
-            ]);
-          }
-        })
-        .finally(() => {
-          setTypedMessage("");
-        });
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            message: finalText,
+            type: "apiMessage",
+            uniqueId: uuid,
+          },
+        ]);
+      }, 500);
     },
-    [typedMessage]
+    []
   );
 
   const fetchESResult = async (query: string, author?: string) => {
@@ -222,7 +154,6 @@ export default function Home() {
     });
     return response.json(); // Add this line
   };
-
 
   const fetchResult = useCallback(async (query: string, author?: string) => {
     const searchResults = await fetchESResult(query, author); // Remove ": Response" type here
@@ -253,7 +184,6 @@ export default function Home() {
         return;
       }
       // Reset the typedMessage state
-      setTypedMessage("");
       let uuid = uuidv4();
       setLoading(true);
       setMessages((prevMessages) => [
@@ -264,9 +194,22 @@ export default function Home() {
 
       try {
         const cachedAnswer = await getCachedAnswer(query, author);
-        let data = null;
+
+        let data;
         if (!cachedAnswer) {
-          const response: Response = await fetchResult(query, author);
+          // const response: Response = await fetchResult(query, author);
+          const response = await fetch("/api/server", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              inputs: {
+                query,
+                author,
+              },
+            }),
+          });
           if (!response.ok) {
             throw new Error(ERROR_MESSAGES.UNKNOWN);
           }
@@ -274,22 +217,19 @@ export default function Home() {
         } else {
           data = cachedAnswer;
         }
-
         const reader = data?.getReader();
-        let done = false;
+        let doneReading = false;
         let finalAnswerWithLinks = "";
 
-      if (!reader) throw new Error(ERROR_MESSAGES.UNKNOWN);
-      const decoder = new TextDecoder();
-      setLoading(false);
-      setStreamLoading(true);
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunk = decoder.decode(value);
-        if (matchFinalWithLinks.test(chunk)) {
-          finalAnswerWithLinks = chunk;
-        } else {
+        if (!reader) throw new Error(ERROR_MESSAGES.UNKNOWN);
+        const decoder = new TextDecoder();
+        setLoading(false);
+        setStreamLoading(true);
+        while (!doneReading) {
+          const { value, done } = await reader.read();
+          doneReading = done;
+          const chunk = decoder.decode(value);
+
           finalAnswerWithLinks += chunk; // Store the plain text in finalAnswerWithLinks
           setStreamData((data) => {
             const _updatedData = { ...data };
@@ -297,10 +237,11 @@ export default function Home() {
             return _updatedData;
           });
         }
-      }
+
+        await updateMessages(finalAnswerWithLinks, uuid);
 
         let question = query;
-        let author_name = author?.toLocaleLowerCase();
+        let author_name = author?.toLowerCase();
         let answer = finalAnswerWithLinks;
         let uniqueIDD = uuid;
         let dateString = "03-08-2023"; // DD-MM-YY
@@ -311,65 +252,56 @@ export default function Home() {
         const dateObject = new Date(dateTimeString);
         const formattedDateTime = formatDate(dateObject);
 
-      if (answer?.trim() && !errorMessages.includes(answer)) {
+        const isValidAnswer = answer?.trim() && !errorMessages.includes(answer)
+
         let payload = {
           uniqueId: uniqueIDD,
           question: question,
-          answer: answer,
+          answer: isValidAnswer ? answer : null,
           author_name: author_name,
           rating: null,
           createdAt: new Date().toISOString(),
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        await SupaBaseDatabase.getInstance().insertData(payload);
-      } else {
-        // If answer contains error messages, only add the question to DB
-        let payload = {
-          uniqueId: uniqueIDD,
-          question: question,
-          answer: null, // Set answer as null
-          author_name: author_name,
-          rating: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: null,
-          releasedAt: formattedDateTime,
-        };
-        await SupaBaseDatabase.getInstance().insertData(payload);
+        // await SupaBaseDatabase.getInstance().insertData(payload);
+      } catch (err: any) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            message: err?.message ?? ERROR_MESSAGES.UNKNOWN,
+            type: "errorMessage",
+            uniqueId: uuidv4(),
+          },
+        ]);
       }
-      await updateMessages(finalAnswerWithLinks, uuid);
-    } catch (err: any) {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          message: err?.message ?? ERROR_MESSAGES.UNKNOWN,
-          type: "errorMessage",
-          uniqueId: uuidv4(),
-        },
-      ]);
-    }
-    setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      setLoading(false);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    []
+  );
 
   const promptChat: PromptAction = async (prompt, author, options) => {
     updateRouterQuery(AUTHOR_QUERY, author);
-    if (!prompt?.trim()) return
+    if (!prompt?.trim()) return;
     const authorValue =
       authorsConfig.find((_author) => author === _author.slug)?.value ?? "";
     if (options?.startChat) {
-      setUserInput(prompt)
+      setUserInput(prompt);
       setSelectedAuthor(authorValue);
-      const userMessages = messages.filter((message) => message.type === "userMessage")
-      const shouldPay = shouldUserPay(userMessages.length)
-      if (shouldPay) {
-        const { payment_request, r_hash } = await requestPayment();
-        if (!payment_request && !r_hash) {
-          return;
-        }
-      } else {
-        startChatQuery(prompt, authorValue);
-      }
+      const userMessages = messages.filter(
+        (message) => message.type === "userMessage"
+      );
+      // const shouldPay = shouldUserPay(userMessages.length);
+      // if (shouldPay) {
+      //   const { payment_request, r_hash } = await requestPayment();
+      //   if (!payment_request && !r_hash) {
+      //     return;
+      //   }
+      // } else {
+      //   startChatQuery(prompt, authorValue);
+      // }
+      startChatQuery(prompt, authorValue);
     } else {
       setUserInput(prompt);
     }
@@ -388,7 +320,6 @@ export default function Home() {
         <ChatScreen
           messages={messages}
           userInput={userInput}
-          typedMessage={typedMessage}
           streamData={streamData}
           handleInputChange={handleInputChange}
           startChat={promptChat}

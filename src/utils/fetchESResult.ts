@@ -1,6 +1,9 @@
 import { client } from "@/config/elastic-search";
+import { getAllErrorMessages } from "@/config/error-config";
+import { SupaBaseDatabase } from "@/database/database";
 import keyword_extractor from "keyword-extractor";
 import { Result } from "./openaiChat";
+import { createReadableStream } from "./stream";
 
 export async function extractKeywords(inputSentence: string) {
   try {
@@ -123,4 +126,31 @@ export const fetchResult = async (query: string, author?: string) => {
   }
 
   return searchResults
+};
+
+export const getCachedAnswer = async (question: string, author?: string) => {
+  question = question.toLowerCase();
+  author = author?.toLocaleLowerCase();
+  const errorMessages = getAllErrorMessages()
+  try {
+    const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
+      question,
+      author
+    );
+
+    if (!answers || answers.length === 0) {
+      console.error("Error fetching answer: No answers found.");
+      return null;
+    }
+
+    const nonEmptyAnswer = answers.find((item) => Boolean(item.answer && item.answer?.trim() && !errorMessages.includes(item.answer)));
+
+    if (!nonEmptyAnswer) {
+      console.error("Error fetching answer: No non-empty answers found.");
+      return null;
+    }
+    return createReadableStream(nonEmptyAnswer.answer);
+  } catch (error) {
+    return null;
+  }
 };
