@@ -1,5 +1,5 @@
 import { client } from "@/config/elastic-search";
-import { getAllErrorMessages } from "@/config/error-config";
+import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { SupaBaseDatabase } from "@/database/database";
 import keyword_extractor from "keyword-extractor";
 import { Result } from "./openaiChat";
@@ -126,6 +126,28 @@ export const fetchResult = async (query: string, author?: string) => {
   }
 
   return searchResults
+};
+
+export const legacyFetchResult = async (query: string, author?: string) => {
+  const searchResults = await fetchESResult(query, author); // Remove ": Response" type here
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: [
+        {
+          question: query,
+          searchResults: searchResults,
+        },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(ERROR_MESSAGES.UNKNOWN);
+  }
+  return response; // Add this line to correctly access the output
 };
 
 export const getCachedAnswer = async (question: string, author?: string) => {
