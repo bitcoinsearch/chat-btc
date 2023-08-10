@@ -1,4 +1,6 @@
 import ERROR_MESSAGES from "@/config/error-config";
+import { createParser, ParsedEvent, ReconnectInterval } from "eventsource-parser";
+import { createReadableStream } from "./stream";
 
 interface ElementType {
   type: "paragraph" | "heading";
@@ -83,12 +85,13 @@ const _example = (question: string, summaries: SummaryData[]): string => {
   return prompt;
 };
 
-async function SummaryGenerate(question: string, ans: string): Promise<string> {
-  async function SummaryGenerateCall(
+
+  async function SummaryGenerate(
     question: string,
     ans: string,
+    link: SummaryData[],
     retry: number = 0
-  ): Promise<string> {
+  ): Promise<ReadableStream<any>> {
     try {
       const payload = {
         model: "gpt-3.5-turbo",
@@ -107,35 +110,70 @@ async function SummaryGenerate(question: string, ans: string): Promise<string> {
         frequency_penalty: 0.0,
         presence_penalty: 1,
         max_tokens: 700,
-        stream: false,
+        stream: true,
       };
+      const payloadJSON = JSON.stringify(payload)
+      
       const response = await fetch("https://api.openai.com/v1/chat/completions",{
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ""}`,
           },
           method: "POST",
-          body: JSON.stringify(payload),
+          body: payloadJSON,
         }
-      );
+        );
+      
       if (!response.ok) {
-        // if response is not ok (status code is not 2xx), throw an error to handle it in the catch block
-        console.log(response);
-        return ERROR_MESSAGES.NO_RESPONSE;
+        return createReadableStream(ERROR_MESSAGES.NO_RESPONSE);
       }
-      const jsonResponse = await response.json();
-      return jsonResponse?.choices?.[0]?.message?.content || "";
+
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          function onParse(event: ParsedEvent | ReconnectInterval) {
+            if (event.type === "event") {
+              const data = event.data;
+              let text = ""
+              try {
+                if (data === "[DONE]") {
+                  text = getFinalAnswer("", link).data
+                  const queue = encoder.encode(text);
+                  controller.enqueue(queue);
+                  controller.close()
+                  return;
+                }
+                const jsonData = JSON.parse(data)
+                text = jsonData?.choices[0]?.delta?.content || ''
+                console.log({text})
+                
+                const queue = encoder.encode(text);
+                controller.enqueue(queue);
+              } catch (e) {
+                controller.close()
+              }
+            }
+          }
+          const parser = createParser(onParse);
+          // https://web.dev/streams/#asynchronous-iteration
+          for await (const chunk of response.body as any) {
+            parser.feed(decoder.decode(chunk));
+          }
+        }
+      })
+
+      return stream
+
     } catch (error) {
       if (retry < 2) {
-        return SummaryGenerateCall(question, ans, retry + 1);
+        return SummaryGenerate(question, ans, link, retry + 1);
       } else {
-        return ERROR_MESSAGES.OVERLOAD;
+        return createReadableStream(ERROR_MESSAGES.OVERLOAD);
       }
     }
   }
-
-  return SummaryGenerateCall(question, ans);
-}
 
 function removeDuplicatesByID(arr: CustomContent[]): CustomContent[] {
   const seen = new Set();
@@ -149,28 +187,27 @@ function removeDuplicatesByID(arr: CustomContent[]): CustomContent[] {
   return filteredArr;
 }
 
-async function getFinalAnswer(
-  question: string,
+function getFinalAnswer(
   summary: string,
   content: SummaryData[]
-): Promise<{ question: string; data: string }> {
+) {
   let data = summary.trim() + "\n\n";
 
   content.forEach((d: SummaryData, i: number) => {
     data += `[${i}]: ${d.link}\n`;
   });
 
-  return { question: question, data };
+  return { data };
 }
 
 export async function processInput(
   searchResults: Result[] | undefined,
   question: string
-): Promise<string> {
+) {
   try {
     if (!searchResults?.length) {
       let output_string: string = ERROR_MESSAGES.NO_ANSWER;
-      return output_string;
+      return createReadableStream(output_string);
     } else {
       const intermediateContent: CustomContent[] = []
 
@@ -192,11 +229,15 @@ export async function processInput(
         }
       }
 
+      console.log("first int content", intermediateContent[0].title)
+
       const deduplicatedContent = removeDuplicatesByID(intermediateContent);
 
       if (!deduplicatedContent.length) {
         throw new Error(ERROR_MESSAGES.NO_ANSWER)
       }
+
+      console.log("first dedupedcontent", deduplicatedContent[0].title)
 
       const slicedTextWithLink: SummaryData[] = deduplicatedContent.map(
         (content) => ({
@@ -205,20 +246,19 @@ export async function processInput(
         })
       );
 
+      console.log("slicedText", slicedTextWithLink[0].link)
+
       const prompt = _example(question, slicedTextWithLink);
 
-      const summary = await SummaryGenerate(question, prompt);
+      console.log("prompt length", prompt.length)
 
-      const finalAnswer = await getFinalAnswer(
-        question,
-        summary,
-        slicedTextWithLink
-      );
+      const summary = await SummaryGenerate(question, prompt, slicedTextWithLink);
+      // console.log("🚀 ~ file: openaiChat.ts:283 ~ summary:", summary)
 
-      return finalAnswer.data;
+      return summary
     }
   } catch (error: any) {
     const errMessage = error?.message ? error.message : ERROR_MESSAGES.OVERLOAD
-    return errMessage;
+    throw new Error(errMessage)
   }
 }

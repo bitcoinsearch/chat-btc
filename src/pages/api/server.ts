@@ -1,66 +1,57 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { Client } from "@elastic/elasticsearch";
-import keyword_extractor from "keyword-extractor";
-import { SupaBaseDatabase } from "@/database/database";
-import { createReadableStream } from "@/utils/stream";
-import { fetchESResult, fetchResult } from "@/utils/fetchESResult";
-import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
+import type { PageConfig } from "next";
+// import { fetchESResult } from "@/utils/fetchESResult";
+import ERROR_MESSAGES from "@/config/error-config";
 import { processInput } from "@/utils/openaiChat";
 
-const getCachedAnswer = async (question: string, author?: string) => {
-  question = question.toLowerCase();
-  author = author?.toLocaleLowerCase();
-  const errorMessages = getAllErrorMessages()
-  try {
-    const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
-      question,
-      author
-    );
-
-    if (!answers || answers.length === 0) {
-      console.error("Error fetching answer: No answers found.");
-      return null;
-    }
-
-    const nonEmptyAnswer = answers.find((item) => Boolean(item.answer && item.answer?.trim() && !errorMessages.includes(item.answer)));
-
-    if (!nonEmptyAnswer) {
-      console.error("Error fetching answer: No non-empty answers found.");
-      return null;
-    }
-    return createReadableStream(nonEmptyAnswer.answer);
-  } catch (error) {
-    return null;
-  }
+export const config: PageConfig = {
+  runtime: "edge",
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export const fetchESResult = async (query: string, author?: string) : Promise<any[] | null> => {
+  const response = await fetch("http://localhost:3000/api/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: {
+        question: query,
+        author: author,
+      },
+    }),
+  });
+  
+  if (!response.ok) {
+    return null
+  }
+
+  return await response.json();
+};
+
+export default async function handler(req: Request) {
   if (req.method === "POST") {
-    const { inputs } = req.body;
-    const { question: query, author } = inputs;
+    const { inputs } = await req.json();
+    const { query, author }: {query: string, author: string} = inputs;
 
-    const cachedAnswer = await getCachedAnswer(query, author);
-
-    if (cachedAnswer) {
-      return new Response(cachedAnswer)
-    }
-
-    const esResults = await fetchResult(query, author);
-
+    const esResults = await fetchESResult(query, author);
+    
     if (!esResults || !esResults.length) {
+      console.log("no results")
       return new Response(ERROR_MESSAGES.NO_ANSWER)
     }
-    
+
     try {
       const result = await processInput(esResults, query);
-      return new Response(result);
-    } catch (err) {
-      return new Response(JSON.stringify({ error: ERROR_MESSAGES.UNKNOWN }), {
-        status: 500,
-      });
+      // console.log("🚀 ~ file: server.ts:64 ~ handler ~ result:", result)
+      return new Response(result)
+    } catch (error: any) {
+      console.log("🚀 ~ file: server.ts:68 ~ handler ~ error:", error)
+      
+      const errMessage = error?.message ? error.message : ERROR_MESSAGES.UNKNOWN
+      return new Response(JSON.stringify({error: errMessage}), { status: 400 })
     }
 
   } else {
-    res.status(405).json({ message: "Method not allowed" });
+    return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 })
   }
 }

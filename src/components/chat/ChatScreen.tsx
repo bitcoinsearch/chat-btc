@@ -24,7 +24,6 @@ import { PromptAction } from "@/types";
 
 type ChatProps = {
   userInput: string;
-  typedMessage: string;
   streamData: Message;
   messages: Message[];
   startChat: PromptAction;
@@ -38,7 +37,6 @@ const blippy = authorsConfig[0];
 
 const ChatScreen = ({
   userInput,
-  typedMessage,
   streamData,
   messages,
   startChat,
@@ -88,7 +86,7 @@ const ChatScreen = ({
       messageList.scrollTo({ top: scrollBottom, behavior: "smooth" });
       initMessageListHeight.current = listHeight;
     }
-  }, [typedMessage, userHijackedScroll]);
+  }, [streamData, userHijackedScroll]);
 
   // scroll to last message (user text after submit)
   useEffect(() => {
@@ -245,7 +243,7 @@ const ChatScreen = ({
                   // messageId={uuidv4()}
                   author={author.name}
                   content={{
-                    message: streamLoading ? typedMessage : streamData.message,
+                    message: streamData.message,
                     type: "apiStream",
                     uniqueId: uuidv4(),
                   }}
