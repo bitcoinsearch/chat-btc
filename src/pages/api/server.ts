@@ -1,14 +1,20 @@
 import type { PageConfig } from "next";
-// import { fetchESResult } from "@/utils/fetchESResult";
 import ERROR_MESSAGES from "@/config/error-config";
 import { processInput } from "@/utils/openaiChat";
+import { createReadableStream } from "@/utils/stream";
 
 export const config: PageConfig = {
   runtime: "edge",
 };
 
-export const fetchESResult = async (query: string, author?: string) : Promise<any[] | null> => {
-  const response = await fetch("http://localhost:3000/api/search", {
+const getSearchUrl = (url: string) => {
+  const reqUrl = url.split("/")
+  reqUrl.pop()
+  return reqUrl.join("/") + "/search"
+}
+
+export const internalFetch = async (url: string, query: string, author?: string) : Promise<any[] | null> => {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -30,13 +36,16 @@ export const fetchESResult = async (query: string, author?: string) : Promise<an
 
 export default async function handler(req: Request) {
   if (req.method === "POST") {
+    const fetchUrl = getSearchUrl(req.url)
+
     const { inputs } = await req.json();
     const { query, author }: {query: string, author: string} = inputs;
 
-    const esResults = await fetchESResult(query, author);
+    const esResults = await internalFetch(fetchUrl, query, author)
     
     if (!esResults || !esResults.length) {
-      return new Response(ERROR_MESSAGES.NO_ANSWER)
+      const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER)
+      return new Response(error)
     }
 
     try {
