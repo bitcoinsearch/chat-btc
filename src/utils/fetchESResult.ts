@@ -21,10 +21,13 @@ export async function extractKeywords(inputSentence: string) {
   }
 }
 
-export async function getSearchResults(query: string, author?: string) {
+  export async function getSearchResults(query: string, author?: string) {
+  // Determine the index based on whether coredev is the persona
+  const index = author === 'coredev' ? process.env.ES_INDEX_CORE : process.env.ES_INDEX;
+
   try {
     const response = await client.search({
-      index: process.env.ES_INDEX,
+      index: index,
 
       body: {
         query: {
@@ -43,7 +46,7 @@ export async function getSearchResults(query: string, author?: string) {
                 },
               },
             ],
-            ...((author && author.length > 0
+            ...((author && author.length > 0 && author !== 'coredev'
               ? {
                   filter: {
                     bool: {
