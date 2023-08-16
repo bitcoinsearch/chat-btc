@@ -231,7 +231,7 @@ export default function Home() {
         let author_name = author?.toLowerCase();
         let answer = finalAnswerWithLinks;
         let uniqueIDD = uuid;
-        let dateString = "03-08-2023"; // DD-MM-YY
+        let dateString = "04-10-2023"; // DD-MM-YY
         let timeString = "00:00:00";
 
         const dateTimeString =

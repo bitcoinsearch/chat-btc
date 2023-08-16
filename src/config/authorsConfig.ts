@@ -16,6 +16,18 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
+    name: "CoreDev Bot",
+    title: "Bitcoin Core Seer",
+    introduction: "Hi, I'm a bitcoin core expert. I'm only trained on Bitcoin Core sources so I don't know anything about the greater ecosystem but if you wnat to learn about Bitcoin Core development ask away.",
+    slug: "coredev",
+    value: "coredev",
+    imgURL: "/images/authors/bitcoin_seer.jpg",
+    questions: [
+      "What does NodeContext represent? How is it different from CNode?",
+      "After a wallet is reloaded, what will be the transaction state of a previously mempool-conflicted transaction?",
+    ],
+  },
+  {
     name: 'Matt Corallo Bot',
     slug: "matt-corallo",
     title: "LDK & Bitcoin Core Dev",
@@ -28,18 +40,6 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Andrew Chow Bot",
-    title: "Bitcoin Core Maintainer",
-    introduction: "Hi, I'm achow. I'm a Bitcoin Core maintainer and work on the Hardware Wallet Interface. My focus is on wallet functionality and interoperability between different wallet software.",
-    slug: "achow",
-    value: "Andrew Chow",
-    imgURL: "/images/authors/andrew_chow.jpg",
-    questions: [
-      "What are Partially Signed Bitcoin Transactions used for?",
-      "What are the advantages of descriptor wallets over legacy wallets?",
-    ],
-  },
-  {
     name: "Greg Maxwell Bot",
     slug: "greg-maxwell",
     title: "Bitcoin Core Contributor",
@@ -49,6 +49,18 @@ const authorsConfig: AuthorConfig[] = [
     questions: [
       "What benefits does Graftroot offer over Taproot?",
       "What is a Confidential Transaction?",
+    ],
+  },
+  {
+    name: "Andrew Chow Bot",
+    title: "Bitcoin Core Maintainer",
+    introduction: "Hi, I'm achow. I'm a Bitcoin Core maintainer and work on the Hardware Wallet Interface. My focus is on wallet functionality and interoperability between different wallet software.",
+    slug: "achow",
+    value: "Andrew Chow",
+    imgURL: "/images/authors/andrew_chow.jpg",
+    questions: [
+      "What are Partially Signed Bitcoin Transactions used for?",
+      "What are the advantages of descriptor wallets over legacy wallets?",
     ],
   },
   {
@@ -84,7 +96,7 @@ const authorsConfig: AuthorConfig[] = [
     imgURL: "/images/authors/andreas_antonopoulos.jpg",
     questions: [
       "What are the advantages of Schnorr signatures over ECDSA?",
-      "Is is seed splitting a good idea?",
+      "Is seed splitting a good idea?",
     ],
   }
 ];
