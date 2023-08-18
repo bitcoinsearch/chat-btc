@@ -2,6 +2,7 @@ import type { PageConfig } from "next";
 import ERROR_MESSAGES from "@/config/error-config";
 import { processInput } from "@/utils/openaiChat";
 import { createReadableStream } from "@/utils/stream";
+import { isValidPaymentToken } from "@/utils/token";
 
 export const config: PageConfig = {
   runtime: "edge",
@@ -36,6 +37,15 @@ export const internalFetch = async (url: string, query: string, author?: string)
 
 export default async function handler(req: Request) {
   if (req.method === "POST") {
+    const token = req.headers.get("Authorization")
+    console.log({token})
+    if (!token) {
+      return new Response(JSON.stringify({ message: "No Payment Token" }), { status: 402 })
+    }
+    const isValidToken = isValidPaymentToken(token)
+    if (!isValidToken) {
+      return new Response(JSON.stringify({ message: "Invalid Token" }), { status: 402 })
+    }
     const fetchUrl = getSearchUrl(req.url)
 
     const { inputs } = await req.json();
@@ -60,4 +70,12 @@ export default async function handler(req: Request) {
   } else {
     return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 })
   }
+}
+
+const verifyHeader = (reqHeader: Request["headers"]) => {
+  const l402Header = reqHeader.get("Authorization")
+  if (!l402Header) {
+    return new Response(JSON.stringify({ message: "No authorization header is present" }), { status: 403 })
+  }
+
 }

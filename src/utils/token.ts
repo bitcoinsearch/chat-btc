@@ -15,6 +15,15 @@ export async function generateToken(invoice: string, expiresIn = "720") {
   return jwt;
 }
 
+export async function freeChatToken(numberOfChatLeft: number) {
+  const jwt = await new jose.SignJWT({ numberOfChatLeft })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("30s")
+    .sign(Buffer.from(ENV.JWT_SECRET));
+  return jwt;
+}
+
 export async function isValidPaymentToken(token: string) {
   let jwt = null;
   try {
@@ -23,6 +32,7 @@ export async function isValidPaymentToken(token: string) {
     if (!jwt.payload || !jwt.payload.exp) {
       return false;
     }
+    
     if (Math.floor(Date.now() / 1000) > jwt.payload.exp) {
       return false; // expired
     }
@@ -49,6 +59,9 @@ export function shouldUserPay(numberOfUserMessage: number) {
       : false;
     if (isValidToken) {
       return false;
+    }
+    if (!isValidToken && paymentToken) {
+      window.localStorage.removeItem("paymentToken")
     }
     return true;
   } else {

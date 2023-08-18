@@ -26,6 +26,7 @@ export interface Result {
     url: string;
     body_type: string;
     type?: string; // Added the 'type' property as optional
+    summary?: string;
   };
 }
 
@@ -219,7 +220,7 @@ export async function processInput(
           const isMarkdown = source.body_type === "markdown";
           const snippet = isMarkdown
           ? concatenateTextFields(source.body)
-          : source.body;
+          : source?.summary ? source.summary : source.body;
           intermediateContent.push({
             title: source.title,
             snippet: snippet,
@@ -234,7 +235,7 @@ export async function processInput(
         throw new Error(ERROR_MESSAGES.NO_ANSWER)
       }
 
-      const slicedTextWithLink: SummaryData[] = deduplicatedContent.map(
+      const slicedTextWithLink: SummaryData[] = deduplicatedContent.slice(0, 6).map(
         (content) => ({
           cleaned_text: cleanText(content.snippet).slice(0, 2000),
           link: content.link,

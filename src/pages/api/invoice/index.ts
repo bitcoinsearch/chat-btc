@@ -1,6 +1,6 @@
 import LND_NODE from "@/utils/node";
 import { NextApiRequest, NextApiResponse } from "next";
-import fs from "fs";
+import { PRICE_PER_PROMPT } from "@/contexts/payment-context";
 
 type InvoiceResponse = {
   payment_request: string;
@@ -28,7 +28,7 @@ export default async function handler(
     if (hasAutoPayment) {
       finalAmountInSatoshis = Number(req.body.autoPayment)
     } else {
-      finalAmountInSatoshis = 50
+      finalAmountInSatoshis = PRICE_PER_PROMPT
     }
     const response = await LND_NODE.post("/v1/invoices", {
       value: finalAmountInSatoshis,
