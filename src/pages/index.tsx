@@ -11,7 +11,7 @@ import { GeneratingErrorMessages, PromptAction } from "@/types";
 import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
-import { shouldUserPay } from "@/utils/token";
+import { generateToken, freeChatToken, shouldUserPay } from "@/utils/token";
 import { formatDate } from "@/utils/date";
 import { createReadableStream } from "@/utils/stream";
 
@@ -137,11 +137,17 @@ export default function Home() {
 
         let data;
         if (!cachedAnswer) {
+          const userMessages = messages.filter(
+            (message) => message.type === "userMessage"
+          );
+          const token = window.localStorage.getItem("paymentToken") ?? await freeChatToken(userMessages.length)
+
           // const response: Response = await fetchResult(query, author);
           const response = await fetch("/api/server", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": token
             },
             body: JSON.stringify({
               inputs: {
