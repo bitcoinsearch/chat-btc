@@ -14,6 +14,7 @@ import InvoiceModal from "@/components/invoice/modal";
 import { generateToken, freeChatToken, shouldUserPay } from "@/utils/token";
 import { formatDate } from "@/utils/date";
 import { createReadableStream } from "@/utils/stream";
+import { separateLinksFromApiMessage } from "@/utils/links";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -36,7 +37,17 @@ const getCachedAnswer = async (question: string, author?: string) => {
       return null;
     }
 
-    const nonEmptyAnswer = answers.find((item) => Boolean(item.answer && item.answer?.trim() && !errorMessages.includes(item.answer)));
+    const findNonEmptyAnswer = (item: {
+      answer: string | null;
+      createdAt: string;
+    }) => {
+      if (!item.answer && !item.answer?.trim()) {
+        return false
+      }
+      const messageBodyNoLinks = separateLinksFromApiMessage(item.answer).messageBody
+      return !errorMessages.includes(messageBodyNoLinks)
+    }
+    const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
 
     if (!nonEmptyAnswer) {
       console.error("Error fetching answer: No non-empty answers found.");
