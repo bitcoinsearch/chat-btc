@@ -77,5 +77,4 @@ const verifyHeader = (reqHeader: Request["headers"]) => {
   if (!l402Header) {
     return new Response(JSON.stringify({ message: "No authorization header is present" }), { status: 403 })
   }
-
 }

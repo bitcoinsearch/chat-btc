@@ -220,7 +220,7 @@ export async function processInput(
           const isMarkdown = source.body_type === "markdown";
           const snippet = isMarkdown
           ? concatenateTextFields(source.body)
-          : source?.summary ? source.summary : source.body;
+          : source.body;
           intermediateContent.push({
             title: source.title,
             snippet: snippet,
