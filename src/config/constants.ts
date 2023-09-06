@@ -8,7 +8,7 @@ export const PRICE_PER_PROMPT = 50 as const;
 
 export const MAX_REQUESTS_PER_SESSION = 5 as const;
 
-export const SLIDING_WINDOW_IN_SECONDS = "300 s" as const;
+export const SLIDING_WINDOW_IN_SECONDS = "1800 s" as const;
 
 export const DEFAULT_TOKEN_EXPIRY_TIME = "360s" as const;
 
