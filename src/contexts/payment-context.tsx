@@ -1,9 +1,8 @@
-import axios from "axios";
 import React, { createContext } from "react";
 
 import { Invoice } from "@/types";
-import { generateToken, saveAutoPayToken } from "@/utils/token";
 import { requestProvider } from "webln";
+import { getLSATDetailsFromHeader } from "@/utils/token";
 
 type PaymentContextType = {
   invoice: Invoice;
@@ -13,8 +12,6 @@ type PaymentContextType = {
   isPaymentModalOpen: boolean;
   isPaymentSettled: boolean;
   closePaymentModal: () => void;
-  requestPayment: () => Promise<Invoice>;
-  requestPaymentToken: () => Promise<{ token: string }>;
   setIsPaymentSettled: (isPaymentSettled: boolean) => void;
   payWithWebln: (isAutoPayment?: boolean) => void;
   selectTieredPayment: (tier: PaymentTier) => Promise<void>;
@@ -22,6 +19,9 @@ type PaymentContextType = {
   autoPaymentTier: PaymentTier | null;
   autoPaymentLoading: boolean;
   isAutoPaymentSettled: boolean;
+  openPaymentModal: () => void;
+  setInvoice: (invoice: Invoice) => void;
+  resetPayment: () => void;
 };
 
 export type PaymentTier = {
@@ -34,14 +34,6 @@ const defaultInvoice = {
   payment_request: "",
   r_hash: "",
 };
-
-export const paymentTierList: PaymentTier[] = [
-  { id: 1, priceInSats: 500, timeInHours: "6" },
-  { id: 2, priceInSats: 1000, timeInHours: "24" },
-  { id: 3, priceInSats: 5000, timeInHours: "168" },
-];
-
-export const PRICE_PER_PROMPT = 50;
 
 const PaymentContext = createContext<PaymentContextType>(null!);
 
@@ -56,48 +48,33 @@ export const PaymentContextProvider = ({
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
-  const [paymentToken, setPaymentToken] = React.useState("");
   const [autoPaymentLoading, setAutoPaymentLoading] = React.useState(false);
   const [autoPaymentTier, setAutoPaymentTier] =
     React.useState<PaymentTier | null>(null);
   const [isAutoPaymentSettled, setIsAutoPaymentSettled] = React.useState(false);
   const [isPaymentSettled, setIsPaymentSettled] = React.useState(false);
 
-  const paymentTokenRef = React.useRef<string>(paymentToken);
-  paymentTokenRef.current = paymentToken;
-
-  const requestPayment = React.useCallback(async () => {
-    setIsPaymentSettled(false);
-    setLoading(true);
+  const openPaymentModal = React.useCallback(() => {
     setIsPaymentModalOpen(true);
-    const response = await axios.post("/api/invoice");
-    if (response.status !== 200) {
-      setError("Error generating invoice");
-      setLoading(false);
-      return defaultInvoice;
-    }
-    const { payment_request, r_hash } = response.data;
-    setInvoice({ payment_request, r_hash });
-    setLoading(false);
-    return { payment_request, r_hash };
   }, []);
 
   const requestAutoPayment = React.useCallback(async (priceInSats: number) => {
     setIsAutoPaymentSettled(false);
     setAutoPaymentInvoice(defaultInvoice);
     setAutoPaymentLoading(true);
-    const response = await axios.post("/api/invoice", {
-      autoPayment: priceInSats,
+    const response = await fetch("/api/server", {
+      method: "POST",
+      body: JSON.stringify({ autoPayment: priceInSats }),
     });
-    if (response.status !== 200) {
-      setError("Error generating invoice");
+    if (response.status === 402) {
+      window.localStorage.removeItem("paymentToken");
+      const L402 = response.headers.get("WWW-Authenticate");
+      const { token, invoice, r_hash } = getLSATDetailsFromHeader(L402!) ?? {};
+      localStorage.setItem("paymentToken", token ?? "");
+      setAutoPaymentInvoice({ payment_request: invoice!, r_hash: r_hash! });
       setAutoPaymentLoading(false);
-      return defaultInvoice;
+      return { payment_request: invoice!, r_hash: r_hash! };
     }
-    const { payment_request, r_hash } = response.data;
-    setAutoPaymentInvoice({ payment_request, r_hash });
-    setAutoPaymentLoading(false);
-    return { payment_request, r_hash };
   }, []);
 
   const payWithWebln = async (isAutoPayment?: boolean) => {
@@ -124,19 +101,6 @@ export const PaymentContextProvider = ({
     requestAutoPayment(tier.priceInSats);
   };
 
-  const requestPaymentToken = React.useCallback(async () => {
-    const paymentToken = paymentTokenRef.current;
-    if (paymentToken) {
-      return { token: paymentToken };
-    }
-    const token = await generateToken(
-      invoice.payment_request,
-      autoPaymentTier?.timeInHours
-    );
-    setPaymentToken(token);
-    return { token };
-  }, [invoice.payment_request, autoPaymentTier?.timeInHours]);
-
   const closePaymentModal = React.useCallback(() => {
     if (!isPaymentSettled) {
       setInvoice(defaultInvoice);
@@ -158,11 +122,12 @@ export const PaymentContextProvider = ({
       setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
         try {
-          const response = await axios.post("/api/invoice/status", {
-            r_hash: invoice.r_hash,
+          const response = await fetch("/api/invoice/status", {
+            method: "POST",
+            body: JSON.stringify({ r_hash: invoice.r_hash }),
           });
           if (response.status === 200) {
-            const { settled } = response.data;
+            const { settled } = await response.json();
             console.log("settled", settled);
             if (settled) {
               setIsPaymentSettled(true);
@@ -188,18 +153,18 @@ export const PaymentContextProvider = ({
       setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
         try {
-          const response = await axios.post("/api/invoice/status", {
-            r_hash: autoPaymentInvoice.r_hash,
+          const response = await fetch("/api/invoice/status", {
+            method: "POST",
+            body: JSON.stringify({ r_hash: autoPaymentInvoice.r_hash }),
           });
           if (response.status === 200) {
-            const { settled } = response.data;
+            const { settled } = await response.json();
             if (settled) {
               setIsAutoPaymentSettled(true);
               setIsPaymentModalOpen(false);
               setAutoPaymentInvoice(defaultInvoice);
               setInvoice(defaultInvoice);
               clearInterval(intervalId);
-              await saveAutoPayToken(autoPaymentInvoice.r_hash);
             }
           }
         } catch (error) {
@@ -213,6 +178,14 @@ export const PaymentContextProvider = ({
     }
   }, [autoPaymentInvoice.r_hash]);
 
+  const resetPayment = React.useCallback(() => {
+    setInvoice(defaultInvoice);
+    setAutoPaymentInvoice(defaultInvoice);
+    setIsPaymentSettled(false);
+    setIsAutoPaymentSettled(false);
+    setAutoPaymentTier(null);
+  }, []);
+
   return (
     <PaymentContext.Provider
       value={{
@@ -223,15 +196,16 @@ export const PaymentContextProvider = ({
         isPaymentModalOpen,
         isPaymentSettled,
         closePaymentModal,
-        requestPayment,
-        requestPaymentToken,
         setIsPaymentSettled,
+        resetPayment,
         payWithWebln,
         selectTieredPayment,
         autoPaymentInvoice,
         autoPaymentTier,
         autoPaymentLoading,
         isAutoPaymentSettled,
+        openPaymentModal,
+        setInvoice,
       }}
     >
       {children}

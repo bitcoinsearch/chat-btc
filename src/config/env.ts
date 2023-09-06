@@ -15,4 +15,5 @@ export const ENV = {
   LND_URL,
   MACAROON,
   JWT_SECRET,
+  PRODUCTION: process.env.NODE_ENV === "production",
 };

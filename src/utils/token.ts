@@ -2,73 +2,66 @@ import * as jose from "jose";
 
 import { ENV } from "@/config/env";
 
-const NUMBER_OF_FREE_CHAT = 3;
-
-export async function generateToken(invoice: string, expiresIn = "720") {
-  const expiresAt = expiresIn + "h";
-  const jwt = await new jose.SignJWT({ invoice })
+export async function generateToken({
+  invoice,
+  r_hash,
+  expiresIn = "1",
+}: {
+  invoice: string;
+  r_hash: string;
+  expiresIn?: string | number;
+}) {
+  const jwt = await new jose.SignJWT({ invoice, r_hash })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(expiresAt)
-    .sign(Buffer.from(ENV.JWT_SECRET));
+    .setExpirationTime(expiresIn)
+    .sign(new TextEncoder().encode(ENV.JWT_SECRET));
 
-  return jwt;
-}
-
-export async function freeChatToken(numberOfChatLeft: number) {
-  const jwt = await new jose.SignJWT({ numberOfChatLeft })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("30s")
-    .sign(Buffer.from(ENV.JWT_SECRET));
   return jwt;
 }
 
 export async function isValidPaymentToken(token: string) {
   let jwt = null;
   try {
-    jwt = await jose.jwtVerify(token, Buffer.from(ENV.JWT_SECRET), {});
+    jwt = await jose.jwtVerify(token, new TextEncoder().encode(ENV.JWT_SECRET));
 
     if (!jwt.payload || !jwt.payload.exp) {
       return false;
     }
-    
+
     if (Math.floor(Date.now() / 1000) > jwt.payload.exp) {
       return false; // expired
     }
 
     return true;
   } catch (e) {
-    console.error(e);
     return false;
   }
 }
 
-export async function saveAutoPayToken(invoice: string) {
-  const token = await generateToken(invoice);
-  localStorage.setItem("paymentToken", token);
-}
+export const getLSATDetailsFromHeader = (
+  input: string
+): { invoice: string; token: string; r_hash: string } | null => {
+  const regex = /macaroon="([^"]+)", invoice="([^"]+)"/;
+  const matches = input.match(regex);
+  let token = "";
+  let invoice = "";
+  let r_hash = "";
 
-export function shouldUserPay(numberOfUserMessage: number) {
-  const hasExceededLimit =
-    window.localStorage.getItem("hasExceededLimit") === "true";
-  if (hasExceededLimit) {
-    const paymentToken = window.localStorage.getItem("paymentToken");
-    const isValidToken = paymentToken
-      ? isValidPaymentToken(paymentToken)
-      : false;
-    if (isValidToken) {
-      return false;
-    }
-    if (!isValidToken && paymentToken) {
-      window.localStorage.removeItem("paymentToken")
-    }
-    return true;
-  } else {
-    if (numberOfUserMessage >= NUMBER_OF_FREE_CHAT) {
-      localStorage.setItem("hasExceededLimit", "true");
-      return true;
-    }
-    return false;
+  if (matches) {
+    token = matches[1];
+    invoice = matches[2];
+    const decodedToken = jose.decodeJwt(token);
+    r_hash = decodedToken.r_hash as string;
   }
-}
+  return { token, invoice, r_hash };
+};
+
+export const constructTokenHeader = ({ token }: { token: string }) => {
+  try {
+    const decodedToken = jose.decodeJwt(token);
+    return `L402 ${token}:${decodedToken.r_hash}`;
+  } catch (e) {
+    return "";
+  }
+};

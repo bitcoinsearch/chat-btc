@@ -5,12 +5,9 @@ import useTruncatedString from "@/hooks/useTruncatedString";
 import {
   Box,
   Button,
-  ChakraProps,
   Checkbox,
-  CheckboxProps,
   Code,
   Flex,
-  IconButton,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -29,10 +26,9 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import {
-  paymentTierList,
-  PRICE_PER_PROMPT,
   usePaymentContext,
 } from "@/contexts/payment-context";
+import { PRICE_PER_PROMPT, paymentTierList } from "@/config/constants";
 import { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 

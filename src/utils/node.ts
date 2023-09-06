@@ -6,7 +6,7 @@ import { ENV } from "@/config/env";
 const LND_NODE = axios.create({
   baseURL: ENV.LND_URL,
   httpsAgent: new https.Agent({
-    rejectUnauthorized: false,
+    rejectUnauthorized: ENV.PRODUCTION,
   }),
   headers: { "Grpc-Metadata-macaroon": ENV.MACAROON },
 });
