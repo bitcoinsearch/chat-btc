@@ -18,8 +18,6 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import { v4 as uuidv4 } from "uuid";
-import InvoiceModal from "../invoice/modal";
-import { usePaymentContext } from "@/contexts/payment-context";
 import { PromptAction } from "@/types";
 
 type ChatProps = {
@@ -43,10 +41,7 @@ const ChatScreen = ({
   handleInputChange,
   loading,
   streamLoading,
-  resetChat,
 }: ChatProps) => {
-  const { setIsPaymentSettled, requestPayment, isPaymentSettled } =
-    usePaymentContext();
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const initMessageListHeight = useRef(
@@ -102,7 +97,7 @@ const ChatScreen = ({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setUserHijackedScroll(false);
-    startChat(userInput, author.slug, { startChat: true })
+    startChat(userInput, author.slug, { startChat: true });
   };
 
   // Prevent blank submissions and allow for multiline input
@@ -168,7 +163,6 @@ const ChatScreen = ({
           maxW={"1280px"}
           h="100%"
           p={4}
-          // centerContent
         >
           <Flex
             id="main"
@@ -181,13 +175,7 @@ const ChatScreen = ({
             justifyContent="space-around"
             overflow="auto"
           >
-            <Flex
-              w="full"
-              gap={4}
-              alignItems="center"
-              // mt={{ base: 3, md: 8 }}
-              // justifyContent="center"
-            >
+            <Flex w="full" gap={4} alignItems="center">
               <Box w="75px">
                 <Box
                   position="relative"
@@ -201,7 +189,6 @@ const ChatScreen = ({
                     src={author.imgURL}
                     alt={`author-${author.slug}`}
                     fill={true}
-                    // sizes="50px"
                   />
                 </Box>
               </Box>
@@ -240,7 +227,6 @@ const ChatScreen = ({
                 })}
               {(loading || streamLoading) && (
                 <MessageBox
-                  // messageId={uuidv4()}
                   author={author.name}
                   content={{
                     message: streamData.message,
@@ -252,7 +238,6 @@ const ChatScreen = ({
                 />
               )}
             </Box>
-            {/* <Box w="100%" maxW="100%" flex={{base: "0 0 50px", md:"0 0 100px"}} mb={{base: "70px", md: "70px"}}> */}
             <Box w="100%">
               <form onSubmit={handleSubmit}>
                 <Flex gap={2} alignItems="flex-end">

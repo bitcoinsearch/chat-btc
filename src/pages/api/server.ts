@@ -2,19 +2,17 @@ import type { PageConfig } from "next";
 import ERROR_MESSAGES from "@/config/error-config";
 import { processInput } from "@/utils/openaiChat";
 import { createReadableStream } from "@/utils/stream";
-import { isValidPaymentToken } from "@/utils/token";
+import { getNewUrl } from "@/utils/token-api";
 
 export const config: PageConfig = {
   runtime: "edge",
 };
 
-const getSearchUrl = (url: string) => {
-  const reqUrl = url.split("/")
-  reqUrl.pop()
-  return reqUrl.join("/") + "/search"
-}
-
-export const internalFetch = async (url: string, query: string, author?: string) : Promise<any[] | null> => {
+export const internalFetch = async (
+  url: string,
+  query: string,
+  author?: string
+): Promise<any[] | null> => {
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -27,9 +25,9 @@ export const internalFetch = async (url: string, query: string, author?: string)
       },
     }),
   });
-  
+
   if (!response.ok) {
-    return null
+    return null;
   }
 
   return await response.json();
@@ -37,44 +35,47 @@ export const internalFetch = async (url: string, query: string, author?: string)
 
 export default async function handler(req: Request) {
   if (req.method === "POST") {
-    const token = req.headers.get("Authorization")
-    console.log({token})
-    if (!token) {
-      return new Response(JSON.stringify({ message: "No Payment Token" }), { status: 402 })
-    }
-    const isValidToken = isValidPaymentToken(token)
-    if (!isValidToken) {
-      return new Response(JSON.stringify({ message: "Invalid Token" }), { status: 402 })
-    }
-    const fetchUrl = getSearchUrl(req.url)
+    const requesturl = req.url;
+    const reqBody = await req.json();
 
-    const { inputs } = await req.json();
-    const { query, author }: {query: string, author: string} = inputs;
+    let esResults;
+    let userQuery;
 
-    const esResults = await internalFetch(fetchUrl, query, author)
-    
-    if (!esResults || !esResults.length) {
-      const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER)
-      return new Response(error)
+    try {
+      const fetchUrl = getNewUrl(requesturl, "/search");
+      const inputs = reqBody?.inputs;
+      const { query, author }: { query: string; author: string } = inputs;
+
+      esResults = await internalFetch(fetchUrl, query, author);
+      userQuery = query;
+
+      if (!esResults || !esResults.length) {
+        const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER);
+        console.log(error);
+        return new Response(error);
+      }
+    } catch (error) {
+      console.log(error);
+      return new Response(
+        JSON.stringify({ message: "internal server error" }),
+        { status: 500 }
+      );
     }
 
     try {
-      const result = await processInput(esResults, query);
-      return new Response(result)
+      const result = await processInput(esResults, userQuery);
+      return new Response(result);
     } catch (error: any) {
-      
-      const errMessage = error?.message ? error.message : ERROR_MESSAGES.UNKNOWN
-      return new Response(JSON.stringify({error: errMessage}), { status: 400 })
+      const errMessage = error?.message
+        ? error.message
+        : ERROR_MESSAGES.UNKNOWN;
+      return new Response(JSON.stringify({ error: errMessage }), {
+        status: 400,
+      });
     }
-
   } else {
-    return new Response(JSON.stringify({ message: "Method not allowed" }), { status: 405 })
-  }
-}
-
-const verifyHeader = (reqHeader: Request["headers"]) => {
-  const l402Header = reqHeader.get("Authorization")
-  if (!l402Header) {
-    return new Response(JSON.stringify({ message: "No authorization header is present" }), { status: 403 })
+    return new Response(JSON.stringify({ message: "Method not allowed" }), {
+      status: 405,
+    });
   }
 }

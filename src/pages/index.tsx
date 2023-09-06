@@ -11,7 +11,7 @@ import { GeneratingErrorMessages, PromptAction } from "@/types";
 import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
-import { generateToken, freeChatToken, shouldUserPay } from "@/utils/token";
+import { constructTokenHeader, getLSATDetailsFromHeader } from "@/utils/token";
 import { formatDate } from "@/utils/date";
 import { createReadableStream } from "@/utils/stream";
 import { separateLinksFromApiMessage } from "@/utils/links";
@@ -25,7 +25,7 @@ const initialStream: Message = {
 const getCachedAnswer = async (question: string, author?: string) => {
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
-  const errorMessages = getAllErrorMessages()
+  const errorMessages = getAllErrorMessages();
   try {
     const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
       question,
@@ -42,11 +42,13 @@ const getCachedAnswer = async (question: string, author?: string) => {
       createdAt: string;
     }) => {
       if (!item.answer && !item.answer?.trim()) {
-        return false
+        return false;
       }
-      const messageBodyNoLinks = separateLinksFromApiMessage(item.answer).messageBody
-      return !errorMessages.includes(messageBodyNoLinks)
-    }
+      const messageBodyNoLinks = separateLinksFromApiMessage(
+        item.answer
+      ).messageBody;
+      return !errorMessages.includes(messageBodyNoLinks);
+    };
     const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
 
     if (!nonEmptyAnswer) {
@@ -79,8 +81,13 @@ export default function Home() {
     undefined
   );
 
-  const { requestPayment, isPaymentSettled, isAutoPaymentSettled } =
-    usePaymentContext();
+  const {
+    openPaymentModal,
+    setInvoice,
+    resetPayment,
+    isPaymentSettled,
+    isAutoPaymentSettled,
+  } = usePaymentContext();
 
   const router = useRouter();
   const updateRouterQuery = useUpdateRouterQuery();
@@ -137,28 +144,34 @@ export default function Home() {
       // Reset the typedMessage state
       let uuid = uuidv4();
       setLoading(true);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { message: query, type: "userMessage", uniqueId: uuid },
-      ]);
-      setUserInput("");
+      setMessages((prevMessages) => {
+        if (prevMessages.length > 0) {
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          if (lastMessage.message === query) {
+            return prevMessages;
+          }
+        }
+        return [
+          ...prevMessages,
+          { message: query, type: "userMessage", uniqueId: uuid },
+        ];
+      });
 
       try {
         const cachedAnswer = await getCachedAnswer(query, author);
 
         let data;
         if (!cachedAnswer) {
-          const userMessages = messages.filter(
-            (message) => message.type === "userMessage"
-          );
-          const token = window.localStorage.getItem("paymentToken") ?? await freeChatToken(userMessages.length)
+          const savedToken = localStorage.getItem("paymentToken") || "";
+          const authHeader = constructTokenHeader({
+            token: savedToken,
+          });
 
-          // const response: Response = await fetchResult(query, author);
           const response = await fetch("/api/server", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": token
+              Authorization: authHeader,
             },
             body: JSON.stringify({
               inputs: {
@@ -167,13 +180,24 @@ export default function Home() {
               },
             }),
           });
-          if (!response.ok) {
+          if (response.status === 402) {
+            localStorage.removeItem("paymentToken");
+            const L402 = response.headers.get("WWW-Authenticate");
+            const { token, invoice, r_hash } =
+              getLSATDetailsFromHeader(L402!) ?? {};
+            localStorage.setItem("paymentToken", token ?? "");
+            setInvoice({ payment_request: invoice!, r_hash: r_hash! });
+            openPaymentModal();
+            return;
+          }
+          if (!response.ok || response.status !== 200) {
             throw new Error(ERROR_MESSAGES.UNKNOWN);
           }
           data = response.body;
         } else {
           data = cachedAnswer;
         }
+        setUserInput("");
         const reader = data?.getReader();
         let doneReading = false;
         let finalAnswerWithLinks = "";
@@ -246,18 +270,7 @@ export default function Home() {
     if (options?.startChat) {
       setUserInput(prompt);
       setSelectedAuthor(authorValue);
-      const userMessages = messages.filter(
-        (message) => message.type === "userMessage"
-      );
-      const shouldPay = shouldUserPay(userMessages.length);
-      if (shouldPay) {
-        const { payment_request, r_hash } = await requestPayment();
-        if (!payment_request && !r_hash) {
-          return;
-        }
-      } else {
-        startChatQuery(prompt, authorValue);
-      }
+      startChatQuery(prompt, authorValue);
     } else {
       setUserInput(prompt);
     }
@@ -265,6 +278,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isPaymentSettled || isAutoPaymentSettled) {
+      resetPayment();
       startChatQuery(userInput, selectedAuthor);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -16,8 +16,6 @@ import styles from "./home.module.css";
 import InputTextArea from "./InputTextArea";
 import PromptBubble from "./PromptBubble";
 import { InView } from "react-intersection-observer";
-import InvoiceModal from "../invoice/modal";
-import { usePaymentContext } from "@/contexts/payment-context";
 
 type HomePageProps = {
   onPrompt: PromptAction;
@@ -26,8 +24,6 @@ type HomePageProps = {
 type SectionName = "chat" | "authors" | "about";
 
 const HomePage = ({ onPrompt }: HomePageProps) => {
-  const { requestPayment, closePaymentModal, invoice, isPaymentModalOpen } =
-    usePaymentContext();
   const handleLandingPagePrompt = (text: string, author: string) => {
     onPrompt(text, author, { startChat: true });
   };

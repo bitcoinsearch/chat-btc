@@ -7,12 +7,6 @@ interface ElementType {
   text: string;
 }
 
-interface Content {
-  title: string;
-  snippet: string;
-  link: string;
-}
-
 interface CustomContent {
   title: string;
   snippet: string;
