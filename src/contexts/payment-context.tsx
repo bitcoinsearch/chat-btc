@@ -22,6 +22,8 @@ type PaymentContextType = {
   openPaymentModal: () => void;
   setInvoice: (invoice: Invoice) => void;
   resetPayment: () => void;
+  setLoading: (loading: boolean) => void;
+  paymentCancelled: boolean;
 };
 
 export type PaymentTier = {
@@ -53,6 +55,7 @@ export const PaymentContextProvider = ({
     React.useState<PaymentTier | null>(null);
   const [isAutoPaymentSettled, setIsAutoPaymentSettled] = React.useState(false);
   const [isPaymentSettled, setIsPaymentSettled] = React.useState(false);
+  const [paymentCancelled, setPaymentCancelled] = React.useState(false);
 
   const openPaymentModal = React.useCallback(() => {
     setIsPaymentModalOpen(true);
@@ -114,10 +117,21 @@ export const PaymentContextProvider = ({
     setAutoPaymentLoading(false);
     setIsAutoPaymentSettled(false);
     setAutoPaymentTier(null);
+    setPaymentCancelled(true);
   }, [isPaymentSettled, isAutoPaymentSettled]);
+
+  const resetPayment = React.useCallback(() => {
+    setInvoice(defaultInvoice);
+    setAutoPaymentInvoice(defaultInvoice);
+    setIsPaymentSettled(false);
+    setIsAutoPaymentSettled(false);
+    setAutoPaymentTier(null);
+    setPaymentCancelled(false);
+  }, []);
 
   React.useEffect(() => {
     if (invoice.r_hash) {
+      setPaymentCancelled(false);
       setIsPaymentSettled(false);
       setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
@@ -149,6 +163,7 @@ export const PaymentContextProvider = ({
 
   React.useEffect(() => {
     if (autoPaymentInvoice.r_hash) {
+      setPaymentCancelled(false);
       setIsPaymentSettled(false);
       setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
@@ -178,14 +193,6 @@ export const PaymentContextProvider = ({
     }
   }, [autoPaymentInvoice.r_hash]);
 
-  const resetPayment = React.useCallback(() => {
-    setInvoice(defaultInvoice);
-    setAutoPaymentInvoice(defaultInvoice);
-    setIsPaymentSettled(false);
-    setIsAutoPaymentSettled(false);
-    setAutoPaymentTier(null);
-  }, []);
-
   return (
     <PaymentContext.Provider
       value={{
@@ -206,6 +213,8 @@ export const PaymentContextProvider = ({
         isAutoPaymentSettled,
         openPaymentModal,
         setInvoice,
+        setLoading,
+        paymentCancelled,
       }}
     >
       {children}

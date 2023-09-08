@@ -71,7 +71,6 @@ const MessageBox = ({
       py={{ base: 3, md: 4 }}
       px={{ base: 3, md: 4 }}
     >
-      {/* <Box w="100%" bgColor={type === "userMessage" ? "gray.800" : "gray.600"} py="8" px={{base: 3, md: 4}}> */}
       <Heading
         color={messageConfig[type].headingColor}
         fontSize="sm"

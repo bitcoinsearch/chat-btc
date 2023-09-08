@@ -5,7 +5,7 @@ import {
   DEFAULT_TOKEN_EXPIRY_TIME,
   MAX_REQUESTS_PER_SESSION,
   paymentTierList,
-  PRICE_PER_PROMPT,
+  DEFAULT_PAYMENT_PRICE,
   SLIDING_WINDOW_IN_SECONDS,
 } from "@/config/constants";
 import { Ratelimit } from "@upstash/ratelimit";
@@ -16,7 +16,7 @@ import { generateToken } from "./token";
 export const ratelimit = new Ratelimit({
   redis: kv,
 
-  // 5 requests from the same IP in 5 minutes
+  // free chat: 5 requests from the same IP in 30 minutes
   limiter: Ratelimit.slidingWindow(
     MAX_REQUESTS_PER_SESSION,
     SLIDING_WINDOW_IN_SECONDS
@@ -69,7 +69,7 @@ export async function generateInvoice({
   const hasAutoPayment = Boolean(Number(autoPayment));
   const finalAmountInSatoshis = hasAutoPayment
     ? Number(autoPayment)
-    : PRICE_PER_PROMPT;
+    : DEFAULT_PAYMENT_PRICE;
 
   const response = await fetch(reqUrl, {
     method: "POST",
