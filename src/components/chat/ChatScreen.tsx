@@ -28,7 +28,6 @@ type ChatProps = {
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   loading: boolean;
   streamLoading: boolean;
-  resetChat: () => void;
 };
 
 const blippy = authorsConfig[0];

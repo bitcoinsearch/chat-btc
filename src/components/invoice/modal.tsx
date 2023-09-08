@@ -28,7 +28,7 @@ import {
 import {
   usePaymentContext,
 } from "@/contexts/payment-context";
-import { PRICE_PER_PROMPT, paymentTierList } from "@/config/constants";
+import { DEFAULT_PAYMENT_PRICE, paymentTierList } from "@/config/constants";
 import { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 
@@ -171,7 +171,7 @@ function InvoiceModal() {
         <ModalBody>
           <Tabs isFitted size={{ base: "sm", md: "md" }} variant="enclosed">
             <TabList mb={4}>
-              <Tab>Pay Per Chat</Tab>
+              <Tab>Buy 10 minute credit</Tab>
               <Tab>Buy credits (auto-pay)</Tab>
             </TabList>
             <TabPanels>
@@ -217,7 +217,7 @@ function InvoiceModal() {
                           fontWeight={600}
                           textAlign={"center"}
                         >
-                          {PRICE_PER_PROMPT} SATS / prompt
+                          {DEFAULT_PAYMENT_PRICE} SATS / 10mins
                         </Code>
                         <Code
                           bg={"none"}

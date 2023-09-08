@@ -82,8 +82,10 @@ export default function Home() {
   );
 
   const {
-    openPaymentModal,
+    setLoading: setPaymentLoading,
+    paymentCancelled,
     setInvoice,
+    openPaymentModal,
     resetPayment,
     isPaymentSettled,
     isAutoPaymentSettled,
@@ -187,6 +189,7 @@ export default function Home() {
               getLSATDetailsFromHeader(L402!) ?? {};
             localStorage.setItem("paymentToken", token ?? "");
             setInvoice({ payment_request: invoice!, r_hash: r_hash! });
+            setPaymentLoading(true);
             openPaymentModal();
             return;
           }
@@ -284,6 +287,14 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaymentSettled, isAutoPaymentSettled, startChatQuery]);
 
+  useEffect(() => {
+    setLoading(!paymentCancelled);
+    setStreamLoading(!paymentCancelled);
+    if (paymentCancelled) {
+      setMessages([]);
+    }
+  }, [paymentCancelled]);
+
   return (
     <>
       {authorQuery !== undefined ? (
@@ -295,7 +306,6 @@ export default function Home() {
           startChat={promptChat}
           loading={loading}
           streamLoading={streamLoading}
-          resetChat={resetChat}
         />
       ) : (
         <HomePage onPrompt={promptChat} />
