@@ -46,7 +46,7 @@ const ChatScreen = ({ userInput, streamData, messages, startChat, handleInputCha
 
   const [userHijackedScroll, setUserHijackedScroll] = useState(false);
 
-  const chatList: Message[] = useMemo(()=> [authorInitialDialogue, ...messages],[messages, authorInitialDialogue]) 
+  const chatList: Message[] = [authorInitialDialogue, ...messages]
 
   // Auto scroll chat to bottom
   useEffect(() => {
