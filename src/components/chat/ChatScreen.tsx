@@ -30,6 +30,7 @@ const ChatScreen = ({ userInput, streamData, messages, startChat, handleInputCha
 
   const router = useRouter();
   const authorQuery = router.query[AUTHOR_QUERY];
+	const searchParams = new URLSearchParams(window.location.search)
 
   const author = useMemo(() => {
     return authorsConfig.find((authorConfig) => authorConfig.slug === authorQuery) || blippy;
@@ -45,7 +46,7 @@ const ChatScreen = ({ userInput, streamData, messages, startChat, handleInputCha
 
   const [userHijackedScroll, setUserHijackedScroll] = useState(false);
 
-  const chatList: Message[] = [authorInitialDialogue, ...messages];
+  const chatList: Message[] = useMemo(()=> [authorInitialDialogue, ...messages],[messages, authorInitialDialogue]) 
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -127,6 +128,48 @@ const ChatScreen = ({ userInput, streamData, messages, startChat, handleInputCha
       textAreaRef.current && textAreaRef.current.focus();
     }
   }, []);
+
+	// starts a chat with a shareable link
+	useEffect(() => {
+		const getExternalUrl = () => {
+			if(!searchParams.has('question')) { return }
+			const sharedQuestion = searchParams.get('question')
+			
+			if(userInput === '' && sharedQuestion){
+				const question = decodeURIComponent(sharedQuestion);
+				startChat(question, author.slug, { startChat: true });
+			}
+		}
+
+		getExternalUrl()
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	},[])
+	
+	// update history state with a shareabe link
+	useEffect( () => {
+		const setUrlParamsQuery = () => {
+			const question = encodeURIComponent(userInput)
+			let cachedQuestion = chatList.reverse().find(chat => {
+				return chat.type === 'userMessage'
+			})?.message
+			cachedQuestion = encodeURIComponent(cachedQuestion!)
+			
+			const questionToUse = question === '' ? cachedQuestion : question
+			
+			if(questionToUse){
+				let url = new URL(window.location.href)
+				if(!url.searchParams.has('question')){
+					url.searchParams.append('question', questionToUse )
+				} else {
+					url.searchParams.set('question', questionToUse)
+				}
+	
+				history.pushState({}, '', url.href)			
+			}
+		}
+
+		setUrlParamsQuery()
+	},[chatList])	
 
   return (
     <>
