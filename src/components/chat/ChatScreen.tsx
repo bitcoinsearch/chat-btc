@@ -148,20 +148,20 @@ const ChatScreen = ({ userInput, streamData, messages, startChat, handleInputCha
 	// update history state with a shareabe link
 	useEffect( () => {
 		const setUrlParamsQuery = () => {
-			const question = encodeURIComponent(userInput)
 			let cachedQuestion = chatList.reverse().find(chat => {
 				return chat.type === 'userMessage'
 			})?.message
-			cachedQuestion = encodeURIComponent(cachedQuestion!)
 			
-			const questionToUse = question === '' ? cachedQuestion : question
+			const questionToUse = userInput === '' ? cachedQuestion : userInput
 			
 			if(questionToUse){
+        const encodedQuestionToUse = encodeURIComponent(questionToUse)
+
 				let url = new URL(window.location.href)
 				if(!url.searchParams.has('question')){
-					url.searchParams.append('question', questionToUse )
+					url.searchParams.append('question', encodedQuestionToUse )
 				} else {
-					url.searchParams.set('question', questionToUse)
+					url.searchParams.set('question', encodedQuestionToUse)
 				}
 	
 				history.pushState({}, '', url.href)			
