@@ -1,3 +1,4 @@
+import { DATABASE_VALIDITY_IN_DAYS } from "@/config/constants";
 import { FeedbackPayload } from "@/types";
 import { createClient } from "@supabase/supabase-js";
 import getConfig from "next/config";
@@ -57,11 +58,14 @@ export class SupaBaseDatabase {
   }
   async getAnswerByQuestion(question: string, author?: string) {
     const oneDayBefore = new Date();
-    oneDayBefore.setDate(oneDayBefore.getDate() - 1);
+    oneDayBefore.setDate(oneDayBefore.getDate() - DATABASE_VALIDITY_IN_DAYS);
     let query = supabase
       .from(DB_NAME)
       .select("answer, createdAt")
-      .eq('question', question);
+      .eq('question', question)
+      .gte('createdAt', oneDayBefore.toISOString())
+      .lt('createdAt', new Date().toISOString())
+      .order('createdAt', { ascending: false});
 
       // If author exists, add .eq('author_name', author) to the query
       if(author){
@@ -73,13 +77,7 @@ export class SupaBaseDatabase {
     if (error) {
       console.error("Error fetching answer:", error);
       return null;
-    } else {
-      // filter data where createdAt is one day before
-      const filteredData = data.filter(d => new Date(d.createdAt) >= oneDayBefore);
-      // order filtered data
-      const orderedData = filteredData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      // Here we return null if no data found or orderedData if found
-      return orderedData.length > 0 ? orderedData : null;
-    }
+    } 
+    return data
   }
 }
