@@ -12,6 +12,8 @@ export const SLIDING_WINDOW_IN_SECONDS = "1800 s" as const;
 
 export const DEFAULT_TOKEN_EXPIRY_TIME = "660s" as const;
 
+export const DATABASE_VALIDITY_IN_DAYS = 1 as const;
+
 export const paymentTierList: PaymentTier[] = [
   { id: 1, priceInSats: 500, timeInHours: "6" },
   { id: 2, priceInSats: 1000, timeInHours: "24" },
