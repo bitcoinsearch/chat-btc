@@ -121,20 +121,17 @@ export default function Home() {
   };
 
   const updateMessages = async (finalText: string, uuid: string) => {
-    // Call the addTypingEffect function to add a typing effect to the finalText
-    setTimeout(() => {
-      setStreamLoading(false);
-      setStreamData(initialStream);
+    setStreamLoading(false);
+    setStreamData(initialStream);
 
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          message: finalText,
-          type: "apiMessage",
-          uniqueId: uuid,
-        },
-      ]);
-    }, 500);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        message: finalText,
+        type: "apiMessage",
+        uniqueId: uuid,
+      },
+    ]);
   };
 
   const startChatQuery = useCallback(
@@ -159,6 +156,10 @@ export default function Home() {
         ];
       });
 
+      // instantiate new AbortController
+      const typingAbortController = new AbortController();
+      abortTypingRef.current = typingAbortController;
+
       try {
         const cachedAnswer = await getCachedAnswer(query, author);
 
@@ -168,7 +169,7 @@ export default function Home() {
           const authHeader = constructTokenHeader({
             token: savedToken,
           });
-
+          
           const response = await fetch("/api/server", {
             method: "POST",
             headers: {
@@ -181,6 +182,7 @@ export default function Home() {
                 author,
               },
             }),
+            signal: typingAbortController.signal
           });
           if (response.status === 402) {
             localStorage.removeItem("paymentToken");
@@ -198,7 +200,7 @@ export default function Home() {
           }
           data = response.body;
         } else {
-          data = cachedAnswer;
+          data = cachedAnswer as ReadableStream<Uint8Array> | null;
         }
         setUserInput("");
         const reader = data?.getReader();
@@ -250,6 +252,10 @@ export default function Home() {
         };
         await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
+        
+        if (err?.message === "BodyStreamBuffer was aborted") {
+          return
+        }
         setMessages((prevMessages) => [
           ...prevMessages,
           {
@@ -288,12 +294,14 @@ export default function Home() {
   }, [isPaymentSettled, isAutoPaymentSettled, startChatQuery]);
 
   useEffect(() => {
-    setLoading(!paymentCancelled);
-    setStreamLoading(!paymentCancelled);
-    if (paymentCancelled) {
-      setMessages([]);
+    if (loading && paymentCancelled) {
+      setLoading(!paymentCancelled);
+      setStreamLoading(!paymentCancelled);
+      setMessages((messages) => {
+        return messages.slice(0, messages.length - 1)
+      });
     }
-  }, [paymentCancelled]);
+  }, [loading, paymentCancelled]);
 
   return (
     <>
