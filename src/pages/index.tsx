@@ -7,7 +7,7 @@ import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
 import authorsConfig, { AUTHOR_QUERY } from "@/config/authorsConfig";
 import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
-import { GeneratingErrorMessages, PromptAction } from "@/types";
+import { GeneratingErrorMessages, Payload, PromptAction } from "@/types";
 import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
@@ -22,7 +22,7 @@ const initialStream: Message = {
   uniqueId: "",
 };
 
-const getCachedAnswer = async (question: string, author?: string) => {
+const getCachedAnswer = async (question: string, signal: AbortSignal, author?: string) => {
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
   const errorMessages = getAllErrorMessages();
@@ -41,21 +41,23 @@ const getCachedAnswer = async (question: string, author?: string) => {
       answer: string | null;
       createdAt: string;
     }) => {
-      if (!item.answer && !item.answer?.trim()) {
+      if (!item.answer || !item.answer?.trim()) {
         return false;
       }
-      const messageBodyNoLinks = separateLinksFromApiMessage(
-        item.answer
-      ).messageBody;
-      return !errorMessages.includes(messageBodyNoLinks);
+      return true
+      // const messageBodyNoLinks = separateLinksFromApiMessage(
+      //   item.answer
+      // ).messageBody;
+      // return !errorMessages.includes(messageBodyNoLinks);
     };
     const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
+    console.log("🚀 ~ file: index.tsx:54 ~ getCachedAnswer ~ nonEmptyAnswer:", nonEmptyAnswer)
 
     if (!nonEmptyAnswer) {
       console.error("Error fetching answer: No non-empty answers found.");
       return null;
     }
-    return createReadableStream(nonEmptyAnswer.answer);
+    return createReadableStream(nonEmptyAnswer.answer, signal);
   } catch (error) {
     return null;
   }
@@ -161,7 +163,7 @@ export default function Home() {
       abortTypingRef.current = typingAbortController;
 
       try {
-        const cachedAnswer = await getCachedAnswer(query, author);
+        const cachedAnswer = await getCachedAnswer(query, typingAbortController.signal, author);
 
         let data;
         if (!cachedAnswer) {
@@ -211,18 +213,28 @@ export default function Home() {
         const decoder = new TextDecoder();
         setLoading(false);
         setStreamLoading(true);
-        while (!doneReading) {
-          const { value, done } = await reader.read();
-          doneReading = done;
-          const chunk = decoder.decode(value);
-
-          finalAnswerWithLinks += chunk; // Store the plain text in finalAnswerWithLinks
-          setStreamData((data) => {
-            const _updatedData = { ...data };
-            _updatedData.message += chunk;
-            return _updatedData;
-          });
+        try {
+          while (!doneReading) {
+            const { value, done } = await reader.read();
+            doneReading = done;
+            const chunk = decoder.decode(value);
+  
+            finalAnswerWithLinks += chunk; // Store the plain text in finalAnswerWithLinks
+            setStreamData((data) => {
+              const _updatedData = { ...data };
+              _updatedData.message += chunk;
+              return _updatedData;
+            });
+          }
+        } catch (err) {
+          console.log("🚀 ~ file: index.tsx:230 ~ err:", err)
         }
+
+        reader.closed.then(() => {
+          console.log("Reader is canceled.");
+        }).catch((error) => {
+          console.error("Error when closing reader:", error);
+        });
 
         await updateMessages(finalAnswerWithLinks, uuid);
 
@@ -240,7 +252,7 @@ export default function Home() {
 
         const isValidAnswer = answer?.trim() && !errorMessages.includes(answer);
 
-        let payload = {
+        let payload: Payload = {
           uniqueId: uniqueIDD,
           question: question,
           answer: isValidAnswer ? answer : null,
@@ -250,7 +262,7 @@ export default function Home() {
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        await SupaBaseDatabase.getInstance().insertData(payload);
+        // await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
         
         if (err?.message === "BodyStreamBuffer was aborted") {
@@ -305,6 +317,9 @@ export default function Home() {
 
   return (
     <>
+      <button onClick={() => abortTypingRef.current?.abort()}>
+        test abort
+      </button>
       {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}
