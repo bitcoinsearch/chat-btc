@@ -51,3 +51,14 @@ type PromptOptions = {
 }
 
 export type PromptAction = (input: string, author: string, options?: PromptOptions ) => void;
+
+export type Payload = {
+  uniqueId: string,
+  question: string,
+  answer: string | null,
+  author_name?: string,
+  rating: Ratings | null,
+  createdAt: string,
+  updatedAt: null,
+  releasedAt: string,
+}

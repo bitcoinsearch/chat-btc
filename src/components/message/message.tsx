@@ -92,6 +92,7 @@ const MessageBox = ({
 export default MessageBox;
 
 const MessageContent = ({message, type}: Message) => {
+  if (!message?.trim()) return null;
   const { messageBody, messageLinks } = separateLinksFromApiMessage(message)
 
   const ClickableLink = ({linkString}: {linkString: string}) => {
