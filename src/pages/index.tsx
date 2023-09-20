@@ -44,11 +44,10 @@ const getCachedAnswer = async (question: string, signal: AbortSignal, author?: s
       if (!item.answer || !item.answer?.trim()) {
         return false;
       }
-      return true
-      // const messageBodyNoLinks = separateLinksFromApiMessage(
-      //   item.answer
-      // ).messageBody;
-      // return !errorMessages.includes(messageBodyNoLinks);
+      const messageBodyNoLinks = separateLinksFromApiMessage(
+        item.answer
+      ).messageBody;
+      return !errorMessages.includes(messageBodyNoLinks);
     };
     const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
     console.log("🚀 ~ file: index.tsx:54 ~ getCachedAnswer ~ nonEmptyAnswer:", nonEmptyAnswer)
@@ -317,9 +316,6 @@ export default function Home() {
 
   return (
     <>
-      <button onClick={() => abortTypingRef.current?.abort()}>
-        test abort
-      </button>
       {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}

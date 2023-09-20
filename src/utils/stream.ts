@@ -1,13 +1,23 @@
 import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
 
-export function createReadableStream(text: string) {
+export function createReadableStream(text: string, signal?: AbortSignal) {
   const encoder = new TextEncoder();
+  let interval: NodeJS.Timer
+
+  if (signal) {
+    signal.addEventListener("abort", () => {
+      clearInterval(interval);
+      if (!readable.locked) {
+        readable.cancel("Aborted");
+      }
+    })
+  }
 
   const readable = new ReadableStream({
     start(controller) {
       let textLength = text.length
       let currentCharIndex = 0
-      let interval = setInterval(() => {
+      interval = setInterval(() => {
         if (currentCharIndex < textLength) {
           controller.enqueue(encoder.encode(text[currentCharIndex]))
           currentCharIndex++
