@@ -108,6 +108,7 @@ export default function Home() {
     setStreamData(initialStream);
     setStreamLoading(false);
     setMessages([]);
+    abortTypingRef.current = undefined
   };
 
   useEffect(() => {
@@ -225,8 +226,11 @@ export default function Home() {
               return _updatedData;
             });
           }
-        } catch (err) {
-          console.log("🚀 ~ file: index.tsx:230 ~ err:", err)
+        } catch (err: any) {
+          if (err?.message === "BodyStreamBuffer was aborted") {
+            setMessages([])
+            return
+          }
         }
 
         reader.closed.then(() => {
@@ -263,10 +267,6 @@ export default function Home() {
         };
         // await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
-        
-        if (err?.message === "BodyStreamBuffer was aborted") {
-          return
-        }
         setMessages((prevMessages) => [
           ...prevMessages,
           {
