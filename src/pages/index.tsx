@@ -50,7 +50,6 @@ const getCachedAnswer = async (question: string, signal: AbortSignal, author?: s
       return !errorMessages.includes(messageBodyNoLinks);
     };
     const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
-    console.log("🚀 ~ file: index.tsx:54 ~ getCachedAnswer ~ nonEmptyAnswer:", nonEmptyAnswer)
 
     if (!nonEmptyAnswer) {
       console.error("Error fetching answer: No non-empty answers found.");
@@ -233,12 +232,6 @@ export default function Home() {
           }
         }
 
-        reader.closed.then(() => {
-          console.log("Reader is canceled.");
-        }).catch((error) => {
-          console.error("Error when closing reader:", error);
-        });
-
         await updateMessages(finalAnswerWithLinks, uuid);
 
         let question = query;
@@ -265,7 +258,7 @@ export default function Home() {
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        // await SupaBaseDatabase.getInstance().insertData(payload);
+        await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
         setMessages((prevMessages) => [
           ...prevMessages,
