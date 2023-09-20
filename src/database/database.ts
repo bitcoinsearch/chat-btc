@@ -1,5 +1,7 @@
 import { DATABASE_VALIDITY_IN_DAYS } from "@/config/constants";
-import { FeedbackPayload } from "@/types";
+import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
+import { FeedbackPayload, Payload } from "@/types";
+import { separateLinksFromApiMessage } from "@/utils/links";
 import { createClient } from "@supabase/supabase-js";
 import getConfig from "next/config";
 
@@ -27,9 +29,13 @@ export class SupaBaseDatabase {
       console.log("Fetched tasks:", data);
     }
   }
-  async insertData(payload: any) {
+  async insertData(payload: Payload) {
+    if (!payload.answer) return;
+
     payload.question = payload.question.toLowerCase();
-    payload.author_name = payload.author_name.toLowerCase();
+    if (payload.author_name) {
+      payload.author_name = payload.author_name.toLowerCase();
+    }
     const { data, error } = await supabase.from(DB_NAME).insert([payload]);
     if (error) {
       console.error("Error inserting Q&A:", error);
