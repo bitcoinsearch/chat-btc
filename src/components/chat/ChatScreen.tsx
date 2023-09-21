@@ -169,7 +169,7 @@ const ChatScreen = ({ userInput, streamData, messages, startChat, handleInputCha
 		}
 
 		setUrlParamsQuery()
-	},[chatList])	
+	},[router])	
 
   return (
     <>
