@@ -84,10 +84,8 @@ export default function Home() {
   const {
     setLoading: setPaymentLoading,
     paymentCancelled,
-    setInvoice,
     openPaymentModal,
     resetPayment,
-    isPaymentSettled,
     isAutoPaymentSettled,
   } = usePaymentContext();
 
@@ -187,11 +185,6 @@ export default function Home() {
           });
           if (response.status === 402) {
             localStorage.removeItem("paymentToken");
-            const L402 = response.headers.get("WWW-Authenticate");
-            const { token, invoice, r_hash } =
-              getLSATDetailsFromHeader(L402!) ?? {};
-            localStorage.setItem("paymentToken", token ?? "");
-            setInvoice({ payment_request: invoice!, r_hash: r_hash! });
             setPaymentLoading(true);
             openPaymentModal();
             return;
@@ -290,12 +283,12 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (isPaymentSettled || isAutoPaymentSettled) {
+    if (isAutoPaymentSettled) {
       resetPayment();
       startChatQuery(userInput, selectedAuthor);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaymentSettled, isAutoPaymentSettled, startChatQuery]);
+  }, [isAutoPaymentSettled, startChatQuery]);
 
   useEffect(() => {
     if (loading && paymentCancelled) {
