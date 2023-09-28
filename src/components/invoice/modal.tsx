@@ -25,10 +25,8 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import {
-  usePaymentContext,
-} from "@/contexts/payment-context";
-import { DEFAULT_PAYMENT_PRICE, paymentTierList } from "@/config/constants";
+import { usePaymentContext } from "@/contexts/payment-context";
+import { paymentTierList } from "@/config/constants";
 import { useEffect } from "react";
 import { isMobile } from "react-device-detect";
 
@@ -36,10 +34,8 @@ function InvoiceModal() {
   const toast = useToast();
   const { onClose } = useDisclosure();
   const {
-    invoice,
     error,
     setError,
-    loading,
     isPaymentModalOpen,
     closePaymentModal,
     payWithWebln,
@@ -49,21 +45,11 @@ function InvoiceModal() {
     selectTieredPayment,
   } = usePaymentContext();
   const copy = useCopyToClipboard();
-  const truncatedStr = useTruncatedString(invoice.payment_request, 10);
   const truncatedAutoPayInvoice = useTruncatedString(
     autoPaymentInvoice.payment_request,
     10
   );
 
-  const handleCopyInvoice = () => {
-    copy(invoice.payment_request);
-    toast({
-      title: "Invoice copied to clipboard",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-  };
   const handleCopyAutoPayInvoice = () => {
     copy(autoPaymentInvoice.payment_request);
     toast({
@@ -171,85 +157,9 @@ function InvoiceModal() {
         <ModalBody>
           <Tabs isFitted size={{ base: "sm", md: "md" }} variant="enclosed">
             <TabList mb={4}>
-              <Tab>Buy 10 minute credit</Tab>
               <Tab>Buy credits (auto-pay)</Tab>
             </TabList>
             <TabPanels>
-              <TabPanel px={0}>
-                <Box display={"flex"} justifyContent={"center"} columnGap={4}>
-                  {loading && !invoice.payment_request ? (
-                    <Spinner
-                      size="xl"
-                      color={"blue.500"}
-                      emptyColor="gray.200"
-                      thickness="4px"
-                    />
-                  ) : (
-                    <>
-                      <Box maxWidth={200} width={"100%"}>
-                        <Box
-                          height={"auto"}
-                          margin={"0 auto"}
-                          width={"100%"}
-                          border={"1px solid"}
-                          padding={2}
-                          bg={"white"}
-                          bgColor={"white"}
-                          borderRadius={"md"}
-                        >
-                          <QRCode
-                            size={256}
-                            style={{
-                              height: "auto",
-                              maxWidth: "100%",
-                              width: "100%",
-                            }}
-                            value={invoice.payment_request}
-                            viewBox={`0 0 256 256`}
-                            level={"Q"}
-                          />
-                        </Box>
-                        <PayWithWebLN clickHandler={() => payWithWebln()} />
-                      </Box>
-                      <Flex flexDir={"column"}>
-                        <Code
-                          fontSize={14}
-                          fontWeight={600}
-                          textAlign={"center"}
-                        >
-                          {DEFAULT_PAYMENT_PRICE} SATS / 10mins
-                        </Code>
-                        <Code
-                          bg={"none"}
-                          color={"white"}
-                          fontSize={14}
-                          textAlign={"center"}
-                        >
-                          {truncatedStr}
-                        </Code>
-                        <Flex justifyContent={"center"} marginY={2}>
-                          <Button
-                            colorScheme={"blue"}
-                            size={"sm"}
-                            onClick={handleCopyInvoice}
-                          >
-                            Copy invoice
-                          </Button>
-                        </Flex>
-                        <Text
-                          color={"white"}
-                          textAlign={"center"}
-                          fontSize={15}
-                          mt={4}
-                        >
-                          Scan this QR code or copy and paste it in your
-                          lightning enabled wallet.
-                        </Text>
-                      </Flex>
-                    </>
-                  )}
-                </Box>
-              </TabPanel>
               <TabPanel px={0}>
                 <Box mb={{ sm: 4, md: 8 }}>
                   <Text fontWeight={600} fontSize="sm" pb={2}>
@@ -260,7 +170,7 @@ function InvoiceModal() {
                       <TierCard
                         key={index}
                         priceInSats={tier.priceInSats}
-                        timeInHours={tier.timeInHours}
+                        timeForDisplay={tier.timeForDisplay}
                         handleClick={() => selectTieredPayment(tier)}
                         isActive={autoPaymentTier?.id === tier.id}
                       />
@@ -301,7 +211,7 @@ function InvoiceModal() {
                           level={"Q"}
                         />
                       </Box>
-                      <PayWithWebLN clickHandler={() => payWithWebln(true)} />
+                      <PayWithWebLN clickHandler={() => payWithWebln()} />
                     </Box>
                     <Flex flexDir={"column"}>
                       <Code
@@ -360,12 +270,12 @@ export default InvoiceModal;
 const TierCard = ({
   handleClick,
   priceInSats,
-  timeInHours,
+  timeForDisplay,
   isActive,
 }: {
   handleClick: () => void;
   priceInSats: number;
-  timeInHours: string;
+  timeForDisplay: string;
   isActive: boolean;
 }) => {
   return (
@@ -398,7 +308,7 @@ const TierCard = ({
         <Text fontSize="sm">SATS</Text>
       </Box>
       <Text py={4} fontSize="12px" color={isActive ? "gray.800" : "white"}>
-        {timeInHours} hours
+        {timeForDisplay}
       </Text>
     </Button>
   );

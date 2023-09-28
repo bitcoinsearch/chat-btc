@@ -5,14 +5,11 @@ import { requestProvider } from "webln";
 import { getLSATDetailsFromHeader } from "@/utils/token";
 
 type PaymentContextType = {
-  invoice: Invoice;
   loading: boolean;
   error: string;
   setError: (err: string) => void;
   isPaymentModalOpen: boolean;
-  isPaymentSettled: boolean;
   closePaymentModal: () => void;
-  setIsPaymentSettled: (isPaymentSettled: boolean) => void;
   payWithWebln: (isAutoPayment?: boolean) => void;
   selectTieredPayment: (tier: PaymentTier) => Promise<void>;
   autoPaymentInvoice: Invoice;
@@ -20,7 +17,6 @@ type PaymentContextType = {
   autoPaymentLoading: boolean;
   isAutoPaymentSettled: boolean;
   openPaymentModal: () => void;
-  setInvoice: (invoice: Invoice) => void;
   resetPayment: () => void;
   setLoading: (loading: boolean) => void;
   paymentCancelled: boolean;
@@ -44,7 +40,6 @@ export const PaymentContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [invoice, setInvoice] = React.useState(defaultInvoice);
   const [autoPaymentInvoice, setAutoPaymentInvoice] =
     React.useState(defaultInvoice);
   const [error, setError] = React.useState("");
@@ -54,7 +49,6 @@ export const PaymentContextProvider = ({
   const [autoPaymentTier, setAutoPaymentTier] =
     React.useState<PaymentTier | null>(null);
   const [isAutoPaymentSettled, setIsAutoPaymentSettled] = React.useState(false);
-  const [isPaymentSettled, setIsPaymentSettled] = React.useState(false);
   const [paymentCancelled, setPaymentCancelled] = React.useState(false);
 
   const openPaymentModal = React.useCallback(() => {
@@ -80,10 +74,8 @@ export const PaymentContextProvider = ({
     }
   }, []);
 
-  const payWithWebln = async (isAutoPayment?: boolean) => {
-    const payment_request = isAutoPayment
-      ? autoPaymentInvoice.payment_request
-      : invoice.payment_request;
+  const payWithWebln = async () => {
+    const payment_request = autoPaymentInvoice.payment_request;
     try {
       const webln = await requestProvider();
       if (!webln) {
@@ -105,66 +97,27 @@ export const PaymentContextProvider = ({
   };
 
   const closePaymentModal = React.useCallback(() => {
-    if (!isPaymentSettled) {
-      setInvoice(defaultInvoice);
-    }
     if (!isAutoPaymentSettled) {
       setAutoPaymentInvoice(defaultInvoice);
     }
     setLoading(false);
-    setIsPaymentSettled(false);
     setIsPaymentModalOpen(false);
     setAutoPaymentLoading(false);
     setIsAutoPaymentSettled(false);
     setAutoPaymentTier(null);
     setPaymentCancelled(true);
-  }, [isPaymentSettled, isAutoPaymentSettled]);
+  }, [isAutoPaymentSettled]);
 
   const resetPayment = React.useCallback(() => {
-    setInvoice(defaultInvoice);
     setAutoPaymentInvoice(defaultInvoice);
-    setIsPaymentSettled(false);
     setIsAutoPaymentSettled(false);
     setAutoPaymentTier(null);
     setPaymentCancelled(false);
   }, []);
 
   React.useEffect(() => {
-    if (invoice.r_hash) {
-      setPaymentCancelled(false);
-      setIsPaymentSettled(false);
-      setIsAutoPaymentSettled(false);
-      const intervalId = setInterval(async () => {
-        try {
-          const response = await fetch("/api/invoice/status", {
-            method: "POST",
-            body: JSON.stringify({ r_hash: invoice.r_hash }),
-          });
-          if (response.status === 200) {
-            const { settled } = await response.json();
-            console.log("settled", settled);
-            if (settled) {
-              setIsPaymentSettled(true);
-              setIsPaymentModalOpen(false);
-              setInvoice(defaultInvoice);
-              clearInterval(intervalId);
-            }
-          }
-        } catch (error) {
-          console.log("Error polling payment status:", error);
-        }
-      }, 3000);
-
-      return () => {
-        clearInterval(intervalId);
-      };
-    }
-  }, [invoice.r_hash]);
-
-  React.useEffect(() => {
     if (autoPaymentInvoice.r_hash) {
       setPaymentCancelled(false);
-      setIsPaymentSettled(false);
       setIsAutoPaymentSettled(false);
       const intervalId = setInterval(async () => {
         try {
@@ -178,7 +131,6 @@ export const PaymentContextProvider = ({
               setIsAutoPaymentSettled(true);
               setIsPaymentModalOpen(false);
               setAutoPaymentInvoice(defaultInvoice);
-              setInvoice(defaultInvoice);
               clearInterval(intervalId);
             }
           }
@@ -196,14 +148,11 @@ export const PaymentContextProvider = ({
   return (
     <PaymentContext.Provider
       value={{
-        invoice,
         loading,
         error,
         setError,
         isPaymentModalOpen,
-        isPaymentSettled,
         closePaymentModal,
-        setIsPaymentSettled,
         resetPayment,
         payWithWebln,
         selectTieredPayment,
@@ -212,7 +161,6 @@ export const PaymentContextProvider = ({
         autoPaymentLoading,
         isAutoPaymentSettled,
         openPaymentModal,
-        setInvoice,
         setLoading,
         paymentCancelled,
       }}
