@@ -89,7 +89,7 @@ const _example = (question: string, summaries: SummaryData[]): string => {
   ): Promise<ReadableStream<any>> {
     try {
       const payload = {
-        model: "gpt-3.5-turbo",
+        model: process.env.OPENAI_MODEL,
         messages: [
           {
             role: "system",
