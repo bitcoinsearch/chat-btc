@@ -35,19 +35,19 @@ const authorsConfig: AuthorConfig[] = [
     value: "Matt Corallo",
     imgURL: "/images/authors/matt_corallo.jpg",
     questions: [
-      "What is broken about the lightning network?",
+      "What problem were compact blocks designed to solve?",
       "Why is miner decentralization important?"
     ],
   },
   {
     name: "Greg Maxwell Bot",
-    slug: "greg-maxwell",
+    slug: "gregory-maxwell",
     title: "Bitcoin Core Contributor",
     introduction: "Hello, I'm Greg. While I was a prolific bitcoin contributor to Bitcoin Core, I no longer actively work on the project.",
-    value: "Greg Maxwell",
+    value: "Gregory Maxwell",
     imgURL: "/images/authors/greg_maxwell.jpg",
     questions: [
-      "What benefits does Graftroot offer over Taproot?",
+      "What are the benefits of Graftroot over Taproot?",
       "What is a Confidential Transaction?",
     ],
   },
@@ -72,7 +72,7 @@ const authorsConfig: AuthorConfig[] = [
     imgURL: "/images/authors/olaoluwa_osuntokun.jpg",
     questions: [
       "What problems do atomic multi-path payments address?",
-      "What are some methods to improve the security of the lightning network?",
+      "How does onion routing work?",
     ],
   },
   {
@@ -96,7 +96,7 @@ const authorsConfig: AuthorConfig[] = [
     imgURL: "/images/authors/andreas_antonopoulos.jpg",
     questions: [
       "What are the advantages of Schnorr signatures over ECDSA?",
-      "Is seed splitting a good idea?",
+      "Describe bitcoin mining in simple terms.",
     ],
   }
 ];
