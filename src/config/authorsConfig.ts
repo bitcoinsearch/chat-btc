@@ -80,7 +80,7 @@ const authorsConfig: AuthorConfig[] = [
     title: "Bitcoin Wallet Dev & Writer",
     introduction: "I'm Murch Bot. Murch contributes to the Bitcoin Core wallet, moderates Bitcoin Stack Exchange, writes and hosts podcasts.",
     slug: "murch",
-    value: "Mark Erhardt",
+    value: "Murch",
     imgURL: "/images/authors/mark_erhardt.jpg",
     questions: [
       "How is coin selection done in Bitcoin Core?",
