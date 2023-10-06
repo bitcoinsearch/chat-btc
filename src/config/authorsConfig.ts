@@ -18,7 +18,7 @@ const authorsConfig: AuthorConfig[] = [
   {
     name: "CoreDev Bot",
     title: "Bitcoin Core Seer",
-    introduction: "Hi, I'm a bitcoin core expert. I'm only trained on Bitcoin Core sources so I don't know anything about the greater ecosystem but if you wnat to learn about Bitcoin Core development ask away.",
+    introduction: "Hi, I'm a bitcoin core expert. I'm only trained on Bitcoin Core sources so I don't know anything about the greater ecosystem but if you want to learn about Bitcoin Core development ask away.",
     slug: "coredev",
     value: "coredev",
     imgURL: "/images/authors/bitcoin_seer.jpg",
