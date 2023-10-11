@@ -301,6 +301,22 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                   >
                     Submit Feedback
                   </Link>
+                  <Text
+                    fontSize={{ base: "12px", md: "16px" }}
+                    color="grey.200"
+                    textAlign="center"
+                    >
+                    Vistor counts publicly available via {" "}
+                    <Link
+                      href='https://visits.bitcoindevs.xyz/share/O3RcrKXLglJyaXX8/chat-btc'
+                      isExternal
+                      fontSize={{ base: "12px", md: "16px" }}
+                      color="orange.200"
+                      textAlign="center"
+                    >
+                      umami
+                    </Link>
+                  </Text>
                 </Flex>
               </Container>
             </Box>

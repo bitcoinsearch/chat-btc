@@ -24,6 +24,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </div>
       </div>
+      <script async src="https://visits.bitcoindevs.xyz/script.js" data-website-id="3ec81b2a-ffba-41cb-91b0-68c30f8bea85"></script>
     </>
   );
 };
