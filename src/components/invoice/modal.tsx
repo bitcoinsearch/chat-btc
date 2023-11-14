@@ -246,14 +246,10 @@ function InvoiceModal() {
                         </Text>
                       </Flex>
                     </Flex>
-                    <Checkbox
-                      mt={5}
-                      isChecked={preferAutoPayment}
-                      onChange={() => setPreferAutoPayment(!preferAutoPayment)}
-                    >
-                      Don&apos;t ask me again. Use webln auto-pay for future
-                      payments.
-                    </Checkbox>
+                    <AutoPayWithWeblnCheckbox
+                      preferAutoPayment={preferAutoPayment}
+                      setPreferAutoPayment={setPreferAutoPayment}
+                    />
                   </>
                 ) : null}
               </TabPanel>
@@ -333,5 +329,24 @@ const PayWithWebLN = ({ clickHandler }: { clickHandler: () => void }) => {
     <Button mt={5} variant="link" color="orange.200" onClick={clickHandler}>
       Pay with webln?
     </Button>
+  );
+};
+
+const AutoPayWithWeblnCheckbox = ({
+  preferAutoPayment,
+  setPreferAutoPayment,
+}: {
+  preferAutoPayment: boolean;
+  setPreferAutoPayment: (preferAutoPayment: boolean) => void;
+}) => {
+  if (isMobile) return null;
+  return (
+    <Checkbox
+      mt={5}
+      isChecked={preferAutoPayment}
+      onChange={() => setPreferAutoPayment(!preferAutoPayment)}
+    >
+      Don&apos;t ask me again. Use webln auto-pay for future payments.
+    </Checkbox>
   );
 };
