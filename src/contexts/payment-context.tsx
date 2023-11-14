@@ -84,6 +84,7 @@ export const PaymentContextProvider = ({
         return { error: null, preimage: res.preimage };
       } catch (error) {
         setError("could not pay with webln");
+        setIsPaymentModalOpen(true);
         return { error, preimage: null };
       }
     },
