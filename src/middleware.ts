@@ -20,19 +20,15 @@ export async function middleware(request: NextRequest) {
   const authHeader = request.headers.get("Authorization");
 
   try {
-    if (!ENV.PRODUCTION) {
-      console.log({ authHeader });
+    if (ENV.PRODUCTION) {
       if (!authHeader) {
-        console.log("no auth header");
         if (!success || remaining === 0) {
-          console.log("rate limit exceeded");
           return generateInvoice({
             reqUrl: getNewUrl(requestUrl, "/invoice"),
             reqBody: reqBody,
             headers: rateLimitHeaders({ remaining, reset, limit }),
           });
         }
-        console.log("rate limit not exceeded")
         return NextResponse.next({
           headers: rateLimitHeaders({ remaining, reset, limit }),
         });
@@ -42,16 +38,12 @@ export async function middleware(request: NextRequest) {
       const jwt = token.split(":")[0];
       const r_hash = token.split(":")[1];
 
-      console.log({ jwt, r_hash });
-
       const isTokenValid = await isValidPaymentToken(jwt);
       const isRHashValid = await verifyRHash({
         r_hash,
         reqUrl: getNewUrl(requestUrl, "/invoice/status"),
       });
 
-      console.log({isTokenValid});
-      console.log({isRHashValid});
       if (!isTokenValid || !isRHashValid) {
         return generateInvoice({
           reqUrl: getNewUrl(requestUrl, "/invoice"),
