@@ -43,6 +43,8 @@ function InvoiceModal() {
     autoPaymentTier,
     autoPaymentLoading,
     selectTieredPayment,
+    preferAutoPayment,
+    setPreferAutoPayment,
   } = usePaymentContext();
   const copy = useCopyToClipboard();
   const truncatedAutoPayInvoice = useTruncatedString(
@@ -187,61 +189,72 @@ function InvoiceModal() {
                     />
                   </Flex>
                 ) : autoPaymentInvoice.payment_request ? (
-                  <Flex gap={4}>
-                    <Box maxWidth={200} width={"100%"}>
-                      <Box
-                        height={"auto"}
-                        margin={"0 auto"}
-                        width={"100%"}
-                        border={"1px solid"}
-                        padding={2}
-                        bg={"white"}
-                        bgColor={"white"}
-                        borderRadius={"md"}
-                      >
-                        <QRCode
-                          size={256}
-                          style={{
-                            height: "auto",
-                            maxWidth: "100%",
-                            width: "100%",
-                          }}
-                          value={autoPaymentInvoice.payment_request}
-                          viewBox={`0 0 256 256`}
-                          level={"Q"}
-                        />
-                      </Box>
-                      <PayWithWebLN clickHandler={() => payWithWebln()} />
-                    </Box>
-                    <Flex flexDir={"column"}>
-                      <Code
-                        bg={"none"}
-                        color={"white"}
-                        fontSize={14}
-                        textAlign={"center"}
-                      >
-                        {truncatedAutoPayInvoice}
-                      </Code>
-                      <Flex justifyContent={"center"} marginY={2}>
-                        <Button
-                          colorScheme={"blue"}
-                          size={"sm"}
-                          onClick={handleCopyAutoPayInvoice}
+                  <>
+                    <Flex gap={4}>
+                      <Box maxWidth={200} width={"100%"}>
+                        <Box
+                          height={"auto"}
+                          margin={"0 auto"}
+                          width={"100%"}
+                          border={"1px solid"}
+                          padding={2}
+                          bg={"white"}
+                          bgColor={"white"}
+                          borderRadius={"md"}
                         >
-                          Copy invoice
-                        </Button>
+                          <QRCode
+                            size={256}
+                            style={{
+                              height: "auto",
+                              maxWidth: "100%",
+                              width: "100%",
+                            }}
+                            value={autoPaymentInvoice.payment_request}
+                            viewBox={`0 0 256 256`}
+                            level={"Q"}
+                          />
+                        </Box>
+                        <PayWithWebLN clickHandler={() => payWithWebln()} />
+                      </Box>
+
+                      <Flex flexDir={"column"}>
+                        <Code
+                          bg={"none"}
+                          color={"white"}
+                          fontSize={14}
+                          textAlign={"center"}
+                        >
+                          {truncatedAutoPayInvoice}
+                        </Code>
+                        <Flex justifyContent={"center"} marginY={2}>
+                          <Button
+                            colorScheme={"blue"}
+                            size={"sm"}
+                            onClick={handleCopyAutoPayInvoice}
+                          >
+                            Copy invoice
+                          </Button>
+                        </Flex>
+                        <Text
+                          color={"white"}
+                          textAlign={"center"}
+                          fontSize={15}
+                          mt={4}
+                        >
+                          Scan this QR code or copy and paste it in your
+                          lightning enabled wallet.
+                        </Text>
                       </Flex>
-                      <Text
-                        color={"white"}
-                        textAlign={"center"}
-                        fontSize={15}
-                        mt={4}
-                      >
-                        Scan this QR code or copy and paste it in your lightning
-                        enabled wallet.
-                      </Text>
                     </Flex>
-                  </Flex>
+                    <Checkbox
+                      mt={5}
+                      isChecked={preferAutoPayment}
+                      onChange={() => setPreferAutoPayment(!preferAutoPayment)}
+                    >
+                      Don&apos;t ask me again. Use webln auto-pay for future
+                      payments.
+                    </Checkbox>
+                  </>
                 ) : null}
               </TabPanel>
             </TabPanels>

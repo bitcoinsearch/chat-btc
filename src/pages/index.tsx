@@ -15,6 +15,7 @@ import { constructTokenHeader, getLSATDetailsFromHeader } from "@/utils/token";
 import { formatDate } from "@/utils/date";
 import { createReadableStream } from "@/utils/stream";
 import { separateLinksFromApiMessage } from "@/utils/links";
+import { DEFAULT_PAYMENT_PRICE } from "@/config/constants";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -22,7 +23,11 @@ const initialStream: Message = {
   uniqueId: "",
 };
 
-const getCachedAnswer = async (question: string, signal: AbortSignal, author?: string) => {
+const getCachedAnswer = async (
+  question: string,
+  signal: AbortSignal,
+  author?: string
+) => {
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
   const errorMessages = getAllErrorMessages();
@@ -87,6 +92,8 @@ export default function Home() {
     openPaymentModal,
     resetPayment,
     isAutoPaymentSettled,
+    preferAutoPayment,
+    requestAutoPayment,
   } = usePaymentContext();
 
   const router = useRouter();
@@ -105,7 +112,7 @@ export default function Home() {
     setStreamData(initialStream);
     setStreamLoading(false);
     setMessages([]);
-    abortTypingRef.current = undefined
+    abortTypingRef.current = undefined;
   };
 
   useEffect(() => {
@@ -160,7 +167,7 @@ export default function Home() {
       abortTypingRef.current = typingAbortController;
 
       try {
-        const cachedAnswer = await getCachedAnswer(query, typingAbortController.signal, author);
+        const cachedAnswer = null
 
         let data;
         if (!cachedAnswer) {
@@ -168,6 +175,7 @@ export default function Home() {
           const authHeader = constructTokenHeader({
             token: savedToken,
           });
+          console.log("authHeader", {authHeader});
           
           const response = await fetch("/api/server", {
             method: "POST",
@@ -181,12 +189,19 @@ export default function Home() {
                 author,
               },
             }),
-            signal: typingAbortController.signal
+            signal: typingAbortController.signal,
           });
+
+          console.log("response.status", response.status);
           if (response.status === 402) {
+            console.log("response.status === 402");
             localStorage.removeItem("paymentToken");
             setPaymentLoading(true);
-            openPaymentModal();
+            if (!preferAutoPayment) {
+              openPaymentModal();
+            } else {
+              await requestAutoPayment(DEFAULT_PAYMENT_PRICE);
+            }
             return;
           }
           if (!response.ok || response.status !== 200) {
@@ -220,8 +235,8 @@ export default function Home() {
           }
         } catch (err: any) {
           if (err?.message === "BodyStreamBuffer was aborted") {
-            setMessages([])
-            return
+            setMessages([]);
+            return;
           }
         }
 
@@ -251,7 +266,7 @@ export default function Home() {
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        await SupaBaseDatabase.getInstance().insertData(payload);
+        // await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -295,7 +310,7 @@ export default function Home() {
       setLoading(!paymentCancelled);
       setStreamLoading(!paymentCancelled);
       setMessages((messages) => {
-        return messages.slice(0, messages.length - 1)
+        return messages.slice(0, messages.length - 1);
       });
     }
   }, [loading, paymentCancelled]);
