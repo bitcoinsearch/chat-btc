@@ -3,6 +3,7 @@ import React, { createContext } from "react";
 import { Invoice } from "@/types";
 import { requestProvider } from "webln";
 import { getLSATDetailsFromHeader } from "@/utils/token";
+import { useLocalStorage } from "usehooks-ts";
 
 type PaymentContextType = {
   loading: boolean;
@@ -10,7 +11,7 @@ type PaymentContextType = {
   setError: (err: string) => void;
   isPaymentModalOpen: boolean;
   closePaymentModal: () => void;
-  payWithWebln: (isAutoPayment?: boolean) => void;
+  payWithWebln: () => Promise<void>;
   selectTieredPayment: (tier: PaymentTier) => Promise<void>;
   autoPaymentInvoice: Invoice;
   autoPaymentTier: PaymentTier | null;
@@ -20,6 +21,10 @@ type PaymentContextType = {
   resetPayment: () => void;
   setLoading: (loading: boolean) => void;
   paymentCancelled: boolean;
+  preferAutoPayment: boolean;
+  autoPaymentToken: string;
+  setPreferAutoPayment: (preferAutoPayment: boolean) => void;
+  requestAutoPayment: (priceInSats: number) => Promise<Invoice | undefined>;
 };
 
 export type PaymentTier = {
@@ -50,32 +55,50 @@ export const PaymentContextProvider = ({
     React.useState<PaymentTier | null>(null);
   const [isAutoPaymentSettled, setIsAutoPaymentSettled] = React.useState(false);
   const [paymentCancelled, setPaymentCancelled] = React.useState(false);
+  const [preferAutoPayment, setPreferAutoPayment] = useLocalStorage(
+    "prefer-auto-payment",
+    false
+  );
+  const [autoPaymentToken, setAutoPaymentToken] = useLocalStorage(
+    "paymentToken",
+    ""
+  );
+  React.useEffect(() => {
+    console.log("autoPaymentToken", autoPaymentToken);
+    console.log("preferAutoPayment", preferAutoPayment);
+  }, [autoPaymentToken, preferAutoPayment]);
 
   const openPaymentModal = React.useCallback(() => {
     setIsPaymentModalOpen(true);
   }, []);
 
-  const requestAutoPayment = React.useCallback(async (priceInSats: number) => {
-    setIsAutoPaymentSettled(false);
-    setAutoPaymentInvoice(defaultInvoice);
-    setAutoPaymentLoading(true);
-    const response = await fetch("/api/server", {
-      method: "POST",
-      body: JSON.stringify({ autoPayment: priceInSats }),
-    });
-    if (response.status === 402) {
-      window.localStorage.removeItem("paymentToken");
-      const L402 = response.headers.get("WWW-Authenticate");
-      const { token, invoice, r_hash } = getLSATDetailsFromHeader(L402!) ?? {};
-      localStorage.setItem("paymentToken", token ?? "");
-      setAutoPaymentInvoice({ payment_request: invoice!, r_hash: r_hash! });
-      setAutoPaymentLoading(false);
-      return { payment_request: invoice!, r_hash: r_hash! };
-    }
-  }, []);
+  const autoPayWithWebln = React.useCallback(
+    async (invoice?: string) => {
+      const payment_request = invoice ?? autoPaymentInvoice.payment_request;
+      console.log("payment_request", payment_request);
+      try {
+        const webln = await requestProvider();
+        if (!webln) {
+          setError("webln not available");
+        }
+        const res = await webln.sendPayment(payment_request);
+        if (res instanceof Error) {
+          setError("could not pay with webln");
+          return { error: res, preimage: null };
+        }
+        console.log("res auto-pay pre-image", res.preimage);
 
+        return { error: null, preimage: res.preimage };
+      } catch (error) {
+        setError("could not pay with webln");
+        return { error, preimage: null };
+      }
+    },
+    [autoPaymentInvoice.payment_request]
+  );
   const payWithWebln = async () => {
     const payment_request = autoPaymentInvoice.payment_request;
+    console.log("payment_request", payment_request);
     try {
       const webln = await requestProvider();
       if (!webln) {
@@ -85,10 +108,46 @@ export const PaymentContextProvider = ({
       if (res instanceof Error) {
         setError("could not pay with webln");
       }
+      console.log("pay with weblin pre-image", res.preimage);
     } catch (error) {
       setError("could not pay with webln");
     }
   };
+
+  const requestAutoPayment = React.useCallback(
+    async (priceInSats: number) => {
+      setIsAutoPaymentSettled(false);
+      setAutoPaymentInvoice(defaultInvoice);
+      setAutoPaymentLoading(true);
+      const response = await fetch("/api/server", {
+        method: "POST",
+        body: JSON.stringify({ autoPayment: priceInSats }),
+      });
+      if (response.status === 402) {
+        localStorage.removeItem("paymentToken");
+        const L402 = response.headers.get("WWW-Authenticate");
+        const { token, invoice, r_hash } =
+          getLSATDetailsFromHeader(L402!) ?? {};
+        console.log("token-client", token);
+
+        localStorage.setItem("paymentToken", token ?? "");
+        setAutoPaymentInvoice({ payment_request: invoice!, r_hash: r_hash! });
+        console.log({ token, invoice, r_hash });
+        if (preferAutoPayment) {
+          const { error, preimage } = await autoPayWithWebln(invoice);
+          if (preimage && !error) {
+            console.log({ preimage });
+            setAutoPaymentLoading(false);
+            return;
+          }
+        }
+        setAutoPaymentLoading(false);
+        return { payment_request: invoice!, r_hash: r_hash! };
+      }
+    },
+
+    [autoPayWithWebln, preferAutoPayment]
+  );
 
   const selectTieredPayment = async (tier: PaymentTier) => {
     if (autoPaymentTier?.id === tier.id) return;
@@ -127,6 +186,7 @@ export const PaymentContextProvider = ({
           });
           if (response.status === 200) {
             const { settled } = await response.json();
+            console.log({ settled });
             if (settled) {
               setIsAutoPaymentSettled(true);
               setIsPaymentModalOpen(false);
@@ -163,6 +223,10 @@ export const PaymentContextProvider = ({
         openPaymentModal,
         setLoading,
         paymentCancelled,
+        preferAutoPayment,
+        setPreferAutoPayment,
+        autoPaymentToken,
+        requestAutoPayment,
       }}
     >
       {children}
