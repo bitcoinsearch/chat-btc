@@ -204,7 +204,6 @@ export async function processInput(
       return createReadableStream(output_string);
     } else {
       const intermediateContent: CustomContent[] = []
-
       for (const result of searchResults) {
         let { _source: source} = result
         const isQuestionOnStackExchange =
@@ -214,7 +213,7 @@ export async function processInput(
           const isMarkdown = source.body_type === "markdown";
           const snippet = isMarkdown
           ? concatenateTextFields(source.body)
-          : source.body;
+          : source?.summary ? source.summary : source.body;
           intermediateContent.push({
             title: source.title,
             snippet: snippet,
