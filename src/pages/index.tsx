@@ -11,7 +11,7 @@ import { GeneratingErrorMessages, Payload, PromptAction } from "@/types";
 import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
-import { constructTokenHeader, getLSATDetailsFromHeader } from "@/utils/token";
+import { constructTokenHeader } from "@/utils/token";
 import { formatDate } from "@/utils/date";
 import { createReadableStream } from "@/utils/stream";
 import { separateLinksFromApiMessage } from "@/utils/links";
@@ -167,7 +167,11 @@ export default function Home() {
       abortTypingRef.current = typingAbortController;
 
       try {
-        const cachedAnswer = null
+        const cachedAnswer = await getCachedAnswer(
+          query,
+          typingAbortController.signal,
+          author
+        );
 
         let data;
         if (!cachedAnswer) {
@@ -175,8 +179,7 @@ export default function Home() {
           const authHeader = constructTokenHeader({
             token: savedToken,
           });
-          console.log("authHeader", {authHeader});
-          
+
           const response = await fetch("/api/server", {
             method: "POST",
             headers: {
@@ -192,9 +195,7 @@ export default function Home() {
             signal: typingAbortController.signal,
           });
 
-          console.log("response.status", response.status);
           if (response.status === 402) {
-            console.log("response.status === 402");
             localStorage.removeItem("paymentToken");
             setPaymentLoading(true);
             if (!preferAutoPayment) {
@@ -225,7 +226,7 @@ export default function Home() {
             const { value, done } = await reader.read();
             doneReading = done;
             const chunk = decoder.decode(value);
-  
+
             finalAnswerWithLinks += chunk; // Store the plain text in finalAnswerWithLinks
             setStreamData((data) => {
               const _updatedData = { ...data };
@@ -266,7 +267,7 @@ export default function Home() {
           updatedAt: null,
           releasedAt: formattedDateTime,
         };
-        // await SupaBaseDatabase.getInstance().insertData(payload);
+        await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -278,8 +279,8 @@ export default function Home() {
         ]);
       }
       setLoading(false);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [userInput]
   );
 

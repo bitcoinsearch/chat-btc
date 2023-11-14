@@ -24,19 +24,15 @@ export async function isValidPaymentToken(token: string) {
   let jwt = null;
   try {
     jwt = await jose.jwtVerify(token, new TextEncoder().encode(ENV.JWT_SECRET));
-    console.log({ jwt });
 
     if (!jwt.payload || !jwt.payload.exp) {
-      console.log("token invalid");
       return false;
     }
 
     if (Math.floor(Date.now() / 1000) > jwt.payload.exp) {
-      console.log("token expired");
       return false; // expired
     }
 
-    console.log("token valid");
     return true;
   } catch (e) {
     console.log("token invalid", e);
