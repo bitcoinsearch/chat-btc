@@ -113,8 +113,8 @@ function InvoiceModal() {
               We hope you are enjoying ChatBTC
             </Text>
             <Text fontSize="sm">
-              To keep this service sustainable (and guard against DDOS) we must
-              ask you to pay a few sats.
+              To keep this service sustainable (and guard against DoS problems)
+              we ask that you pay a few sats.
             </Text>
             <Text fontSize="sm">
               You can pay with WebLN using Alby, pay a lightning invoice, or
