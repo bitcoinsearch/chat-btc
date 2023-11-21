@@ -1,6 +1,9 @@
+import { getAllErrorMessages } from "@/config/error-config";
 import { SupaBaseDatabase } from "@/database/database";
 import { Payload } from "@/types";
 import { formatDate } from "./date";
+import { separateLinksFromApiMessage } from "./links";
+import { createReadableStream } from "./stream";
 
 type manageSaveToDBProps = {
   id: string;
@@ -43,3 +46,46 @@ export const manageSaveToDB = async ({
     }
   }
 }
+
+export const getCachedAnswer = async (question: string, signal: AbortSignal, author?: string) => {
+  question = question.toLowerCase();
+  author = author?.toLocaleLowerCase();
+  const errorMessages = getAllErrorMessages();
+
+  let foundAnswer = ""
+  try {
+    const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
+      question,
+      author
+    );
+
+    if (!answers || answers.length === 0) {
+      console.error("Error fetching answer: No answers found.");
+      return null;
+    }
+
+    const findNonEmptyAnswer = (item: {
+      answer: string | null;
+      createdAt: string;
+    }) => {
+      if (!item.answer || !item.answer?.trim()) {
+        return false;
+      }
+      const messageBodyNoLinks = separateLinksFromApiMessage(
+        item.answer
+      ).messageBody;
+      return !errorMessages.includes(messageBodyNoLinks);
+    };
+    const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
+
+    if (!nonEmptyAnswer) {
+      console.error("Error fetching answer: No non-empty answers found.");
+      return null;
+    }
+    foundAnswer = nonEmptyAnswer.answer
+
+  } catch (error) {
+    return null;
+  }
+  return createReadableStream(foundAnswer, signal);
+};
