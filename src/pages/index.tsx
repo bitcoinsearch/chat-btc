@@ -17,59 +17,12 @@ import { createReadableStream } from "@/utils/stream";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import { DEFAULT_PAYMENT_PRICE } from "@/config/constants";
 import { Button } from "@chakra-ui/react";
-import { manageSaveToDB } from "@/utils/db";
+import { getCachedAnswer, manageSaveToDB } from "@/utils/db";
 
 const initialStream: Message = {
   type: "apiStream",
   message: "",
   uniqueId: "",
-};
-
-const getCachedAnswer = async (
-  question: string,
-  signal: AbortSignal,
-  author?: string
-) => {
-  question = question.toLowerCase();
-  author = author?.toLocaleLowerCase();
-  const errorMessages = getAllErrorMessages();
-
-  let foundAnswer = ""
-  try {
-    const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
-      question,
-      author
-    );
-
-    if (!answers || answers.length === 0) {
-      console.error("Error fetching answer: No answers found.");
-      return null;
-    }
-
-    const findNonEmptyAnswer = (item: {
-      answer: string | null;
-      createdAt: string;
-    }) => {
-      if (!item.answer || !item.answer?.trim()) {
-        return false;
-      }
-      const messageBodyNoLinks = separateLinksFromApiMessage(
-        item.answer
-      ).messageBody;
-      return !errorMessages.includes(messageBodyNoLinks);
-    };
-    const nonEmptyAnswer = answers.find((item) => findNonEmptyAnswer(item));
-
-    if (!nonEmptyAnswer) {
-      console.error("Error fetching answer: No non-empty answers found.");
-      return null;
-    }
-    foundAnswer = nonEmptyAnswer.answer
-
-  } catch (error) {
-    return null;
-  }
-  return createReadableStream(foundAnswer, signal);
 };
 
 // temporary concat
@@ -329,7 +282,6 @@ export default function Home() {
 
   return (
     <>
-      <Button w="20" onClick={abortFunction}>test me</Button>
       {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}
@@ -339,6 +291,7 @@ export default function Home() {
           startChat={promptChat}
           loading={loading}
           streamLoading={streamLoading}
+          stopGenerating={abortFunction}
         />
       ) : (
         <HomePage onPrompt={promptChat} />
