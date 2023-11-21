@@ -286,20 +286,14 @@ const ChatScreen = ({
                 />
               )}
             </Box>
-            <Box w="100%" position="relative">
+            <Box display="grid" placeItems="center">
               {streamLoading && (
-                <Button
-                  colorScheme="purple"
-                  size="sm"
-                  onClick={stopGenerating}
-                  position="absolute"
-                  left="50%"
-                  transform="translate(-50%, -50%)"
-                  bottom="60px"
-                >
+                <Button colorScheme="purple" size="sm" onClick={stopGenerating}>
                   Stop Generating
                 </Button>
               )}
+            </Box>
+            <Box w="100%" position="relative">
               <form onSubmit={handleSubmit}>
                 <Flex gap={2} alignItems="flex-end">
                   <Textarea
