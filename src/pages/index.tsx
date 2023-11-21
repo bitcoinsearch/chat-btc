@@ -200,6 +200,8 @@ export default function Home() {
               return _updatedData;
             });
           }
+          await updateMessages(finalAnswerWithLinks, uuid);
+
         } catch (err: any) {
           switch (typingAbortController.signal.reason) {
             case GeneratingErrorMessages.stopGenerating:

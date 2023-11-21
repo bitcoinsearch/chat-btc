@@ -257,13 +257,7 @@ const ChatScreen = ({
               flex="1 1 0%"
               overflow="auto"
               maxH="100lvh"
-              position="relative"
             >
-              { streamLoading &&
-                <Button colorScheme="purple" size="sm" onClick={stopGenerating} position="absolute" left="50%" transform="translate(-50%, -50%)" bottom="0px">
-                  Stop Generating
-                </Button>
-              }
               {chatList.length &&
                 chatList.map((message, index) => {
                   const isApiMessage = message.type === "apiMessage";
@@ -292,7 +286,20 @@ const ChatScreen = ({
                 />
               )}
             </Box>
-            <Box w="100%">
+            <Box w="100%" position="relative">
+              {streamLoading && (
+                <Button
+                  colorScheme="purple"
+                  size="sm"
+                  onClick={stopGenerating}
+                  position="absolute"
+                  left="50%"
+                  transform="translate(-50%, -50%)"
+                  bottom="60px"
+                >
+                  Stop Generating
+                </Button>
+              )}
               <form onSubmit={handleSubmit}>
                 <Flex gap={2} alignItems="flex-end">
                   <Textarea
