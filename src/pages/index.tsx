@@ -63,8 +63,7 @@ export default function Home() {
 
   const abortTypingRef = useRef<AbortController>();
 
-  const abortFunction = () => {
-    console.log("something")
+  const abortGeneration = () => {
     abortTypingRef.current?.abort(GeneratingErrorMessages.stopGenerating)
   }
 
@@ -202,7 +201,6 @@ export default function Home() {
             });
           }
         } catch (err: any) {
-          console.log(typingAbortController.signal.reason)
           switch (typingAbortController.signal.reason) {
             case GeneratingErrorMessages.stopGenerating:
               await updateMessages(finalAnswerWithLinks, uuid);
@@ -232,7 +230,6 @@ export default function Home() {
         })
 
       } catch (err: any) {
-        console.log("big block", {err})
         setMessages((prevMessages) => [
           ...prevMessages,
           {
@@ -291,7 +288,7 @@ export default function Home() {
           startChat={promptChat}
           loading={loading}
           streamLoading={streamLoading}
-          stopGenerating={abortFunction}
+          stopGenerating={abortGeneration}
         />
       ) : (
         <HomePage onPrompt={promptChat} />
