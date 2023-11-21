@@ -16,6 +16,8 @@ import { formatDate } from "@/utils/date";
 import { createReadableStream } from "@/utils/stream";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import { DEFAULT_PAYMENT_PRICE } from "@/config/constants";
+import { Button } from "@chakra-ui/react";
+import { manageSaveToDB } from "@/utils/db";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -31,6 +33,8 @@ const getCachedAnswer = async (
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
   const errorMessages = getAllErrorMessages();
+
+  let foundAnswer = ""
   try {
     const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
       question,
@@ -60,10 +64,12 @@ const getCachedAnswer = async (
       console.error("Error fetching answer: No non-empty answers found.");
       return null;
     }
-    return createReadableStream(nonEmptyAnswer.answer, signal);
+    foundAnswer = nonEmptyAnswer.answer
+
   } catch (error) {
     return null;
   }
+  return createReadableStream(foundAnswer, signal);
 };
 
 // temporary concat
@@ -104,15 +110,22 @@ export default function Home() {
 
   const abortTypingRef = useRef<AbortController>();
 
+  const abortFunction = () => {
+    console.log("something")
+    abortTypingRef.current?.abort(GeneratingErrorMessages.stopGenerating)
+  }
+
   const resetChat = async () => {
-    streamLoading &&
+    if (streamLoading) {
       abortTypingRef.current?.abort(GeneratingErrorMessages.resetChat);
-    setUserInput("");
-    setLoading(false);
-    setStreamData(initialStream);
-    setStreamLoading(false);
-    setMessages([]);
-    abortTypingRef.current = undefined;
+    } else {
+      setUserInput("");
+      setLoading(false);
+      setStreamData(initialStream);
+      setStreamLoading(false);
+      setMessages([]);
+    }
+    abortTypingRef.current = undefined
   };
 
   useEffect(() => {
@@ -173,7 +186,7 @@ export default function Home() {
           author
         );
 
-        let data;
+        let data: ReadableStream<Uint8Array> | null;
         if (!cachedAnswer) {
           const savedToken = localStorage.getItem("paymentToken") || "";
           const authHeader = constructTokenHeader({
@@ -218,6 +231,7 @@ export default function Home() {
         let finalAnswerWithLinks = "";
 
         if (!reader) throw new Error(ERROR_MESSAGES.UNKNOWN);
+
         const decoder = new TextDecoder();
         setLoading(false);
         setStreamLoading(true);
@@ -235,40 +249,37 @@ export default function Home() {
             });
           }
         } catch (err: any) {
-          if (err?.message === "BodyStreamBuffer was aborted") {
-            setMessages([]);
-            return;
+          console.log(typingAbortController.signal.reason)
+          switch (typingAbortController.signal.reason) {
+            case GeneratingErrorMessages.stopGenerating:
+              await updateMessages(finalAnswerWithLinks, uuid);
+              break;
+              
+            case GeneratingErrorMessages.resetChat:
+              setStreamLoading(false);
+              setLoading(false);
+              setStreamData(initialStream);
+              setMessages([]);
+              setUserInput("");
+              break;
+            
+            default:
+              await updateMessages(finalAnswerWithLinks, uuid);
+              break;
           }
         }
 
-        await updateMessages(finalAnswerWithLinks, uuid);
+        await manageSaveToDB({
+          id: uuid,
+          query,
+          answer: finalAnswerWithLinks,
+          author,
+          wasAborted: typingAbortController.signal.aborted,
+          errorMessages
+        })
 
-        let question = query;
-        let author_name = author?.toLowerCase();
-        let answer = finalAnswerWithLinks;
-        let uniqueIDD = uuid;
-        let dateString = "04-10-2023"; // DD-MM-YY
-        let timeString = "00:00:00";
-
-        const dateTimeString =
-          dateString.split("-").reverse().join("-") + "T" + timeString;
-        const dateObject = new Date(dateTimeString);
-        const formattedDateTime = formatDate(dateObject);
-
-        const isValidAnswer = answer?.trim() && !errorMessages.includes(answer);
-
-        let payload: Payload = {
-          uniqueId: uniqueIDD,
-          question: question,
-          answer: isValidAnswer ? answer : null,
-          author_name: author_name,
-          rating: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: null,
-          releasedAt: formattedDateTime,
-        };
-        await SupaBaseDatabase.getInstance().insertData(payload);
       } catch (err: any) {
+        console.log("big block", {err})
         setMessages((prevMessages) => [
           ...prevMessages,
           {
@@ -318,6 +329,7 @@ export default function Home() {
 
   return (
     <>
+      <Button w="20" onClick={abortFunction}>test me</Button>
       {authorQuery !== undefined ? (
         <ChatScreen
           messages={messages}

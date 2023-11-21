@@ -4,20 +4,24 @@ export function createReadableStream(text: string, signal?: AbortSignal) {
   const encoder = new TextEncoder();
   let interval: NodeJS.Timer
 
-  if (signal) {
-    signal.addEventListener("abort", () => {
-      clearInterval(interval);
-      if (!readable.locked) {
-        readable.cancel("Aborted");
-      }
-    })
-  }
+  // if (signal) {
+  //   signal.addEventListener("abort", () => {
+  //     clearInterval(interval);
+  //     if (!readable.locked) {
+  //       readable.cancel("Aborted");
+  //     }
+  //   })
+  // }
 
   const readable = new ReadableStream({
     start(controller) {
       let textLength = text.length
       let currentCharIndex = 0
       interval = setInterval(() => {
+        if (signal?.aborted) {
+          controller.error(signal.reason)
+          return
+        }
         if (currentCharIndex < textLength) {
           controller.enqueue(encoder.encode(text[currentCharIndex]))
           currentCharIndex++
