@@ -14,6 +14,7 @@ export const AnswerQuality = {
 export const GeneratingErrorMessages = {
   abortTyping: "Operation was aborted",
   resetChat: "Chat was reset",
+  stopGenerating: "User stopped generating",
 } as const
 
 export type AnswerQualityType = (typeof AnswerQuality)[keyof typeof AnswerQuality];
