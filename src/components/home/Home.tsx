@@ -16,6 +16,7 @@ import styles from "./home.module.css";
 import InputTextArea from "./InputTextArea";
 import PromptBubble from "./PromptBubble";
 import { InView } from "react-intersection-observer";
+import QueuerBanner from "../banner/QueuerBanner";
 
 type HomePageProps = {
   onPrompt: PromptAction;
@@ -42,7 +43,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
         display={{ base: "none", md: "block" }}
         position={"fixed"}
         right={0}
-        top={14}
+        top={24}
         mr={6}
         zIndex={1}
       >
@@ -74,6 +75,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
         ref={fullScreenContainer}
         bgColor="brand.bg_base_purple"
       >
+        <QueuerBanner />
         <InView
           threshold={0.5}
           onChange={(inView, entry) => handleInView(inView, entry.target.id)}
