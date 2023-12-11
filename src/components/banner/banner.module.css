@@ -1,4 +1,4 @@
 div.banner {
-  flex: none;
+  flex: none !important;
 }
 
