@@ -30,7 +30,7 @@ const QueuerBanner = () => {
   return (
     <Flex className={styles.banner} bgColor="orange.100" alignItems="center" position="sticky" top="0px" zIndex={99}>
       <Flex grow={1} fontSize={{base: "12px", md: "16px"}} paddingInline={{base: 2, md: 10}} justifyContent="space-between">
-        <Box color={"gray.600"}  fontWeight="medium">
+        <Box color={"gray.600"} flex="1 1 100%" fontWeight="medium" textDecoration="underline" textAlign="center">
           <Link href="https://review.btctranscripts.com/transcripts" target="_blank">
             <span>{`Get `}</span>
             <span
@@ -43,11 +43,6 @@ const QueuerBanner = () => {
             <span>{`to review technical Bitcoin transcripts`}</span>
           </Link>
         </Box>
-        <Button variant="link" color="orange.400" display={{base: "none", md: "block"}}>
-          <Link href="https://review.btctranscripts.com/transcripts" target="_blank">
-            BTCTranscripts Review
-          </Link>
-        </Button>
       </Flex>
       <IconButton
         variant="ghost"
