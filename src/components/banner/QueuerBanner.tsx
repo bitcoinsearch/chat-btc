@@ -31,9 +31,9 @@ const QueuerBanner = () => {
       <Flex grow={1} fontSize={{base: "12px", md: "16px"}} paddingInline={{base: 2, md: 10}} justifyContent="space-between">
         <Box color={"gray.600"} flex="1 1 100%" fontWeight="medium" textAlign="center">
           <Link href="https://learning.chaincode.com/#FOSS" target="_blank">
-            <span>{`Start Your Career in Bitcoin Open Source`}</span>
+            <span>{`Start Your Career in Bitcoin Open Source Development`}</span>
             <br />
-            <span>{`Development in 2024 `}</span>
+            <span>{`in 2024 with Chaincode Labs `}</span>
             <span
               style={{
                 fontWeight: "medium",
