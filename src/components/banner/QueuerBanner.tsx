@@ -25,7 +25,6 @@ const QueuerBanner = () => {
     }
   }, []);
 
-  // if (queuerBanner == "hidden") return null;
   if (!isOpen) return null;
   return (
     <Flex className={styles.banner} bgColor="orange.100" alignItems="center" position="sticky" top="0px" zIndex={99}>
