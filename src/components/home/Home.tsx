@@ -16,7 +16,6 @@ import styles from "./home.module.css";
 import InputTextArea from "./InputTextArea";
 import PromptBubble from "./PromptBubble";
 import { InView } from "react-intersection-observer";
-import QueuerBanner from "../banner/QueuerBanner";
 
 type HomePageProps = {
   onPrompt: PromptAction;
@@ -75,7 +74,6 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
         ref={fullScreenContainer}
         bgColor="brand.bg_base_purple"
       >
-        <QueuerBanner />
         <InView
           threshold={0.5}
           onChange={(inView, entry) => handleInView(inView, entry.target.id)}
@@ -284,7 +282,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                     fontSize={{ base: "16px", md: "20px" }}
                     color="grey.200"
                     textAlign="center"
-                    >
+                  >
                     Built with ❤️ by{" "}
                     <Link
                       href="https://bitcoindevs.xyz"
@@ -307,10 +305,10 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
                     fontSize={{ base: "12px", md: "16px" }}
                     color="grey.200"
                     textAlign="center"
-                    >
-                    Vistor counts publicly available via {" "}
+                  >
+                    Vistor counts publicly available via{" "}
                     <Link
-                      href='https://visits.bitcoindevs.xyz/share/O3RcrKXLglJyaXX8/chat-btc'
+                      href="https://visits.bitcoindevs.xyz/share/O3RcrKXLglJyaXX8/chat-btc"
                       isExternal
                       fontSize={{ base: "12px", md: "16px" }}
                       color="orange.200"
