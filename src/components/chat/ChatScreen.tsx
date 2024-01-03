@@ -21,6 +21,7 @@ import { isMobile } from "react-device-detect";
 import { v4 as uuidv4 } from "uuid";
 import { PromptAction } from "@/types";
 import { handleTextAreaChange } from "@/utils/text";
+import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
 
 type ChatProps = {
   userInput: string;
@@ -55,12 +56,17 @@ const ChatScreen = ({
   const authorQuery = router.query[AUTHOR_QUERY];
   const searchParams = new URLSearchParams(window.location.search);
 
+  const updateRouterQuery = useUpdateRouterQuery();
+
   const author = useMemo(() => {
-    return (
-      authorsConfig.find((authorConfig) => authorConfig.slug === authorQuery) ||
-      blippy
+    let authorInConfig = authorsConfig.find(
+      (authorConfig) => authorConfig.slug === authorQuery
     );
-  }, [authorQuery]);
+    if (!authorQuery || !authorInConfig) {
+      updateRouterQuery(AUTHOR_QUERY, blippy.slug);
+    }
+    return authorInConfig || blippy;
+  }, [authorQuery, updateRouterQuery]);
 
   const authorInitialDialogue: Message = useMemo(() => {
     return {
