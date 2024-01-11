@@ -9,7 +9,7 @@ export const AnswerQuality = {
   poor: "Poorly worded",
   inappropriate: "Inappropriate content",
   other: "Other",
-} as const;
+};
 
 export const GeneratingErrorMessages = {
   abortTyping: "Operation was aborted",

@@ -2,7 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { ThumbDownIcon, ThumbUpIcon } from "@/chakra/custom-chakra-icons";
 import { SupaBaseDatabase } from "@/database/database";
 import { AnswerQuality, FeedbackPayload, Ratings } from "@/types";
-import { Button, Flex, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  Text,
+  Textarea,
+  ModalOverlay,
+  Modal,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
+} from "@chakra-ui/react";
 
 import Feedback from "./feedback";
 
@@ -26,10 +38,11 @@ const defaultFeedback = {
 const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
   const [feedback, setFeedback] = useState<FeedbackPayload>(defaultFeedback);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackInput, setFeedbackInput] = useState("");
   const feedbackRef = useRef<HTMLDivElement | null>(null);
 
-  const showAnswerQuality =
-    feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality;
+  const showAnswerQuality = feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality;
 
   useEffect(() => {
     if (isResponseGenerated) {
@@ -66,16 +79,13 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     return null;
   }
 
+  const openFeedbackModal = async (feedback: FeedbackPayload) => {
+    return setIsFeedbackOpen(true);
+  };
+
   return (
-    <Flex
-      flexDir="column"
-      alignItems="flex-start"
-      gap="8"
-      mt="8"
-      pl={4}
-      pb={4}
-    >
-      <Flex flexDir="column" alignItems="flex-start" gap={2}>
+    <Flex flexDir='column' alignItems='flex-start' gap='8' mt='8' pl={4} pb={4}>
+      <Flex flexDir='column' alignItems='flex-start' gap={2}>
         <Text fontWeight={500} fontSize={14}>
           Answer quality
         </Text>
@@ -126,16 +136,58 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
             What was the issue with this response?
           </Text>
           {Object.entries(AnswerQuality).map(([key, value]) => {
-            return (
-              <Feedback
-                message={value}
-                key={key}
-                feedback={feedback}
-                sendFeedback={sendFeedback}
-              />
-            );
+            return <Feedback message={value} key={key} feedback={feedback} sendFeedback={key === "other" ? openFeedbackModal : sendFeedback} />;
           })}
         </Flex>
+      ) : null}
+
+      {isFeedbackOpen ? (
+        <>
+          {feedback.rating === Ratings.NEGATIVE && Object.keys(AnswerQuality).map((key) => key === "other") ? (
+            <div>
+              <Modal size='4xl' variant={"primary"} onClose={() => setIsFeedbackOpen(false)} isOpen={isFeedbackOpen} isCentered>
+                <ModalOverlay />
+                <ModalContent position='fixed' bottom='0px'>
+                  <ModalCloseButton />
+                  <ModalHeader fontSize={{ sm: "16px", md: "20px" }}>Provide additional feedback</ModalHeader>
+                  <ModalBody>
+                    <div>
+                      <Textarea
+                        placeholder='please provide more information here'
+                        name=''
+                        id='feedbackInput'
+                        rows={3}
+                        resize='none'
+                        maxH='200px'
+                        onChange={(e) => setFeedbackInput(e.target.value)}
+                        fontSize={{ sm: "14px", md: "16px" }}
+                      />
+                    </div>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      border={"1px solid white"}
+                      borderRadius={"4px"}
+                      padding={{ base: "2px 10px", md: "4px 13px", lg: "4px 13px" }}
+                      justifyContent={"center"}
+                      fontWeight={"400"}
+                      bg={"transparent"}
+                      outline={"none"}
+                      onClick={() => {
+                        sendFeedback({ ...feedback, answerQuality: feedbackInput });
+                        setIsFeedbackOpen(false);
+                      }}
+                    >
+                      <Text fontSize={{ base: "13px", md: "16px", lg: "16px" }} lineHeight={"18px"}>
+                        Submit feedback
+                      </Text>
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </div>
+          ) : null}
+        </>
       ) : null}
     </Flex>
   );
