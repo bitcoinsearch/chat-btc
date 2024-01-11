@@ -10,16 +10,27 @@ const theme = extendTheme({
     brand: {
       bg50: "#0D2333",
       bg100: "#102E44",
-      bg_base_purple: "#24243e"
+      bg_base_purple: "#24243e",
     },
     link: {
-      400: "#78A9FF"
+      400: "#78A9FF",
     },
     button: {
       primary: "#0F62FE",
       tertiary: "#C6C6C6",
       "accent.50": "rgba(198, 198, 198, .4)",
-      "accent.100": "rgba(198, 198, 198, 1)"
+      "accent.100": "rgba(198, 198, 198, 1)",
+    },
+  },
+  components: {
+    Modal: {
+      variants: {
+        primary: {
+          dialog: {
+            maxW: "820px",
+          },
+        },
+      },
     },
   },
   config,
