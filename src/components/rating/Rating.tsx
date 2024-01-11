@@ -7,13 +7,13 @@ import {
   Flex,
   Text,
   Textarea,
-  Drawer,
-  DrawerBody,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerCloseButton,
+  ModalOverlay,
+  Modal,
+  ModalContent,
+  ModalCloseButton,
+  ModalBody,
+  ModalHeader,
+  ModalFooter,
 } from "@chakra-ui/react";
 
 import Feedback from "./feedback";
@@ -42,8 +42,7 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
   const [feedbackInput, setFeedbackInput] = useState("");
   const feedbackRef = useRef<HTMLDivElement | null>(null);
 
-  const showAnswerQuality =
-    feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality;
+  const showAnswerQuality = feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality;
 
   useEffect(() => {
     if (isResponseGenerated) {
@@ -146,12 +145,12 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
         <>
           {feedback.rating === Ratings.NEGATIVE && Object.keys(AnswerQuality).map((key) => key === "other") ? (
             <div>
-              <Drawer placement='bottom' onClose={() => setIsFeedbackOpen(false)} isOpen={isFeedbackOpen}>
-                <DrawerOverlay />
-                <DrawerContent>
-                  <DrawerCloseButton />
-                  <DrawerHeader fontSize={{ sm: "16px", md: "20px" }}>Provide additional feedback</DrawerHeader>
-                  <DrawerBody>
+              <Modal size='4xl' variant={"primary"} onClose={() => setIsFeedbackOpen(false)} isOpen={isFeedbackOpen} isCentered>
+                <ModalOverlay />
+                <ModalContent position='fixed' bottom='0px'>
+                  <ModalCloseButton />
+                  <ModalHeader fontSize={{ sm: "16px", md: "20px" }}>Provide additional feedback</ModalHeader>
+                  <ModalBody>
                     <div>
                       <Textarea
                         placeholder='please provide more information here'
@@ -164,12 +163,12 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
                         fontSize={{ sm: "14px", md: "16px" }}
                       />
                     </div>
-                  </DrawerBody>
-                  <DrawerFooter>
+                  </ModalBody>
+                  <ModalFooter>
                     <Button
                       border={"1px solid white"}
                       borderRadius={"4px"}
-                      padding={{ sm: "2px 10px", md: "4px 13px" }}
+                      padding={{ base: "2px 10px", md: "4px 13px", lg: "4px 13px" }}
                       justifyContent={"center"}
                       fontWeight={"400"}
                       bg={"transparent"}
@@ -179,13 +178,13 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
                         setIsFeedbackOpen(false);
                       }}
                     >
-                      <Text fontSize={"14px"} lineHeight={"18px"}>
+                      <Text fontSize={{ base: "13px", md: "16px", lg: "16px" }} lineHeight={"18px"}>
                         Submit feedback
                       </Text>
                     </Button>
-                  </DrawerFooter>
-                </DrawerContent>
-              </Drawer>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
             </div>
           ) : null}
         </>
