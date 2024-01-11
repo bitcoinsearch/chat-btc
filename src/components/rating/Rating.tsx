@@ -84,14 +84,6 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     return setIsFeedbackOpen(true);
   };
 
-  const sendDetailedFeedback = async (feedback: FeedbackPayload) => {
-    if (feedbackInput.length === 0) {
-      return;
-    }
-    sendFeedback({ ...feedback, answerQuality: feedbackInput });
-    setIsFeedbackOpen(false);
-  };
-
   return (
     <Flex flexDir='column' alignItems='flex-start' gap='8' mt='8' pl={4} pb={4}>
       <Flex flexDir='column' alignItems='flex-start' gap={2}>
