@@ -52,12 +52,12 @@ const authorsConfig: AuthorConfig[] = [
     ],
   },
   {
-    name: "Andrew Chow Bot",
+    name: "Ava Chow Bot",
     title: "Bitcoin Core Maintainer",
     introduction: "Hi, I'm achow. I'm a Bitcoin Core maintainer and work on the Hardware Wallet Interface. My focus is on wallet functionality and interoperability between different wallet software.",
     slug: "achow",
-    value: "Andrew Chow",
-    imgURL: "/images/authors/andrew_chow.jpg",
+    value: "Ava Chow",
+    imgURL: "/images/authors/achow.jpg",
     questions: [
       "What are Partially Signed Bitcoin Transactions used for?",
       "What are the advantages of descriptor wallets over legacy wallets?",
