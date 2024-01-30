@@ -123,6 +123,10 @@ const ChatScreen = ({
     }
   };
 
+  const handleFollowUpQuestion = ( question: string ) => {
+    startChat(question, author.slug, { startChat: true });
+  }
+
   useEffect(() => {
     const messageListBox = messageListRef.current;
     if (!messageListBox) return;
@@ -269,7 +273,7 @@ const ChatScreen = ({
                   const isApiMessage = message.type === "apiMessage";
                   return (
                     <div key={index}>
-                      <MessageBox author={author.name} content={message} />
+                      <MessageBox author={author.name} content={message} handleFollowUpQuestion={handleFollowUpQuestion} />
                       {isApiMessage && (
                         <Rating
                           feedbackId={message.uniqueId}
@@ -289,6 +293,7 @@ const ChatScreen = ({
                   }}
                   loading={loading}
                   streamLoading={streamLoading}
+                  handleFollowUpQuestion={handleFollowUpQuestion}
                 />
               )}
             </Box>
