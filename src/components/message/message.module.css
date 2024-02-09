@@ -1,5 +1,5 @@
 .reference_link {
-  color: var(--chakra-colors-link-400)
+  color: var(--chakra-colors-link-400);
 }
 .reference_link:hover {
   text-decoration: underline;
@@ -11,5 +11,18 @@
 }
 
 .reference_link:visited {
-  color: var(--chakra-colors-purple-400)
+  color: var(--chakra-colors-purple-400);
+}
+
+.markdownClass {
+  white-space: pre-wrap;
+}
+
+.markdownClass li {
+  list-style-position: inside;
+  white-space: normal;
+}
+
+.markdownClass li > p {
+  display: inline;
 }

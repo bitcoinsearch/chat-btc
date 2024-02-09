@@ -5,6 +5,7 @@ import styles from "./message.module.css";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
 import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
+import ReactMarkdown from "react-markdown";
 
 type MessageType = "userMessage" | "authorMessage" | "apiMessage" | "errorMessage" | "apiStream";
 export interface Message {
@@ -129,6 +130,10 @@ const ClickableQuestions = ({ question, handleFollowUpQuestion }: { question: st
   );
 };
 
+export const MarkdownWrapper = ({ text, className }: { text: string; className?: string | null | undefined }) => {
+  return <ReactMarkdown className={`${styles.markdownClass} ${className}`}>{text}</ReactMarkdown>;
+};
+
 const MessageContent = ({ message, type, handleFollowUpQuestion }: Message & { handleFollowUpQuestion: (question: string) => void }) => {
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions } = separateLinksFromApiMessage(message);
@@ -138,25 +143,16 @@ const MessageContent = ({ message, type, handleFollowUpQuestion }: Message & { h
   return (
     <>
       <Text whiteSpace='pre-wrap' color={messageConfig[type].color || ""}>
-        {messageBody.trim()}
+        <MarkdownWrapper text={messageBody.trim()} />
       </Text>
       {Boolean(messageLinks.length) && (
         <Box>
-          <Text fontSize='14px' fontWeight={500}>
-            Sources
-          </Text>
-          {messageLinks.map((link, idx) => (
-            <div key={idx}>
-              <ClickableLink linkString={link} />
-            </div>
-          ))}
-
           {Boolean(messageQuestions.length) && (
             <Box paddingTop='16px'>
               <Text fontSize='14px' paddingBottom='16px' fontWeight={500}>
                 Follow up questions
               </Text>
-              <Flex alignItems='flex-start' justifyContent='flex-start' overflowX='scroll' gap='24px'>
+              <Flex alignItems='flex-start' justifyContent='flex-start' overflowX={messageQuestions?.length >= 2 ? `scroll` : "hidden"} gap='24px'>
                 {messageQuestions.map((question, idx) => (
                   <ClickableQuestions
                     question={question}
@@ -167,6 +163,14 @@ const MessageContent = ({ message, type, handleFollowUpQuestion }: Message & { h
               </Flex>
             </Box>
           )}
+          <Text fontSize='14px' paddingTop='16px' fontWeight={500}>
+            Sources
+          </Text>
+          {messageLinks.map((link, idx) => (
+            <div key={idx}>
+              <ClickableLink linkString={link} />
+            </div>
+          ))}
         </Box>
       )}
     </>
@@ -179,9 +183,8 @@ const StreamMessageContent = ({ message, type, handleFollowUpQuestion }: Message
   return (
     <>
       <Text whiteSpace='pre-wrap' color={messageConfig[type].color || ""}>
-        {messageBody}
+        <MarkdownWrapper text={messageBody} className={`streamContent`} />
       </Text>
-
       <Box paddingTop='16px'>
         {messageQuestions.length ? (
           <Text fontSize='14px' paddingBottom='16px' fontWeight={500}>
