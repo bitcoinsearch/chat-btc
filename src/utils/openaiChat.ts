@@ -97,7 +97,7 @@ const _example = (question: string, summaries: SummaryData[]): string => {
           },
           {
             role: "user",
-            content: `You are given the following extracted parts of a long document and a question. Provide a conversational detailed answer in the same writing style as based on the context provided. DO NOT include any external references or links in the answers. If you are absolutely certain that the answer cannot be found in the context below, just say '${ERROR_MESSAGES.NO_ANSWER_WITH_LINKS}' Don't try to make up an answer. If the question is not related to the context, politely respond that '${ERROR_MESSAGES.NO_ANSWER}'Question: ${question} ========= ${ans}=========`,
+            content: `You are given the following extracted parts of a long document and a question. Provide a conversational detailed answer in the same writing style as based on the context provided. DO NOT include any external references or links in the answers. If you are absolutely certain that the answer cannot be found in the context below, just say '${ERROR_MESSAGES.NO_ANSWER_WITH_LINKS}' Don't try to make up an answer. If the question is not related to the context, politely respond that '${ERROR_MESSAGES.NO_ANSWER}'Question: ${question} ========= ${ans}=========. In addition, generate four follow up questions related to the answer generated. Each question should be in this format -{question_iterator}-{{QUESTION_HERE}} and each question should be seperated by a new line. DO NOT ADD AN INTRODUCTORY TEXT TO THE FOLLOW UP QUESTIONS`,
           },
         ],
         temperature: 0.7,
