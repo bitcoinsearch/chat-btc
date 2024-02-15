@@ -222,14 +222,14 @@ export default function Home() {
           }
         }
 
-        await manageSaveToDB({
-          id: uuid,
-          query,
-          answer: finalAnswerWithLinks,
-          author,
-          wasAborted: typingAbortController.signal.aborted,
-          errorMessages
-        })
+        // await manageSaveToDB({
+        //   id: uuid,
+        //   query,
+        //   answer: finalAnswerWithLinks,
+        //   author,
+        //   wasAborted: typingAbortController.signal.aborted,
+        //   errorMessages
+        // })
 
       } catch (err: any) {
         setMessages((prevMessages) => [
