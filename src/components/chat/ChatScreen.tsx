@@ -4,7 +4,7 @@ import Rating from "@/components/rating/Rating";
 import authorsConfig, {
   AUTHOR_QUERY,
   deriveAuthorIntroduction,
-} from "@/config/authorsConfig";
+} from "@/config/authors-config";
 import {
   Box,
   Button,
