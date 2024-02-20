@@ -3,16 +3,25 @@ import ERROR_MESSAGES from "@/config/error-config";
 import { processInput } from "@/utils/openaiChat";
 import { createReadableStream } from "@/utils/stream";
 import { getNewUrl } from "@/utils/token-api";
+import { GPTKeywordExtractor } from "@/service/chat/extractor";
+import { ChatHistory } from "@/types";
 
+interface InternalFetchParams {
+  url: string;
+  query: string;
+  author?: string;
+  keywords?: string;
+}
 export const config: PageConfig = {
   runtime: "edge",
 };
 
-export const internalFetch = async (
-  url: string,
-  query: string,
-  author?: string
-): Promise<any[] | null> => {
+export const internalFetch = async ({
+  url,
+  query,
+  author,
+  keywords,
+}: InternalFetchParams): Promise<any[] | null> => {
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -22,6 +31,7 @@ export const internalFetch = async (
       inputs: {
         question: query,
         author: author,
+        keywords: keywords
       },
     }),
   });
@@ -41,12 +51,16 @@ export default async function handler(req: Request) {
     let esResults;
     let userQuery;
 
+    const chatHistory = reqBody?.chatHistory ?? ([] as ChatHistory[]);
+
     try {
       const fetchUrl = getNewUrl(requesturl, "/search");
       const inputs = reqBody?.inputs;
       const { query, author }: { query: string; author: string } = inputs;
 
-      esResults = await internalFetch(fetchUrl, query, author);
+      const gptKeywords = await GPTKeywordExtractor([...chatHistory]);
+
+      esResults = await internalFetch({url: fetchUrl, query, author, keywords: gptKeywords});
       userQuery = query;
 
       if (!esResults || !esResults.length) {
@@ -63,7 +77,7 @@ export default async function handler(req: Request) {
     }
 
     try {
-      const result = await processInput(esResults, userQuery);
+      const result = await processInput(esResults, userQuery, chatHistory);
       return new Response(result);
     } catch (error: any) {
       const errMessage = error?.message

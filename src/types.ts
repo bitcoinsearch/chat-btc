@@ -63,3 +63,9 @@ export type Payload = {
   updatedAt: null,
   releasedAt: string,
 }
+
+type ChatAgentRole = "user" | "system" | "assistant";
+export type ChatHistory = {
+  role: ChatAgentRole;
+  content: string;
+};
