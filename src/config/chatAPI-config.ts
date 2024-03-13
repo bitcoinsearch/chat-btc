@@ -17,3 +17,5 @@ export const guidelines = {
   FOLLOW_UP_QUESTIONS: `In addition, generate four follow up questions related to the answer generated. Each question should be in this format -{QUESTION_INDEX_HERE}-{{QUESTION_HERE}} and each question should be seperated by a new line. DO NOT ADD AN INTRODUCTORY TEXT TO THE FOLLOW UP QUESTIONS.`,
   USED_SOURCES: `Lastly, list all sources relevant in generating the answer in a list in this format '__sources__: [LINK_INDICES_HERE]'`
 };
+
+export const CONTEXT_WINDOW_MESSAGES = 10

@@ -1,6 +1,6 @@
 import { Message } from "@/components/message/message";
 import { separateLinksFromApiMessage } from "@/utils/links";
-import { guidelines } from "@/config/chatAPI-config";
+import { CONTEXT_WINDOW_MESSAGES, guidelines } from "@/config/chatAPI-config";
 import { ChatHistory } from "@/types";
 
 const buildSystemMessage = (question: string, context: string) => {
@@ -72,7 +72,8 @@ const formatMessageToChatHistory = (message: Message) => {
 
 export const constructMessageHistory = (messages: Message[]) => {
   const list: ChatHistory[] = [];
-  for (let index = 0; index < messages.length; index++) {
+  const messageWindow = messages.slice(-CONTEXT_WINDOW_MESSAGES)
+  for (let index = 0; index < messageWindow.length; index++) {
     const message = messages[index];
     const chat = formatMessageToChatHistory(message);
     if (chat) list.push(chat);
