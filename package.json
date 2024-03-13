@@ -35,6 +35,7 @@
     "next-axiom": "^0.17.0",
     "next-connect": "^0.13.0",
     "openai": "^3.2.1",
+    "openai-chat-tokens": "^0.2.8",
     "react": "18.2.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "18.2.0",

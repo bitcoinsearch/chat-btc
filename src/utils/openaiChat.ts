@@ -1,10 +1,10 @@
-import { COMPLETION_URL } from "@/config/chatAPI-config";
+import { COMPLETION_URL, TOKEN_UPPER_LIMIT } from "@/config/chatAPI-config";
 import ERROR_MESSAGES from "@/config/error-config";
 import { buildChatMessages } from "@/service/chat/history";
 import { ChatHistory } from "@/types";
 import { createParser, ParsedEvent, ReconnectInterval } from "eventsource-parser";
 import { createReadableStream } from "./stream";
-import { DOCUMENTS } from "@/config/context-config";
+import { promptTokensEstimate } from "openai-chat-tokens"
 
 interface ElementType {
   type: "paragraph" | "heading";
@@ -17,6 +17,17 @@ interface CustomContent {
   link: string;
 }
 
+interface EnforceTokenParams {
+  question: string;
+  slicedTextWithLink: SummaryData[];
+  chatHistory: ChatHistory[]
+}
+
+interface EnforceTokenLimitReturnType {
+  slicedTextWithLink: SummaryData[];
+  messages: ChatHistory[];
+  tokenLength: number;
+}
 export interface Result {
   _source: {
     title: string;
@@ -69,7 +80,7 @@ function cleanText(text: string): string {
   return text;
 }
 
-const _example = (question: string, summaries: SummaryData[]): string => {
+const generateContextBlock = (summaries: SummaryData[]): string => {
   let prompt = `===== START CONTEXT BLOCK ===== \n`;
 
   summaries.forEach((d: SummaryData, i: number) => {
@@ -85,15 +96,11 @@ const _example = (question: string, summaries: SummaryData[]): string => {
 
 
   async function SummaryGenerate(
-    question: string,
-    ans: string,
     link: SummaryData[],
-    chatHistory: ChatHistory[],
+    messages: ChatHistory[],
     retry: number = 0
   ): Promise<ReadableStream<any>> {
     try {
-      const messages = await buildChatMessages({question, context: ans, messages: chatHistory})
-
       const payload = {
         model: process.env.OPENAI_MODEL,
         messages,
@@ -159,7 +166,7 @@ const _example = (question: string, summaries: SummaryData[]): string => {
 
     } catch (error) {
       if (retry < 2) {
-        return SummaryGenerate(question, ans, link, chatHistory, retry + 1);
+        return SummaryGenerate(link, messages, retry + 1);
       } else {
         return createReadableStream(ERROR_MESSAGES.OVERLOAD);
       }
@@ -227,20 +234,32 @@ export async function processInput(
         throw new Error(ERROR_MESSAGES.NO_ANSWER)
       }
 
-      const slicedTextWithLink: SummaryData[] = deduplicatedContent.slice(0, DOCUMENTS.MAX_NUMBER_OF_DOCUMENTS).map(
+      const slicedTextWithLink: SummaryData[] = deduplicatedContent.map(
         (content) => ({
-          cleaned_text: cleanText(content.snippet).slice(0, DOCUMENTS.MAX_LENGTH_PER_DOCUMENT),
+          cleaned_text: cleanText(content.snippet),
           link: content.link,
         })
       );
 
-      const prompt = _example(question, slicedTextWithLink);
+      const {messages, slicedTextWithLink: finalSources} = enforceTokenLimit({question, slicedTextWithLink, chatHistory})
 
-      const summary = await SummaryGenerate(question, prompt, slicedTextWithLink, chatHistory);
+      const summary = await SummaryGenerate(finalSources, messages);
       return summary
     }
   } catch (error: any) {
     const errMessage = error?.message ? error.message : ERROR_MESSAGES.OVERLOAD
     throw new Error(errMessage)
   }
+}
+
+function enforceTokenLimit ({question, slicedTextWithLink, chatHistory}: EnforceTokenParams): EnforceTokenLimitReturnType {
+  const messages = buildChatMessages({question, context: generateContextBlock(slicedTextWithLink), messages: chatHistory })
+  let tokenLength = promptTokensEstimate({messages})
+  console.log({tokenLength})
+  if (tokenLength > TOKEN_UPPER_LIMIT) {
+    slicedTextWithLink.pop()
+    chatHistory.length>4 && chatHistory.shift()
+    return enforceTokenLimit({question, slicedTextWithLink, chatHistory})
+  }
+  return {slicedTextWithLink, messages, tokenLength}
 }

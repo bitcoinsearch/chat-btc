@@ -18,4 +18,6 @@ export const guidelines = {
   USED_SOURCES: `Lastly, list all sources relevant in generating the answer in a list in this format '__sources__: [LINK_INDICES_HERE]'`
 };
 
-export const CONTEXT_WINDOW_MESSAGES = 10
+export const CONTEXT_WINDOW_MESSAGES = 6
+
+export const TOKEN_UPPER_LIMIT = 7000

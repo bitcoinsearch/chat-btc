@@ -14,7 +14,7 @@ const buildSystemMessage = (question: string, context: string) => {
   return `${BASE_INSTRUCTION}\n${NO_ANSWER}\n${UNRELATED_QUESTION}\n${context}\n${LINKING}\n${FOLLOW_UP_QUESTIONS}`;
 };
 
-export const buildChatMessages = async ({
+export const buildChatMessages = ({
   question,
   context,
   oldContext,
@@ -32,7 +32,7 @@ export const buildChatMessages = async ({
       content: systemMessage,
     },
     ...messages
-  ];
+  ] as ChatHistory[];
 };
 
 const formatMessageToChatHistory = (message: Message) => {
