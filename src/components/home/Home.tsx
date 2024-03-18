@@ -1,4 +1,4 @@
-import authorsConfig from "@/config/authorsConfig";
+import authorsConfig from "@/config/authors-config";
 import { PromptAction } from "@/types";
 import {
   Box,

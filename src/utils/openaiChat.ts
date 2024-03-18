@@ -1,6 +1,10 @@
+import { COMPLETION_URL, TOKEN_UPPER_LIMIT } from "@/config/chatAPI-config";
 import ERROR_MESSAGES from "@/config/error-config";
+import { buildChatMessages } from "@/service/chat/history";
+import { ChatHistory } from "@/types";
 import { createParser, ParsedEvent, ReconnectInterval } from "eventsource-parser";
 import { createReadableStream } from "./stream";
+import { promptTokensEstimate } from "openai-chat-tokens"
 
 interface ElementType {
   type: "paragraph" | "heading";
@@ -13,6 +17,17 @@ interface CustomContent {
   link: string;
 }
 
+interface EnforceTokenParams {
+  question: string;
+  slicedTextWithLink: SummaryData[];
+  chatHistory: ChatHistory[]
+}
+
+interface EnforceTokenLimitReturnType {
+  slicedTextWithLink: SummaryData[];
+  messages: ChatHistory[];
+  tokenLength: number;
+}
 export interface Result {
   _source: {
     title: string;
@@ -65,41 +80,30 @@ function cleanText(text: string): string {
   return text;
 }
 
-const _example = (question: string, summaries: SummaryData[]): string => {
-  let prompt = `QUESTION: ${question}\n`;
-  prompt += "CONTENT:\n";
-  prompt += '"""\n';
+const generateContextBlock = (summaries: SummaryData[]): string => {
+  let prompt = `===== START CONTEXT BLOCK ===== \n`;
+
   summaries.forEach((d: SummaryData, i: number) => {
     if (i > 0) {
       prompt += "\n";
     }
-    prompt += `link [${i}]: ${d.link}\n`;
+    prompt += `link [${i}]: ${(d.link).trim()}\n`;
     prompt += `content: ${d.cleaned_text.replaceAll("\n", " ")}\n`;
   });
-  prompt += '"""\n';
+  prompt += `===== END CONTEXT BLOCK =====`;
   return prompt;
 };
 
 
   async function SummaryGenerate(
-    question: string,
-    ans: string,
     link: SummaryData[],
+    messages: ChatHistory[],
     retry: number = 0
   ): Promise<ReadableStream<any>> {
     try {
       const payload = {
         model: process.env.OPENAI_MODEL,
-        messages: [
-          {
-            role: "system",
-            content: "You are an AI assistant providing helpful answers.",
-          },
-          {
-            role: "user",
-            content: `You are given the following extracted parts of a long document and a question. Provide a conversational detailed answer in the same writing style as based on the context provided. DO NOT include any external references or links in the answers. If you are absolutely certain that the answer cannot be found in the context below, just say '${ERROR_MESSAGES.NO_ANSWER_WITH_LINKS}' Don't try to make up an answer. If the question is not related to the context, politely respond that '${ERROR_MESSAGES.NO_ANSWER}'Question: ${question} ========= ${ans}=========. In addition, generate four follow up questions related to the answer generated. Each question should be in this format -{question_iterator}-{{QUESTION_HERE}} and each question should be seperated by a new line. DO NOT ADD AN INTRODUCTORY TEXT TO THE FOLLOW UP QUESTIONS`,
-          },
-        ],
+        messages,
         temperature: 0.7,
         top_p: 1.0,
         frequency_penalty: 0.0,
@@ -109,7 +113,7 @@ const _example = (question: string, summaries: SummaryData[]): string => {
       };
       const payloadJSON = JSON.stringify(payload)
       
-      const response = await fetch("https://api.openai.com/v1/chat/completions",{
+      const response = await fetch(COMPLETION_URL,{
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ""}`,
@@ -162,7 +166,7 @@ const _example = (question: string, summaries: SummaryData[]): string => {
 
     } catch (error) {
       if (retry < 2) {
-        return SummaryGenerate(question, ans, link, retry + 1);
+        return SummaryGenerate(link, messages, retry + 1);
       } else {
         return createReadableStream(ERROR_MESSAGES.OVERLOAD);
       }
@@ -196,7 +200,8 @@ function getFinalAnswer(
 
 export async function processInput(
   searchResults: Result[] | undefined,
-  question: string
+  question: string,
+  chatHistory: ChatHistory[]
 ) {
   try {
     if (!searchResults?.length) {
@@ -229,20 +234,32 @@ export async function processInput(
         throw new Error(ERROR_MESSAGES.NO_ANSWER)
       }
 
-      const slicedTextWithLink: SummaryData[] = deduplicatedContent.slice(0, 6).map(
+      const slicedTextWithLink: SummaryData[] = deduplicatedContent.map(
         (content) => ({
-          cleaned_text: cleanText(content.snippet).slice(0, 2000),
+          cleaned_text: cleanText(content.snippet),
           link: content.link,
         })
       );
 
-      const prompt = _example(question, slicedTextWithLink);
+      const {messages, slicedTextWithLink: finalSources} = enforceTokenLimit({question, slicedTextWithLink, chatHistory})
 
-      const summary = await SummaryGenerate(question, prompt, slicedTextWithLink);
+      const summary = await SummaryGenerate(finalSources, messages);
       return summary
     }
   } catch (error: any) {
     const errMessage = error?.message ? error.message : ERROR_MESSAGES.OVERLOAD
     throw new Error(errMessage)
   }
+}
+
+function enforceTokenLimit ({question, slicedTextWithLink, chatHistory}: EnforceTokenParams): EnforceTokenLimitReturnType {
+  const messages = buildChatMessages({question, context: generateContextBlock(slicedTextWithLink), messages: chatHistory })
+  let tokenLength = promptTokensEstimate({messages})
+  console.log({tokenLength})
+  if (tokenLength > TOKEN_UPPER_LIMIT) {
+    slicedTextWithLink.pop()
+    chatHistory.length>4 && chatHistory.shift()
+    return enforceTokenLimit({question, slicedTextWithLink, chatHistory})
+  }
+  return {slicedTextWithLink, messages, tokenLength}
 }

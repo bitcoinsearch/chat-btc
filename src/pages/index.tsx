@@ -1,23 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Message } from "@/components/message/message";
 import { v4 as uuidv4 } from "uuid";
-import { SupaBaseDatabase } from "@/database/database";
 import { useRouter } from "next/router";
 import ChatScreen from "@/components/chat/ChatScreen";
 import HomePage from "@/components/home/Home";
-import authorsConfig, { AUTHOR_QUERY } from "@/config/authorsConfig";
+import authorsConfig, { AUTHOR_QUERY } from "@/config/authors-config";
 import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
 import { GeneratingErrorMessages, Payload, PromptAction } from "@/types";
 import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { usePaymentContext } from "@/contexts/payment-context";
 import InvoiceModal from "@/components/invoice/modal";
 import { constructTokenHeader } from "@/utils/token";
-import { formatDate } from "@/utils/date";
-import { createReadableStream } from "@/utils/stream";
-import { separateLinksFromApiMessage } from "@/utils/links";
 import { DEFAULT_PAYMENT_PRICE } from "@/config/constants";
-import { Button } from "@chakra-ui/react";
 import { getCachedAnswer, manageSaveToDB } from "@/utils/db";
+import { constructMessageHistory } from "@/service/chat/history";
 
 const initialStream: Message = {
   type: "apiStream",
@@ -64,8 +60,8 @@ export default function Home() {
   const abortTypingRef = useRef<AbortController>();
 
   const abortGeneration = () => {
-    abortTypingRef.current?.abort(GeneratingErrorMessages.stopGenerating)
-  }
+    abortTypingRef.current?.abort(GeneratingErrorMessages.stopGenerating);
+  };
 
   const resetChat = async () => {
     if (streamLoading) {
@@ -77,7 +73,7 @@ export default function Home() {
       setStreamLoading(false);
       setMessages([]);
     }
-    abortTypingRef.current = undefined
+    abortTypingRef.current = undefined;
   };
 
   useEffect(() => {
@@ -113,19 +109,18 @@ export default function Home() {
       }
       // Reset the typedMessage state
       let uuid = uuidv4();
+      const lastMessage =
+        messages.length > 0 ? messages[messages.length - 1]["message"] : null;
+      const messageToSet: Message[] =
+        lastMessage === query
+          ? messages
+          : [
+              ...messages,
+              { message: query, type: "userMessage", uniqueId: uuid },
+            ];
       setLoading(true);
-      setMessages((prevMessages) => {
-        if (prevMessages.length > 0) {
-          const lastMessage = prevMessages[prevMessages.length - 1];
-          if (lastMessage.message === query) {
-            return prevMessages;
-          }
-        }
-        return [
-          ...prevMessages,
-          { message: query, type: "userMessage", uniqueId: uuid },
-        ];
-      });
+      setMessages(messageToSet);
+      let chatHistory = constructMessageHistory(messageToSet);
 
       // instantiate new AbortController
       const typingAbortController = new AbortController();
@@ -156,6 +151,7 @@ export default function Home() {
                 query,
                 author,
               },
+              chatHistory,
             }),
             signal: typingAbortController.signal,
           });
@@ -201,13 +197,12 @@ export default function Home() {
             });
           }
           await updateMessages(finalAnswerWithLinks, uuid);
-
         } catch (err: any) {
           switch (typingAbortController.signal.reason) {
             case GeneratingErrorMessages.stopGenerating:
               await updateMessages(finalAnswerWithLinks, uuid);
               break;
-              
+
             case GeneratingErrorMessages.resetChat:
               setStreamLoading(false);
               setLoading(false);
@@ -215,7 +210,7 @@ export default function Home() {
               setMessages([]);
               setUserInput("");
               break;
-            
+
             default:
               await updateMessages(finalAnswerWithLinks, uuid);
               break;
@@ -228,9 +223,8 @@ export default function Home() {
           answer: finalAnswerWithLinks,
           author,
           wasAborted: typingAbortController.signal.aborted,
-          errorMessages
-        })
-
+          errorMessages,
+        });
       } catch (err: any) {
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -244,7 +238,7 @@ export default function Home() {
       setLoading(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userInput]
+    [userInput, messages]
   );
 
   const promptChat: PromptAction = async (prompt, author, options) => {
