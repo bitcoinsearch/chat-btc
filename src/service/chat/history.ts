@@ -75,12 +75,8 @@ const formatMessageToChatHistory = (message: Message) => {
  * This function focuses on recent messages for context relevance.
  */
 export const constructMessageHistory = (messages: Message[]) => {
-  const list: ChatHistory[] = [];
-  const messageWindow = messages.slice(-CONTEXT_WINDOW_MESSAGES)
-  for (let index = 0; index < messageWindow.length; index++) {
-    const message = messageWindow[index];
-    const chat = formatMessageToChatHistory(message);
-    if (chat) list.push(chat);
-  }
-  return list;
+  return messages
+    .slice(-CONTEXT_WINDOW_MESSAGES) // Focus on the last N messages
+    .map(formatMessageToChatHistory) // Transform each message
+    .filter(Boolean); // Remove any null or undefined entries
 };
