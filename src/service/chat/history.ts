@@ -70,11 +70,15 @@ const formatMessageToChatHistory = (message: Message) => {
   }
 };
 
+/**
+ * Constructs a chat history array from the last N messages, where N is determined by CONTEXT_WINDOW_MESSAGES.
+ * This function focuses on recent messages for context relevance.
+ */
 export const constructMessageHistory = (messages: Message[]) => {
   const list: ChatHistory[] = [];
   const messageWindow = messages.slice(-CONTEXT_WINDOW_MESSAGES)
   for (let index = 0; index < messageWindow.length; index++) {
-    const message = messages[index];
+    const message = messageWindow[index];
     const chat = formatMessageToChatHistory(message);
     if (chat) list.push(chat);
   }
