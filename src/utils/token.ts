@@ -1,29 +1,29 @@
 import * as jose from "jose";
 
-import { ENV } from "@/config/env";
-
 export async function generateToken({
   invoice,
   r_hash,
   expiresIn = "1",
+  JWT_SECRET
 }: {
   invoice: string;
   r_hash: string;
   expiresIn?: string | number;
+  JWT_SECRET: string
 }) {
   const jwt = await new jose.SignJWT({ invoice, r_hash })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expiresIn)
-    .sign(new TextEncoder().encode(ENV.JWT_SECRET));
+    .sign(new TextEncoder().encode(JWT_SECRET));
 
   return jwt;
 }
 
-export async function isValidPaymentToken(token: string) {
+export async function isValidPaymentToken(token: string, JWT_SECRET: string) {
   let jwt = null;
   try {
-    jwt = await jose.jwtVerify(token, new TextEncoder().encode(ENV.JWT_SECRET));
+    jwt = await jose.jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
 
     if (!jwt.payload || !jwt.payload.exp) {
       return false;

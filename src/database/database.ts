@@ -3,15 +3,11 @@ import ERROR_MESSAGES, { getAllErrorMessages } from "@/config/error-config";
 import { FeedbackPayload, Payload } from "@/types";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import { createClient } from "@supabase/supabase-js";
-import getConfig from "next/config";
-
-// Access the environment variables
-const { publicRuntimeConfig } = getConfig();
-const SUPABASE_URL = publicRuntimeConfig.SUPABASE_URL;
-const SUPABASE_ANON_KEY = publicRuntimeConfig.SUPABASE_ANON_KEY;
-const DB_NAME = publicRuntimeConfig.DB_NAME;
+import {ENV} from "@/config/env"
 
 // Initialize Supabase client
+const {SUPABASE_URL, SUPABASE_ANON_KEY, DB_NAME} = ENV
+
 let supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Example usage: Fetch all rows from a table named "tasks"

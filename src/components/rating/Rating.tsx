@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { ThumbDownIcon, ThumbUpIcon } from "@/chakra/custom-chakra-icons";
-import { SupaBaseDatabase } from "@/database/database";
 import { AnswerQuality, FeedbackPayload, Ratings } from "@/types";
 import {
   Button,
@@ -17,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 
 import Feedback from "./feedback";
+import { PostgrestError } from "@supabase/supabase-js";
 
 interface RatingProps {
   isResponseGenerated: boolean;
@@ -64,10 +64,13 @@ const Rating = ({ isResponseGenerated, feedbackId }: RatingProps) => {
     if (feedback.rating === Ratings.NEGATIVE && !feedback.answerQuality) {
       return;
     }
-    const { status, error } = await SupaBaseDatabase.getInstance().addFeedback({
-      ...feedback,
-      feedbackId,
-    });
+    
+    const res = await fetch("/api/db/feedback", {
+      "method": "POST",
+      body: JSON.stringify({payload:{...feedback, feedbackId}})
+    })
+
+    const {status, error} = await res.json() as {status: number, error: PostgrestError | null}
 
     if (status >= 200 && status < 300 && !error) {
       setIsFeedbackSubmitted(true);

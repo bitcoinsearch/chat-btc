@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
       const jwt = token.split(":")[0];
       const r_hash = token.split(":")[1];
 
-      const isTokenValid = await isValidPaymentToken(jwt);
+      const isTokenValid = await isValidPaymentToken(jwt, ENV.JWT_SECRET);
       const isRHashValid = await verifyRHash({
         r_hash,
         reqUrl: getNewUrl(requestUrl, "/invoice/status"),
