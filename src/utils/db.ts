@@ -47,7 +47,7 @@ export const manageSaveToDB = async ({
       };
       await fetch("/api/db/save", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({payload}),
       });
     } catch (err: any) {
       console.error({err})
