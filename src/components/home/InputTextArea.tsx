@@ -1,21 +1,21 @@
-import { SendIcon } from "@/chakra/custom-chakra-icons";
-import { PromptAction } from "@/types";
-import { Flex, IconButton, Textarea } from "@chakra-ui/react";
-import { FormEvent, useRef, useState } from "react";
-import { handleTextAreaChange } from "@/utils/text";
+import { SendIcon } from '@/chakra/custom-chakra-icons';
+import { PromptAction } from '@/types';
+import { Flex, IconButton, Textarea } from '@chakra-ui/react';
+import { FormEvent, useRef, useState } from 'react';
+import { handleTextAreaChange } from '@/utils/text';
 import { isMobile } from 'react-device-detect';
 
 const InputTextArea = ({ submitInput }: { submitInput: PromptAction }) => {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    submitInput(input, "", { startChat: true });
+    submitInput(input, '', { startChat: true });
   };
 
-  const handleEnter = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
+    const handleEnter = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
       if (isMobile) {
         e.preventDefault();
       } else {
