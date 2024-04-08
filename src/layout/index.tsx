@@ -2,7 +2,6 @@ import Navbar from "@/components/navbar/Navbar";
 import Head from "next/head";
 import React from "react";
 import styles from "./layout.module.css";
-import MaintenanceBanner from '@/components/banner/MaintenanceBanner';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -20,7 +19,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <meta name="twitter:image" content="https://chat.bitcoinsearch.xyz/chat-btc-landscape_v1.png"></meta>
       </Head>
       <div className={styles.app_container}>
-        <MaintenanceBanner />
         <Navbar />
         <div className={styles.child_container}>
           {children}
