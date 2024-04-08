@@ -1,5 +1,4 @@
 import { getAllErrorMessages } from "@/config/error-config";
-import { SupaBaseDatabase } from "@/database/database";
 import { Payload } from "@/types";
 import { formatDate } from "./date";
 import { separateLinksFromApiMessage } from "./links";
@@ -12,52 +11,71 @@ type manageSaveToDBProps = {
   author?: string;
   wasAborted: boolean;
   errorMessages: string[];
-}
+};
 
 export const manageSaveToDB = async ({
-  id, query, answer, author, wasAborted, errorMessages
+  id,
+  query,
+  answer,
+  author,
+  wasAborted,
+  errorMessages,
 }: manageSaveToDBProps) => {
   const isValidAnswer = answer?.trim() && !errorMessages.includes(answer);
-  const shouldSave = isValidAnswer && !wasAborted
+  const shouldSave = isValidAnswer && !wasAborted;
   if (shouldSave) {
     try {
-        let dateString = "04-10-2023"; // DD-MM-YY
-        let timeString = "00:00:00";
+      let dateString = "04-10-2023"; // DD-MM-YY
+      let timeString = "00:00:00";
 
-        const dateTimeString =
-          dateString.split("-").reverse().join("-") + "T" + timeString;
-        const dateObject = new Date(dateTimeString);
-        const formattedDateTime = formatDate(dateObject);
+      const dateTimeString =
+        dateString.split("-").reverse().join("-") + "T" + timeString;
+      const dateObject = new Date(dateTimeString);
+      const formattedDateTime = formatDate(dateObject);
 
-        const isValidAnswer = answer?.trim() && !errorMessages.includes(answer);
+      const isValidAnswer = answer?.trim() && !errorMessages.includes(answer);
 
-        let payload: Payload = {
-          uniqueId: id,
-          question: query,
-          answer: isValidAnswer ? answer : null,
-          author_name: author?.toLowerCase(),
-          rating: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: null,
-          releasedAt: formattedDateTime,
-        };
-        await SupaBaseDatabase.getInstance().insertData(payload);
+      let payload: Payload = {
+        uniqueId: id,
+        question: query,
+        answer: isValidAnswer ? answer : null,
+        author_name: author?.toLowerCase(),
+        rating: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: null,
+        releasedAt: formattedDateTime,
+      };
+      await fetch("/api/db/save", {
+        method: "POST",
+        body: JSON.stringify({payload}),
+      });
     } catch (err: any) {
+      console.error({err})
     }
   }
-}
+};
 
-export const getCachedAnswer = async (question: string, signal: AbortSignal, author?: string) => {
+export const getCachedAnswer = async (
+  question: string,
+  signal: AbortSignal,
+  author?: string
+) => {
   question = question.toLowerCase();
   author = author?.toLocaleLowerCase();
   const errorMessages = getAllErrorMessages();
 
-  let foundAnswer = ""
+  let foundAnswer = "";
   try {
-    const answers = await SupaBaseDatabase.getInstance().getAnswerByQuestion(
-      question,
-      author
-    );
+    const res = await fetch(`/api/db/cache?question=${question}${author ? '&author=' + author : ''}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal,
+    });
+
+    if (!res.ok) throw new Error();
+    const answers: { answer: any; createdAt: any }[] | null = await res.json();
 
     if (!answers || answers.length === 0) {
       console.error("Error fetching answer: No answers found.");
@@ -82,9 +100,9 @@ export const getCachedAnswer = async (question: string, signal: AbortSignal, aut
       console.error("Error fetching answer: No non-empty answers found.");
       return null;
     }
-    foundAnswer = nonEmptyAnswer.answer
-
+    foundAnswer = nonEmptyAnswer.answer;
   } catch (error) {
+    console.error({error})
     return null;
   }
   return createReadableStream(foundAnswer, signal);

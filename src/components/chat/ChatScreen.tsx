@@ -168,6 +168,7 @@ const ChatScreen = ({
   }, []);
 
   // starts a chat with a shareable link
+  const initRender = useRef(true)
   useEffect(() => {
     const getExternalUrl = () => {
       if (!searchParams.has("question")) {
@@ -180,8 +181,8 @@ const ChatScreen = ({
         startChat(question, author.slug, { startChat: true });
       }
     };
-
-    getExternalUrl();
+    initRender.current && getExternalUrl();
+    initRender.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

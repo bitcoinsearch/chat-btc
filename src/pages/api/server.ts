@@ -48,20 +48,31 @@ export default async function handler(req: Request) {
     const requesturl = req.url;
     const reqBody = await req.json();
 
-    let esResults;
+    let esResults: any[] | null;
     let userQuery;
+
+    const inputs = reqBody?.inputs;
+    const { query, author }: { query: string; author: string } = inputs;
+
+    if (!query) {
+      return new Response(
+        JSON.stringify({ message: "no query present in request body input" }),
+        { status: 500 }
+      );
+    }
 
     const chatHistory = reqBody?.chatHistory ?? ([] as ChatHistory[]);
 
     try {
       const fetchUrl = getNewUrl(requesturl, "/search");
-      const inputs = reqBody?.inputs;
-      const { query, author }: { query: string; author: string } = inputs;
 
       const gptKeywords = await GPTKeywordExtractor([...chatHistory]);
 
       esResults = await internalFetch({url: fetchUrl, query, author, keywords: gptKeywords});
-      userQuery = query;
+
+      // FOR logging purposes
+      const loggedResultsURLs = esResults?.map(result => result?._source.url)
+      console.log(`query: ${query}\n gptKeywords: ${gptKeywords} \n results: ${loggedResultsURLs}`)
 
       if (!esResults || !esResults.length) {
         const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER);
@@ -77,7 +88,7 @@ export default async function handler(req: Request) {
     }
 
     try {
-      const result = await processInput(esResults, userQuery, chatHistory);
+      const result = await processInput(esResults, query, chatHistory);
       return new Response(result);
     } catch (error: any) {
       const errMessage = error?.message

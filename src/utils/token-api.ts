@@ -12,6 +12,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv";
 
 import { generateToken } from "./token";
+import { ENV } from "@/config/env";
 
 export const ratelimit = new Ratelimit({
   redis: kv,
@@ -94,6 +95,7 @@ export async function generateInvoice({
     invoice: payment_request,
     r_hash,
     expiresIn: expiresIn,
+    JWT_SECRET: ENV.JWT_SECRET
   });
 
   const L402Header = `L402 macaroon="${token}", invoice="${payment_request}"`;
