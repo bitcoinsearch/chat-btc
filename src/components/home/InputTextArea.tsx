@@ -14,7 +14,7 @@ const InputTextArea = ({ submitInput }: { submitInput: PromptAction }) => {
     submitInput(input, '', { startChat: true });
   };
 
-    const handleEnter = (e: React.KeyboardEvent) => {
+  const handleEnter = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       if (isMobile) {
         e.preventDefault();
