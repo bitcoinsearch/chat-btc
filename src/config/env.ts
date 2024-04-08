@@ -7,9 +7,7 @@ interface EnvVars {
   OPENAI_API_KEY: string;
 
   ES_URL: string;
-  ES_AUTHORIZATION_TOKEN: string;
-  ES_USERNAME: string;
-  ES_PASSWORD: string;
+  ES_API_KEY: string;
   ES_CLOUD_ID: string;
   ES_INDEX: string;
   ES_INDEX_CORE: string;
@@ -32,9 +30,7 @@ function getEnvVars(): EnvVars {
       OPENAI_MODEL: process.env.OPENAI_MODEL ?? "",
       OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
       ES_URL: process.env.ES_URL ?? "",
-      ES_AUTHORIZATION_TOKEN: process.env.ES_AUTHORIZATION_TOKEN ?? "",
-      ES_USERNAME: process.env.ES_USERNAME ?? "",
-      ES_PASSWORD: process.env.ES_PASSWORD ?? "",
+      ES_API_KEY: process.env.ES_API_KEY ?? "",
       ES_CLOUD_ID: process.env.ES_CLOUD_ID ?? "",
       ES_INDEX: process.env.ES_INDEX ?? "",
       ES_INDEX_CORE: process.env.ES_INDEX_CORE ?? "",
