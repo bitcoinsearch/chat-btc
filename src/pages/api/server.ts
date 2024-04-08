@@ -69,7 +69,7 @@ export default async function handler(req: Request) {
       const gptKeywords = await GPTKeywordExtractor([...chatHistory]);
 
       esResults = await internalFetch({url: fetchUrl, query, author, keywords: gptKeywords});
-      console.log(esResults)
+
       // FOR logging purposes
       console.log(`query: ${query}\n gptKeywords: ${gptKeywords} \n first_result: ${esResults?.[0]?._source.url}`)
 
