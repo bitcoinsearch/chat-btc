@@ -26,7 +26,7 @@ export class SupaBaseDatabase {
     }
   }
   async insertData(payload: Payload) {
-    if (!payload.answer) return;
+    if (!payload.answer) return false;
 
     payload.question = payload.question.toLowerCase();
     if (payload.author_name) {
@@ -35,8 +35,10 @@ export class SupaBaseDatabase {
     const { data, error } = await supabase.from(DB_NAME).insert([payload]);
     if (error) {
       console.error("Error inserting Q&A:", error);
+      return false
     } else {
       console.log("Q&A inserted.");
+      return true
     }
   }
   async addFeedback(payload: FeedbackPayload) {

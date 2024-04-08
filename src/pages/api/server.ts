@@ -71,7 +71,8 @@ export default async function handler(req: Request) {
       esResults = await internalFetch({url: fetchUrl, query, author, keywords: gptKeywords});
 
       // FOR logging purposes
-      console.log(`query: ${query}\n gptKeywords: ${gptKeywords} \n first_result: ${esResults?.[0]?._source.url}`)
+      const loggedResultsURLs = esResults?.map(result => result?._source.url)
+      console.log(`query: ${query}\n gptKeywords: ${gptKeywords} \n results: ${loggedResultsURLs}`)
 
       if (!esResults || !esResults.length) {
         const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER);
