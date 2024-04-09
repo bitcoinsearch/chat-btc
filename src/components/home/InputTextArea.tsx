@@ -3,6 +3,7 @@ import { PromptAction } from '@/types';
 import { Flex, IconButton, Textarea } from '@chakra-ui/react';
 import { FormEvent, useRef, useState } from 'react';
 import { handleTextAreaChange } from '@/utils/text';
+import { isMobile } from 'react-device-detect';
 
 const InputTextArea = ({ submitInput }: { submitInput: PromptAction }) => {
   const [input, setInput] = useState('');
@@ -15,8 +16,13 @@ const InputTextArea = ({ submitInput }: { submitInput: PromptAction }) => {
 
   const handleEnter = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
-      submitInput(input, '', { startChat: true });
+      if (isMobile) {
+        e.preventDefault();
+      } else {
+        if (!e.shiftKey && input) {
+          handleSubmit(e);
+        }
+      }
     }
   };
 
