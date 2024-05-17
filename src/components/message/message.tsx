@@ -5,7 +5,7 @@ import styles from "./message.module.css";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
 import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
-import ReactMarkdown from "react-markdown";
+import MarkdownWrapper from "./markdownWrapper/markdownWrapper";
 
 type MessageType = "userMessage" | "authorMessage" | "apiMessage" | "errorMessage" | "apiStream";
 export interface Message {
@@ -128,10 +128,6 @@ const ClickableQuestions = ({ question, handleFollowUpQuestion }: { question: st
       <Text whiteSpace='break-spaces'>{question}</Text>
     </Button>
   );
-};
-
-export const MarkdownWrapper = ({ text, className }: { text: string; className?: string | null | undefined }) => {
-  return <ReactMarkdown className={`${styles.markdownClass} ${className}`}>{text}</ReactMarkdown>;
 };
 
 const MessageContent = ({ message, type, handleFollowUpQuestion }: Message & { handleFollowUpQuestion: (question: string) => void }) => {

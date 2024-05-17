@@ -26,3 +26,35 @@
 .markdownClass li > p {
   display: inline;
 }
+
+.copyCodeblock {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  right: 6px;
+  top: 6px;
+  padding: 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  /* width: 20px; */
+  color: rgba(255, 255, 255, 0.836);
+}
+.copyCodeblock:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.copyCodeblock::before {
+  opacity: 0;
+  transition-property: all;
+  transition-duration: 3000ms;
+}
+
+.copyCodeblock[data-copied="true"]::before {
+  position: relative;
+  content: "copied!";
+  margin-right: 4px;
+  color: rgb(84, 242, 84);
+  opacity: 1;
+  line-height: 1;
+  transition-property: all;
+  transition-duration: 3000ms;
+}
