@@ -16,7 +16,7 @@ const CopyButton = ({ code }: { code: string }) => {
       data-copied={copied}
       className={styles.copyCodeblock}
       onClick={() => {
-        // navigator.clipboard.writeText(code);
+        navigator.clipboard.writeText(code);
         setCopied(true);
       }}
       onMouseLeave={() =>
@@ -45,8 +45,9 @@ const MarkdownWrapper = ({
         code(props) {
           const { children, className, node, ref, style, ...rest } = props;
           const match = /language-(\w+)/.exec(className || "");
+          // match returns a match and capture group in an array of the codeblock language given the className.
+          // e.g the className is 'language-python', match returns ['language-python', 'python'] or null
           const codeString = String(children).replace(/\n$/, "");
-          // console.log({ node });
           const isCodeblock = node?.properties?.isBlock
           return match || isCodeblock ? (
             <div style={{ position: "relative" }}>
