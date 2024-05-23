@@ -14,7 +14,7 @@ export const guidelines = {
   NO_ANSWER: `If you are absolutely certain that the answer cannot be found in the CONTEXT BLOCK, just say this phrase '${ERROR_MESSAGES.NO_ANSWER_WITH_LINKS}' EXACTLY. DO NOT try to make up an answer that is not in the CONTEXT BLOCK.`,
   UNRELATED_QUESTION: `If the question is not related to the context, say this phrase EXACTLY '${ERROR_MESSAGES.NO_ANSWER}'`,
   LINKING: `DO NOT explicity mention the existence of the context provided, however, references can and should be made to the links provided in the context e.g '[0]'.`,
-  FOLLOW_UP_QUESTIONS: `If you have an answer, generate four relevant follow up questions, do not include introductory text about follow-up questions. Each question must be in this format: '--{{what problems did segwit solve}}--' in a new line.`,
+  FOLLOW_UP_QUESTIONS: 'If you have an answer, generate four relevant follow up questions, do not include introductory text about follow-up questions. Each question must be in this format: `--{{ what problems did segwit solve }}--` in a new line.',
   USED_SOURCES: `Lastly, list all sources relevant in generating the answer in a list in this format '__sources__: [LINK_INDICES_HERE]'`
 };
 
