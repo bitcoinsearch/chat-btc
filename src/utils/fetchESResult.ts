@@ -21,50 +21,51 @@ export async function extractKeywords(inputSentence: string) {
   }
 }
 
-  export async function getSearchResults(query: string, author?: string) {
+export async function getSearchResults(query: string, author?: string) {
   // Determine the index based on whether coredev is the persona
-  const index = author === 'coredev' ? process.env.ES_INDEX_CORE : process.env.ES_INDEX;
+  const index =
+    author === "coredev" ? process.env.ES_INDEX_CORE : process.env.ES_INDEX;
 
   try {
     const response = await client.search({
       index: index,
-
-      body: {
-        query: {
-          bool: {
-            must: [
-              {
-                multi_match: {
-                  query,
-                },
+      query: {
+        bool: {
+          must: [
+            {
+              multi_match: {
+                query,
               },
-            ],
-            must_not: [
-              {
-                match: {
-                  type: "question",
-                },
+            },
+          ],
+          must_not: [
+            {
+              match: {
+                type: "question",
               },
-            ],
-            ...((author && author.length > 0 && author !== 'coredev'
-              ? {
-                  filter: {
-                    bool: {
-                      must: [
-                        {
-                          match_phrase: {
-                            authors: {
-                              query: author,
-                            },
+            },
+          ],
+          ...((author && author.length > 0 && author !== "coredev"
+            ? {
+                filter: {
+                  bool: {
+                    must: [
+                      {
+                        match_phrase: {
+                          authors: {
+                            query: author,
                           },
                         },
-                      ],
-                    },
+                      },
+                    ],
                   },
-                }
-              : {}) as any),
-          },
+                },
+              }
+            : {}) as any),
         },
+      },
+      _source: {
+        excludes: ["summary_vector_embeddings"],
       },
     });
     return response.hits.hits as Result[];

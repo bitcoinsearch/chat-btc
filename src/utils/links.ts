@@ -1,36 +1,18 @@
 const linksRegex = /(^\[\d+\]:\s.*)/gm;
-const questionsRegexIII = /\-[\{]?(\w+|\d+)[\}]?\-[\{]{1,2}(.*[^\}])[\}]{1,2}/g;
+const questionRegex = /--\{\{([^}]+)\}\}--/g;
 
 export const separateLinksFromApiMessage = (message: string) => {
-  const filterFunc = (arg: string, regex: RegExp | string): string[] => {
-    return arg
-      ?.trim()
-      ?.split(regex)
-      .filter((v) => v?.length > 1);
-  };
 
-  const chunks = message.split(linksRegex).filter((value) => value.length > 1);
-  const bodyAndQuestionsII = filterFunc(chunks[0], questionsRegexIII) ?? [];
-
-  const body = bodyAndQuestionsII[0];
-  const questions =
-    bodyAndQuestionsII
-      .slice(1)
-      .map((i) => {
-        if (i.startsWith("question_")) {
-          i = i.trim().replace("question_", "");
-        } else if (i.startsWith("-")) {
-          i = i.replace("-", "").trim();
-        }
-        return i;
-      })
-      .filter((v) => {
-        return v.trim()?.length > 1;
-      }) ?? [];
+  const chunks = message.trim()?.split(linksRegex).filter((value) => value.trim().length > 1)
+  const links = chunks.slice(1)
+  const body_and_questions = chunks[0] ?? ""
+  const body_and_questions_chunks = body_and_questions?.trim()?.split(questionRegex).filter((value) => value.trim().length > 1)
+  const body = body_and_questions_chunks[0]
+  const questions = body_and_questions_chunks.slice(1).map(question => question.trim()) ?? []
 
   const messageBody = body;
   const messageQuestions = questions;
-  const messageLinks = chunks.slice(1);
+  const messageLinks = links;
 
   return { messageBody, messageLinks, messageQuestions };
 };
