@@ -90,7 +90,7 @@ const MessageBox = ({
       {loading ? (
         <BeatLoader color="white" />
       ) : streamLoading ? (
-        <StreamMessageContent
+        <MessageContent
           message={message}
           type={type}
           uniqueId={""}
@@ -170,9 +170,7 @@ const MessageContent = ({
     separateLinksFromApiMessage(message);
 
   if (!messageBody?.trim()) return null;
-  if (type === "apiMessage") {
-    console.log({messageQuestions, messageLinks, messageBody, isErrorMessage})
-  }
+
   return (
     <>
       <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>
@@ -195,9 +193,11 @@ const MessageContent = ({
                   <ClickableQuestions
                     question={question}
                     key={`${question}_${idx}`}
-                    handleFollowUpQuestion={() =>
-                      handleFollowUpQuestion(question.trim())
-                    }
+                    handleFollowUpQuestion={() => {
+                      if (type === "apiMessage") {
+                        handleFollowUpQuestion(question.trim());
+                      }
+                    }}
                   />
                 ))}
               </Flex>
@@ -217,46 +217,6 @@ const MessageContent = ({
           )}
         </Box>
       )}
-    </>
-  );
-};
-
-const StreamMessageContent = ({ message, type, handleFollowUpQuestion }: Message & { handleFollowUpQuestion: (question: string) => void }) => {
-  const { messageBody, messageLinks, messageQuestions } = separateLinksFromApiMessage(message);
-
-  return (
-    <>
-      <Text whiteSpace='pre-wrap' color={messageConfig[type].color || ""}>
-        <MarkdownWrapper text={messageBody} className={`streamContent`} />
-      </Text>
-      <Box paddingTop='16px'>
-        {messageQuestions.length ? (
-          <Text fontSize='14px' paddingBottom='16px' fontWeight={500}>
-            Follow up questions
-          </Text>
-        ) : null}
-        <Flex alignItems='flex-start' justifyContent='flex-start' overflowX='scroll' gap='24px'>
-          {messageQuestions.map((question, idx) => (
-            <ClickableQuestions
-              question={question}
-              key={`${question}_${idx}`}
-              handleFollowUpQuestion={() => handleFollowUpQuestion(question.trim())}
-            />
-          ))}
-        </Flex>
-      </Box>
-      <Box>
-        {messageLinks.length ? (
-          <Text fontSize='14px' fontWeight={500}>
-            Sources
-          </Text>
-        ) : null}
-        {messageLinks.map((link, idx) => (
-          <div key={idx}>
-            <ClickableLink linkString={link} />
-          </div>
-        ))}
-      </Box>
     </>
   );
 };
