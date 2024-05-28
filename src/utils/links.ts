@@ -1,3 +1,5 @@
+import { messageIsErrorMessage } from "./error";
+
 const linksRegex = /(^\[\d+\]:\s.*)/gm;
 const questionRegex = /--\{\{([^}]+)\}\}--/g;
 
@@ -10,9 +12,9 @@ export const separateLinksFromApiMessage = (message: string) => {
   const body = body_and_questions_chunks[0]
   const questions = body_and_questions_chunks.slice(1).map(question => question.trim()) ?? []
 
-  const messageBody = body;
   const messageQuestions = questions;
   const messageLinks = links;
+  const isErrorMessage = messageIsErrorMessage(body ?? "")
 
-  return { messageBody, messageLinks, messageQuestions };
+  return { messageBody: body, messageLinks, messageQuestions, isErrorMessage };
 };
