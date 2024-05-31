@@ -138,7 +138,7 @@ const generateContextBlock = (summaries: SummaryData[]): string => {
               let text = ""
               try {
                 if (data === "[DONE]") {
-                  text = getFinalAnswer("", link).data
+                  text = formatLinksToSourcesList(link)
                   const queue = encoder.encode(text);
                   controller.enqueue(queue);
                   controller.close()
@@ -185,17 +185,16 @@ function removeDuplicatesByID(arr: CustomContent[]): CustomContent[] {
   return filteredArr;
 }
 
-function getFinalAnswer(
-  summary: string,
+function formatLinksToSourcesList(
   content: SummaryData[]
 ) {
-  let data = summary.trim() + "\n\n";
+  let sourcesListString = "\n\n";
 
   content.forEach((d: SummaryData, i: number) => {
-    data += `[${i}]: ${d.link}\n`;
+    sourcesListString += `[${i}]: ${d.link}\n`;
   });
 
-  return { data };
+  return sourcesListString;
 }
 
 export async function processInput(
