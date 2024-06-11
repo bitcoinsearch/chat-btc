@@ -22,6 +22,8 @@
     "@vercel/kv": "^0.2.2",
     "@vespaiach/axios-fetch-adapter": "^0.3.1",
     "axios": "^1.4.0",
+    "dexie": "^4.0.7",
+    "dexie-react-hooks": "^1.1.7",
     "dotenv": "^16.0.3",
     "eslint": "8.34.0",
     "eslint-config-next": "13.1.6",

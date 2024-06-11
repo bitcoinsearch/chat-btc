@@ -6,8 +6,8 @@ import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
 import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import ReactMarkdown from "react-markdown";
+import { MessageType } from "@/types";
 
-type MessageType = "userMessage" | "authorMessage" | "apiMessage" | "errorMessage" | "apiStream";
 export interface Message {
   message: string;
   type: MessageType;

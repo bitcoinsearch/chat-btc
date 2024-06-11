@@ -4,6 +4,8 @@ declare global {
   }
 }
 
+export type MessageType = "userMessage" | "authorMessage" | "apiMessage" | "errorMessage" | "apiStream";
+
 export const AnswerQuality = {
   inaccurate: "Inaccurate information",
   poor: "Poorly worded",
@@ -69,3 +71,19 @@ export type ChatHistory = {
   role: ChatAgentRole;
   content: string;
 };
+
+// IndexedDB
+export interface ChatThread {
+  id: number;
+  title: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+}
+export interface ChatMessage {
+  id: number;
+  threadId: number;
+  uniqueId: string;
+  message: string;
+  type: MessageType;
+  dateCreated: Date;
+}
