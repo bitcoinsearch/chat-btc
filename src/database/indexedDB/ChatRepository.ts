@@ -64,7 +64,7 @@ const createMessage = async ({
     });
     return {
       id: newMessageId,
-      threadId,
+      threadId: dataThreadId,
     };
   } catch (error) {
     return new RepositoryError(error);
