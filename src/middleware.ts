@@ -19,6 +19,9 @@ export async function middleware(request: NextRequest) {
   const { success, remaining, reset, limit } = await ratelimit.limit(ip);
   const authHeader = request.headers.get("Authorization");
 
+  const client_data = {ip, headers: request.headers}
+  console.log(client_data)
+
   try {
     if (ENV.PRODUCTION) {
       if (!authHeader) {

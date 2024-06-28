@@ -242,6 +242,13 @@ export async function processInput(
 
       const {messages, slicedTextWithLink: finalSources} = enforceTokenLimit({question, slicedTextWithLink, chatHistory})
 
+      // call test endpoint
+      await fetch('https://moving-classic-civet.ngrok-free.app/ping/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       const summary = await SummaryGenerate(finalSources, messages);
       return summary
     }
