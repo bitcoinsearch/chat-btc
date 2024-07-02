@@ -12,8 +12,11 @@ interface InternalFetchParams {
   author?: string;
   keywords?: string;
 }
-export const config: PageConfig = {
+
+// use only US edge server
+export const config = {
   runtime: "edge",
+  regions: ["iad1"],
 };
 
 export const internalFetch = async ({
