@@ -1,4 +1,3 @@
-import type { PageConfig } from "next";
 import ERROR_MESSAGES from "@/config/error-config";
 import { processInput } from "@/utils/openaiChat";
 import { createReadableStream } from "@/utils/stream";
@@ -12,8 +11,11 @@ interface InternalFetchParams {
   author?: string;
   keywords?: string;
 }
-export const config: PageConfig = {
+
+// use only US edge server
+export const config = {
   runtime: "edge",
+  regions: ["iad1", "cle1", "pdx1", "sfo1"],
 };
 
 export const internalFetch = async ({
