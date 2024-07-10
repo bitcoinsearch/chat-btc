@@ -6,8 +6,12 @@ import Image from "next/image";
 import CopyIcon from "@/assets/CopyIcon";
 import { useState } from "react";
 import rehypeInlineCodeProperty from "../../../utils/rehypeInlineCodeProperty";
+import { useCopyToClipboard } from "usehooks-ts";
+import CopiedIcon from "@/assets/CopiedIcon";
+import { Box } from "@chakra-ui/react";
+import TickIcon from "@/assets/TickIcon";
 
-const CopyButton = ({ code }: { code: string }) => {
+export const CopyButton = ({ code }: { code: string }) => {
   const [copied, setCopied] = useState(false);
 
   return (
@@ -30,6 +34,25 @@ const CopyButton = ({ code }: { code: string }) => {
   );
 };
 
+export const CopyResponseButton = ({msg}:{msg:string})=>{
+  const [copiedValue, setCopiedValue] = useCopyToClipboard();
+  const [afterCopied, setAfterCopied] =  useState(false)
+  const onClickCopy = ()=>{
+    setCopiedValue(msg);
+    setAfterCopied(true)
+    setTimeout(()=>{
+      setAfterCopied(false)
+    }, 2000)
+  }
+return(
+  <Box cursor={"pointer"} maxWidth={"max-content"}>
+    {afterCopied? 
+    <TickIcon />
+    :
+    <CopiedIcon onClick={onClickCopy}/> }
+  </Box>
+)
+}
 const MarkdownWrapper = ({
   text,
   className,
@@ -59,12 +82,12 @@ const MarkdownWrapper = ({
                 language={match ? match[1] : ""}
                 style={atomDark}
               >
-                {codeString}
+                {codeString} 
               </SyntaxHighlighter>
             </div>
           ) : (
             <code {...rest} className={className}>
-              {children}
+              {children} 
             </code>
           );
         },
