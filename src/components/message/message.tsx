@@ -168,10 +168,11 @@ const MessageContent = ({
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
-
-  if (!messageBody?.trim()) return null;
-  console.log(type, messageBody)
   const showCopyIcon = type === "apiMessage" && message.length;
+  
+  if (!messageBody?.trim()) return null;
+
+ 
   return (
     <>
       <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>

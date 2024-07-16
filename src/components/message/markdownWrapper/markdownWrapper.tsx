@@ -7,7 +7,6 @@ import CopyIcon from "@/assets/CopyIcon";
 import { useState } from "react";
 import rehypeInlineCodeProperty from "../../../utils/rehypeInlineCodeProperty";
 import { useCopyToClipboard } from "usehooks-ts";
-import CopiedIcon from "@/assets/CopiedIcon";
 import { Box } from "@chakra-ui/react";
 import TickIcon from "@/assets/TickIcon";
 
@@ -49,7 +48,7 @@ return(
     {afterCopied? 
     <TickIcon />
     :
-    <CopiedIcon onClick={onClickCopy}/> }
+    <CopyIcon onClick={onClickCopy}/> }
   </Box>
 )
 }
