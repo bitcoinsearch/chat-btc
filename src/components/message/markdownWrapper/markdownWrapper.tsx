@@ -33,25 +33,22 @@ export const CopyButton = ({ code }: { code: string }) => {
   );
 };
 
-export const CopyResponseButton = ({msg}:{msg:string})=>{
+export const CopyResponseButton = ({ msg }: { msg: string }) => {
   const [copiedValue, setCopiedValue] = useCopyToClipboard();
-  const [afterCopied, setAfterCopied] =  useState(false)
-  const onClickCopy = ()=>{
+  const [afterCopied, setAfterCopied] = useState(false);
+  const onClickCopy = () => {
     setCopiedValue(msg);
-    setAfterCopied(true)
-    setTimeout(()=>{
-      setAfterCopied(false)
-    }, 2000)
-  }
-return(
-  <Box cursor={"pointer"} maxWidth={"max-content"}>
-    {afterCopied? 
-    <TickIcon />
-    :
-    <CopyIcon onClick={onClickCopy}/> }
-  </Box>
-)
-}
+    setAfterCopied(true);
+    setTimeout(() => {
+      setAfterCopied(false);
+    }, 2000);
+  };
+  return (
+    <Box cursor={"pointer"} maxWidth={"max-content"}>
+      {afterCopied ? <TickIcon /> : <CopyIcon onClick={onClickCopy} />}
+    </Box>
+  );
+};
 const MarkdownWrapper = ({
   text,
   className,
@@ -70,7 +67,7 @@ const MarkdownWrapper = ({
           // match returns a match and capture group in an array of the codeblock language given the className.
           // e.g the className is 'language-python', match returns ['language-python', 'python'] or null
           const codeString = String(children).replace(/\n$/, "");
-          const isCodeblock = node?.properties?.isBlock
+          const isCodeblock = node?.properties?.isBlock;
           return match || isCodeblock ? (
             <div style={{ position: "relative" }}>
               <CopyButton code={codeString} />
@@ -81,12 +78,12 @@ const MarkdownWrapper = ({
                 language={match ? match[1] : ""}
                 style={atomDark}
               >
-                {codeString} 
+                {codeString}
               </SyntaxHighlighter>
             </div>
           ) : (
             <code {...rest} className={className}>
-              {children} 
+              {children}
             </code>
           );
         },
