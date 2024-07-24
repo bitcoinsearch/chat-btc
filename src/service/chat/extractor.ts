@@ -6,13 +6,18 @@ export const GPTKeywordExtractor = async (history: ChatHistory[]) => {
     const userQuestions = history
       .filter((message) => message.role === "user")
       .slice(-10);
-      const messages = [
-        {
-          role: "system",
-          content: extractorSystemPrompt,
-        },
-        ...userQuestions,
-      ];
+    
+    if (!userQuestions.length) {
+      throw new Error("No user questions found in history");
+    }
+
+    const messages = [
+      {
+        role: "system",
+        content: extractorSystemPrompt,
+      },
+      ...userQuestions,
+    ];
 
     const payload = {
       model: OPENAI_EXTRACTOR_MODEL,
@@ -29,16 +34,14 @@ export const GPTKeywordExtractor = async (history: ChatHistory[]) => {
     });
     const body = await response.json();
     const keywords = JSON.parse(body.choices[0]?.message.content).keywords
+
     if (Array.isArray(keywords)) {
-      return keywords.map((keyword: string) => keyword.trim()).join(" ")
+      return keywords
+    } else {
+      throw new Error("Parsed response is not an array")
     }
-    if (typeof keywords !== "string") {
-      throw new Error("Parsed response is not a string")
-    }
-    
-    return keywords.replaceAll(",", "")
   } catch (err) {
-    console.log(err)
+    console.error(err)
     return undefined
   }
 };

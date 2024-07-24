@@ -68,7 +68,7 @@ export default async function handler(req: Request) {
     try {
       const fetchUrl = getNewUrl(requesturl, "/search");
 
-      const gptKeywords = await GPTKeywordExtractor([...chatHistory]);
+      const gptKeywords = (await GPTKeywordExtractor([...chatHistory]))?.join(" ");
 
       esResults = await internalFetch({url: fetchUrl, query, author, keywords: gptKeywords});
 
