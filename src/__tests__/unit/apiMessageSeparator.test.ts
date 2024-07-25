@@ -1,5 +1,5 @@
-import { responseData, responseDataBody, responseDataFUQ, responseDataLinks } from "./__mocks__/apiResponse";
-import { separateLinksFromApiMessage } from "../utils/links";
+import { responseData, responseDataBody, responseDataFUQ, responseDataLinks } from "@/__tests__/__mocks__/apiResponse";
+import { separateLinksFromApiMessage } from "@/utils/links";
 
 describe("apiMessageSeparator", () => {
   const {messageBody, messageLinks, messageQuestions} = separateLinksFromApiMessage(responseData);

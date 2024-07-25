@@ -1,0 +1,21 @@
+name: External Dependencies Tests
+
+on:
+    pull_request:
+        branches: [main]
+
+jobs:
+    ext-deps-tests:
+        name: Test external dependencies
+        env:
+            OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 20
+                  cache: "yarn"
+            - run: yarn install --frozen-lockfile
+            - name: Run external dependencies tests
+              run: yarn test-ext-deps

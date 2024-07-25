@@ -1,5 +1,5 @@
 import { GPTKeywordExtractor } from "@/service/chat/extractor";
-import { chatHistory, chatHistoryContextAware, chatHistorySwitchContext } from "./__mocks__/mockChatHistory";
+import { chatHistory, chatHistoryContextAware, chatHistorySwitchContext } from "@/__tests__/__mocks__/mockChatHistory";
 
 describe("GPTKeywordExtractor", () => {
   it("should extract keywords from a given history", async () => {
