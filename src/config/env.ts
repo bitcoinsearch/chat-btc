@@ -4,6 +4,7 @@ interface EnvVars {
   DB_NAME: string
 
   OPENAI_MODEL: string;
+  OPENAI_EXTRACTOR_MODEL: string;
   OPENAI_API_KEY: string;
 
   ES_URL: string;
@@ -28,6 +29,7 @@ function getEnvVars(): EnvVars {
       SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "",
       DB_NAME: process.env.DB_NAME ?? "",
       OPENAI_MODEL: process.env.OPENAI_MODEL ?? "",
+      OPENAI_EXTRACTOR_MODEL: process.env.OPENAI_EXTRACTOR_MODEL ?? "",
       OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
       ES_URL: process.env.ES_URL ?? "",
       ES_API_KEY: process.env.ES_API_KEY ?? "",

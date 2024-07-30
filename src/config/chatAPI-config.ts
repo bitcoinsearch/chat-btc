@@ -2,8 +2,6 @@ import ERROR_MESSAGES from "./error-config";
 
 export const COMPLETION_URL = "https://api.openai.com/v1/chat/completions"
 
-export const OPENAI_EXTRACTOR_MODEL = "gpt-4o-mini"
-
 export const extractorSystemPrompt = `
 You are a helpful assistant.
 You are given a list of user questions, the questions serve as context.
