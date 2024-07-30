@@ -1,4 +1,5 @@
-import { COMPLETION_URL, extractorSystemPrompt, OPENAI_EXTRACTOR_MODEL } from "@/config/chatAPI-config";
+import { COMPLETION_URL, extractorSystemPrompt } from "@/config/chatAPI-config";
+import { ENV } from "@/config/env";
 import { ChatHistory } from "@/types";
 
 export const GPTKeywordExtractor = async (history: ChatHistory[]) => {
@@ -6,16 +7,21 @@ export const GPTKeywordExtractor = async (history: ChatHistory[]) => {
     const userQuestions = history
       .filter((message) => message.role === "user")
       .slice(-10);
-      const messages = [
-        {
-          role: "system",
-          content: extractorSystemPrompt,
-        },
-        ...userQuestions,
-      ];
+    
+    if (!userQuestions.length) {
+      throw new Error("No user questions found in history");
+    }
+
+    const messages = [
+      {
+        role: "system",
+        content: extractorSystemPrompt,
+      },
+      ...userQuestions,
+    ];
 
     const payload = {
-      model: OPENAI_EXTRACTOR_MODEL,
+      model: ENV.OPENAI_EXTRACTOR_MODEL,
       response_format: { "type": "json_object" },
       messages,
     };
@@ -29,16 +35,14 @@ export const GPTKeywordExtractor = async (history: ChatHistory[]) => {
     });
     const body = await response.json();
     const keywords = JSON.parse(body.choices[0]?.message.content).keywords
+    console.log(keywords)
     if (Array.isArray(keywords)) {
-      return keywords.map((keyword: string) => keyword.trim()).join(" ")
+      return keywords
+    } else {
+      throw new Error("Parsed response is not an array")
     }
-    if (typeof keywords !== "string") {
-      throw new Error("Parsed response is not a string")
-    }
-    
-    return keywords.replaceAll(",", "")
   } catch (err) {
-    console.log(err)
+    console.error(err)
     return undefined
   }
 };

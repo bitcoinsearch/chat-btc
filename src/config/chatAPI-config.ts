@@ -2,10 +2,40 @@ import ERROR_MESSAGES from "./error-config";
 
 export const COMPLETION_URL = "https://api.openai.com/v1/chat/completions"
 
-export const OPENAI_EXTRACTOR_MODEL = "gpt-3.5-turbo"
-
 export const extractorSystemPrompt = `
-You are a helpful assistant. You are given a list of user questions, the questions serve as context. Giving priority to ONLY the LAST QUESTION and the context from any relevant previous questions, what are the most relevant keywords that can be used in a search engine to find an answer to the last question. Return the minimum amount of relevant keywords in a json object: {keywords: 'keyword1, keyword2, ...'}
+You are a helpful assistant.
+You are given a list of user questions, the questions serve as context.
+Giving priority to ONLY the LAST QUESTION and the context from any relevant previous questions, what are the most relevant keywords that can be used in a search engine to find an answer to the last question.
+The search engine is context aware, DO NOT use unnecessary, irrelevant or redundant keywords.
+Return only the LEAST AMOUNT of RELEVANT keywords in a json object: {keywords: ['keyword1', 'keyword2', ...]}
+
+#Example 1:
+
+<Query>
+{ role: 'user', content: 'what is the main idea behind segwit' },
+{ role: 'user', content: 'what where the controversies' },
+{ role: 'user', content: 'When was it activated?' },
+{ role: 'user', content: 'Who proposed it?' }
+</Query>
+
+<Response>
+{keywords: ['segwit', 'proposal']}
+</Response>
+
+#Example 2:
+
+<Query>
+{ role: 'user', content: 'Big endian and little endian differences' },
+{ role: 'user', content: 'BLOCK SIZE wars' },
+{ role: 'user', content: 'What is candidate block size?' },
+{ role: 'user', content: 'how to create a block' }
+{ role: 'user', content: 'What are the consensus rules for block size?' }
+{ role: 'user', content: 'What is the OP_CODE to verify signature?' }
+</Query>
+
+<Response>
+{keywords: ['OP_CODES', 'signature', 'verfication']}
+</Response>
 `;
 
 export const guidelines = {
@@ -18,6 +48,6 @@ export const guidelines = {
   USED_SOURCES: `Lastly, list all sources relevant in generating the answer in a list in this format '__sources__: [LINK_INDICES_HERE]'`
 };
 
-export const CONTEXT_WINDOW_MESSAGES = 6
+export const CONTEXT_WINDOW_MESSAGES = 10
 
 export const TOKEN_UPPER_LIMIT = 7000
