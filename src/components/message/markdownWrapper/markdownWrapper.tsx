@@ -7,7 +7,7 @@ import CopyIcon from "@/assets/CopyIcon";
 import { useState } from "react";
 import rehypeInlineCodeProperty from "../../../utils/rehypeInlineCodeProperty";
 import { useCopyToClipboard } from "usehooks-ts";
-import { Box } from "@chakra-ui/react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import TickIcon from "@/assets/TickIcon";
 
 export const CopyButton = ({ code }: { code: string }) => {
@@ -33,7 +33,13 @@ export const CopyButton = ({ code }: { code: string }) => {
   );
 };
 
-export const CopyResponseButton = ({ msg }: { msg: string }) => {
+export const CopyResponseButton = ({
+  msg,
+  isCopyText,
+}: {
+  msg: string;
+  isCopyText?: boolean;
+}) => {
   const [copiedValue, setCopiedValue] = useCopyToClipboard();
   const [afterCopied, setAfterCopied] = useState(false);
   const onClickCopy = () => {
@@ -44,9 +50,16 @@ export const CopyResponseButton = ({ msg }: { msg: string }) => {
     }, 2000);
   };
   return (
-    <Box cursor={"pointer"} maxWidth={"max-content"}>
-      {afterCopied ? <TickIcon /> : <CopyIcon onClick={onClickCopy} />}
-    </Box>
+    <Flex
+      onClick={onClickCopy}
+      cursor={"pointer"}
+      alignItems={"center"}
+      gap={1}
+      maxWidth={"max-content"}
+    >
+      {isCopyText && <Text>{afterCopied ? "Copied" : "Copy"}</Text>}
+      {afterCopied ? <TickIcon /> : <CopyIcon />}
+    </Flex>
   );
 };
 const MarkdownWrapper = ({

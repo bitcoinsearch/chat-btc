@@ -226,10 +226,8 @@ const MessageContent = ({
 
       {showCopyIcon && (
         <Flex paddingY={"16px"} gap={2} alignItems={"center"} maxH={"max-content"} marginTop={"16px"}>
-             <Text fontSize="14px"  fontWeight={500}>
-                Copy 
-              </Text>
-          <CopyResponseButton msg={message} />
+
+          <CopyResponseButton isCopyText msg={message} />
         </Flex>
       )}
     </>
