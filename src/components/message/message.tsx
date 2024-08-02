@@ -5,7 +5,10 @@ import styles from "./message.module.css";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
 import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
-import MarkdownWrapper from "./markdownWrapper/markdownWrapper";
+import MarkdownWrapper, {
+  CopyButton,
+  CopyResponseButton,
+} from "./markdownWrapper/markdownWrapper";
 
 type MessageType =
   | "userMessage"
@@ -168,6 +171,7 @@ const MessageContent = ({
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
+  const showCopyIcon = type === "apiMessage" && message.length;
 
   if (!messageBody?.trim()) return null;
 
@@ -176,6 +180,7 @@ const MessageContent = ({
       <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>
         <MarkdownWrapper text={messageBody.trim()} />
       </Text>
+
       {isErrorMessage ? null : (
         <Box>
           {Boolean(messageQuestions.length) && (
@@ -203,6 +208,7 @@ const MessageContent = ({
               </Flex>
             </Box>
           )}
+
           {Boolean(messageLinks.length) && (
             <>
               <Text fontSize="14px" paddingTop="16px" fontWeight={500}>
@@ -216,6 +222,13 @@ const MessageContent = ({
             </>
           )}
         </Box>
+      )}
+
+      {showCopyIcon && (
+        <Flex paddingY={"16px"} gap={2} alignItems={"center"} maxH={"max-content"} marginTop={"16px"}>
+
+          <CopyResponseButton isCopyText msg={message} />
+        </Flex>
       )}
     </>
   );
