@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@bitcoin-dev-project/bdp-ui": "^1.5.2",
     "@chakra-ui/react": "^2.4.9",
     "@elastic/elasticsearch": "^8.8.1",
     "@emotion/react": "^11.10.5",
