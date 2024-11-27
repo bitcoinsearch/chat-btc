@@ -71,6 +71,14 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
+"@bitcoin-dev-project/bdp-ui@^1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@bitcoin-dev-project/bdp-ui/-/bdp-ui-1.5.2.tgz#018183023b4bfc0d8d3640a09e2c1be63aee2993"
+  integrity sha512-lZy/DZlp0ih7w6immMT6iEOuoVS55P6eOtd0UJab4JusxuUX16P1zknr4eIuLiwWQ3j8h8FPoS92m/wxjGE90g==
+  dependencies:
+    clsx "^2.1.1"
+    tailwind-merge "^2.5.2"
+
 "@chakra-ui/accordion@2.3.0":
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/@chakra-ui/accordion/-/accordion-2.3.0.tgz#2c85fd2d2734b176f019f8db9f4e075007b4e1fb"
@@ -2902,6 +2910,11 @@ cmd-shim@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/cmd-shim/-/cmd-shim-7.0.0.tgz#23bcbf69fff52172f7e7c02374e18fb215826d95"
   integrity sha512-rtpaCbr164TPPh+zFdkWpCyZuKkjpAzODfaZCf/SVJZzJN+4bHQb/LP3Jzq5/+84um3XXY8r548XiWKSborwVw==
+
+clsx@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.1.tgz#eed397c9fd8bd882bfb18deab7102049a2f32999"
+  integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
 
 color-convert@^1.9.0:
   version "1.9.3"
@@ -7516,6 +7529,11 @@ supports-preserve-symlinks-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
+
+tailwind-merge@^2.5.2:
+  version "2.5.5"
+  resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-2.5.5.tgz#98167859b856a2a6b8d2baf038ee171b9d814e39"
+  integrity sha512-0LXunzzAZzo0tEPxV3I297ffKZPlKDrjj7NXphC8V5ak9yHC5zRmxnOe2m/Rd/7ivsOMJe3JZ2JVocoDdQTRBA==
 
 tapable@^2.1.1, tapable@^2.2.0:
   version "2.2.1"
