@@ -6,7 +6,7 @@
 
 .child_container {
   height: 100%;
-  padding-top: var(--chakra-sizes-12); /* account for navbar height in chakra units
+  /* padding-top: var(--chakra-sizes-12); /* account for navbar height in chakra units */
   /* flex-grow: 1;
   margin-top: var(--chakra-sizes-12); account for navbar height in chakra units */
 }
