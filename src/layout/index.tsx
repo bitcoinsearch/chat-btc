@@ -6,8 +6,7 @@ import BossBanner from "@/components/banner/BossBanner";
 import { useRouter } from "next/router";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
-  const isHomeScreen = Object.keys(router.query).length < 1;
+  
   return (
     <>
       <Head>
@@ -36,7 +35,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </Head>
       <div className={styles.app_container}>
         <Navbar />
-        {isHomeScreen && <BossBanner />}
         <div className={styles.child_container}>{children}</div>
       </div>
       <script

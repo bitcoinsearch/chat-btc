@@ -7,7 +7,7 @@ const BossBanner = () => {
       className={`dark w-full`}
       zIndex={1}
       position={"sticky"}
-      top={"48px"}
+      top={0}
       width={"full"}
       background={"#171923"}
     >
@@ -17,7 +17,7 @@ const BossBanner = () => {
         linkTo="https://learning.chaincode.com/#BOSS"
         hasBoss
         styles={{
-          container:"boss-container-bg"
+          container: "boss-container-bg",
         }}
       />
     </Box>
