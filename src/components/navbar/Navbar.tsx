@@ -1,18 +1,13 @@
-import { Box, Container, Divider, Flex, Text } from "@chakra-ui/react";
+import { Box, Divider, Flex, Text } from "@chakra-ui/react";
 import Link from "next/link";
 import React from "react";
-import BossBanner from "../banner/BossBanner";
-import { useRouter } from "next/router";
 
 const Navbar = () => {
-  const router = useRouter();
-  const isHomeScreen = Object.keys(router.query).length < 1;
   return (
     <Box
       as="nav"
-      position="sticky"
-      minH={12}
-      top={"0px"}
+      position={"fixed"}
+      h={12}
       w="full"
       boxShadow="md"
       bgColor="gray.900"
@@ -20,7 +15,6 @@ const Navbar = () => {
       isolation="isolate"
       zIndex={1}
     >
-      {isHomeScreen && <BossBanner />}
       <Flex
         alignItems="center"
         h="full"

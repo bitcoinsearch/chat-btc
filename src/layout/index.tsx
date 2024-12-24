@@ -2,9 +2,6 @@ import Navbar from "@/components/navbar/Navbar";
 import Head from "next/head";
 import React from "react";
 import styles from "./layout.module.css";
-import BossBanner from "@/components/banner/BossBanner";
-import { useRouter } from "next/router";
-
 const Layout = ({ children }: { children: React.ReactNode }) => {
   
   return (
