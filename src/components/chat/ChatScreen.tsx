@@ -49,7 +49,7 @@ const ChatScreen = ({
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const initMessageListHeight = useRef(
-    messageListRef.current?.scrollHeight ?? 0
+    messageListRef.current?.scrollHeight ?? 0,
   );
 
   const router = useRouter();
@@ -60,7 +60,7 @@ const ChatScreen = ({
 
   const author = useMemo(() => {
     let authorInConfig = authorsConfig.find(
-      (authorConfig) => authorConfig.slug === authorQuery
+      (authorConfig) => authorConfig.slug === authorQuery,
     );
     if (!authorQuery || !authorInConfig) {
       updateRouterQuery(AUTHOR_QUERY, blippy.slug);
@@ -123,9 +123,9 @@ const ChatScreen = ({
     }
   };
 
-  const handleFollowUpQuestion = ( question: string ) => {
+  const handleFollowUpQuestion = (question: string) => {
     startChat(question, author.slug, { startChat: true });
-  }
+  };
 
   useEffect(() => {
     const messageListBox = messageListRef.current;
@@ -168,7 +168,7 @@ const ChatScreen = ({
   }, []);
 
   // starts a chat with a shareable link
-  const initRender = useRef(true)
+  const initRender = useRef(true);
   useEffect(() => {
     const getExternalUrl = () => {
       if (!searchParams.has("question")) {
@@ -182,7 +182,7 @@ const ChatScreen = ({
       }
     };
     initRender.current && getExternalUrl();
-    initRender.current = false
+    initRender.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -227,14 +227,13 @@ const ChatScreen = ({
             id="main"
             width="full"
             h="full"
-            maxW="820px"
             my={4}
-            flexDir="column"
+            flexDir={{base:"column",lg:"row"}}
             gap="4"
             justifyContent="space-around"
-            overflow="auto"
+            alignItems={"start"}
           >
-            <Flex w="full" gap={4} alignItems="center">
+            <Flex gap={4} alignItems="center">
               <Box w="75px">
                 <Box
                   position="relative"
@@ -260,80 +259,100 @@ const ChatScreen = ({
                 </Text>
               </Box>
             </Flex>
-            <Box
-              ref={messageListRef}
-              w="full"
-              bgColor="gray.900"
-              borderRadius="md"
-              flex="1 1 0%"
+            <Flex
+              flexDir={"column"}
+              width="full"
+              h="full"
+              maxW="820px"
+              my={4}
+              gap="4"
+              justifyContent="space-around"
               overflow="auto"
-              maxH="100lvh"
             >
-              {chatList.length &&
-                chatList.map((message, index) => {
-                  const isApiMessage = message.type === "apiMessage";
-                  return (
-                    <div key={index}>
-                      <MessageBox author={author.name} content={message} handleFollowUpQuestion={handleFollowUpQuestion} />
-                      {isApiMessage && (
-                        <Rating
-                          feedbackId={message.uniqueId}
-                          isResponseGenerated={!loading || !streamLoading}
+              <Box
+                ref={messageListRef}
+                w="full"
+                bgColor="gray.900"
+                borderRadius="md"
+                flex="1 1 0%"
+                overflow="auto"
+                maxH="100dvh"
+                padding={{lg:"0px 0px 20px 0px"}}
+              >
+                {chatList.length &&
+                  chatList.map((message, index) => {
+                    const isApiMessage = message.type === "apiMessage";
+                    return (
+                      <div key={index}>
+                        <MessageBox
+                          author={author.name}
+                          content={message}
+                          handleFollowUpQuestion={handleFollowUpQuestion}
                         />
-                      )}
-                    </div>
-                  );
-                })}
-              {(loading || streamLoading) && (
-                <MessageBox
-                  author={author.name}
-                  content={{
-                    message: streamData.message,
-                    type: "apiStream",
-                    uniqueId: uuidv4(),
-                  }}
-                  loading={loading}
-                  streamLoading={streamLoading}
-                  handleFollowUpQuestion={handleFollowUpQuestion}
-                />
-              )}
-            </Box>
-            <Box display="grid" placeItems="center">
-              {streamLoading && (
-                <Button colorScheme="purple" size="sm" onClick={stopGenerating}>
-                  Stop Generating
-                </Button>
-              )}
-            </Box>
-            <Box w="100%" position="relative">
-              <form onSubmit={handleSubmit}>
-                <Flex gap={2} alignItems="flex-end">
-                  <Textarea
-                    ref={textAreaRef}
-                    placeholder="Type your question here"
-                    name=""
-                    id="userInput"
-                    rows={1}
-                    resize="none"
-                    disabled={loading || streamLoading}
-                    value={userInput}
-                    onChange={handleInputChange}
-                    bg="gray.700"
-                    flexGrow={1}
-                    flexShrink={1}
-                    onKeyDown={handleEnter}
-                    maxH="200px"
-                    onInput={handleTextAreaChange}
+                        {isApiMessage && (
+                          <Rating
+                            feedbackId={message.uniqueId}
+                            isResponseGenerated={!loading || !streamLoading}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                {(loading || streamLoading) && (
+                  <MessageBox
+                    author={author.name}
+                    content={{
+                      message: streamData.message,
+                      type: "apiStream",
+                      uniqueId: uuidv4(),
+                    }}
+                    loading={loading}
+                    streamLoading={streamLoading}
+                    handleFollowUpQuestion={handleFollowUpQuestion}
                   />
-                  <IconButton
-                    isLoading={loading || streamLoading}
-                    aria-label="send chat"
-                    icon={<SendIcon />}
-                    type="submit"
-                  />
-                </Flex>
-              </form>
-            </Box>
+                )}
+              </Box>
+              <Box display="grid" placeItems="center">
+                {streamLoading && (
+                  <Button
+                    colorScheme="purple"
+                    size="sm"
+                    onClick={stopGenerating}
+                  >
+                    Stop Generating
+                  </Button>
+                )}
+              </Box>
+              <Box w="100%" position="relative">
+                <form onSubmit={handleSubmit}>
+                  <Flex gap={2} alignItems="flex-end">
+                    <Textarea
+                      ref={textAreaRef}
+                      placeholder="Type your question here"
+                      name=""
+                      id="userInput"
+                      rows={1}
+                      resize="none"
+                      disabled={loading || streamLoading}
+                      value={userInput}
+                      onChange={handleInputChange}
+                      bg="gray.700"
+                      flexGrow={1}
+                      flexShrink={1}
+                      onKeyDown={handleEnter}
+                      maxH="200px"
+                      onInput={handleTextAreaChange}
+                    />
+                    <IconButton
+                      isLoading={loading || streamLoading}
+                      aria-label="send chat"
+                      icon={<SendIcon />}
+                      type="submit"
+                    />
+                  </Flex>
+                </form>
+              </Box>
+            </Flex>
           </Flex>
         </Container>
       </Box>
