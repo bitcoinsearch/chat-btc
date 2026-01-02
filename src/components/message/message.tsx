@@ -1,8 +1,20 @@
 import React from "react";
-import { Box, Button, Flex, Heading, Text, Avatar } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Text,
+  Avatar,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+} from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
 import styles from "./message.module.css";
-import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
+import { LinkShareIcon, DownloadIcon } from "@/chakra/custom-chakra-icons"; // Import DownloadIcon
 import { separateLinksFromApiMessage } from "@/utils/links";
 import MarkdownWrapper, {
   CopyResponseButton,
@@ -20,6 +32,35 @@ export interface Message {
   type: MessageType;
   uniqueId: string;
 }
+
+// ... messageConfig and MessageAvatar (Keep existing code) ...
+// (Omitting MessageAvatar code here for brevity, keep it as is from previous step)
+
+const MessageAvatar = ({
+  isUser,
+  author,
+  avatarSrc,
+}: {
+  isUser: boolean;
+  author: string;
+  avatarSrc?: string;
+}) => (
+  <Box
+    minW="40px"
+    display="flex"
+    flexDirection="column"
+    justifyContent="flex-start"
+  >
+    <Avatar
+      size="sm"
+      name={isUser ? "User" : author}
+      src={isUser ? undefined : avatarSrc}
+      bg={isUser ? "gray.500" : "transparent"}
+      ignoreFallback={isUser}
+      mt={1}
+    />
+  </Box>
+);
 
 const messageConfig = {
   apiMessage: {
@@ -49,33 +90,6 @@ const messageConfig = {
   },
 };
 
-// --- FIX: Extract Avatar Component OUTSIDE MessageBox to prevent flickering ---
-const MessageAvatar = ({
-  isUser,
-  author,
-  avatarSrc,
-}: {
-  isUser: boolean;
-  author: string;
-  avatarSrc?: string;
-}) => (
-  <Box
-    minW="40px"
-    display="flex"
-    flexDirection="column"
-    justifyContent="flex-start"
-  >
-    <Avatar
-      size="sm"
-      name={isUser ? "User" : author}
-      src={isUser ? undefined : avatarSrc}
-      bg={isUser ? "gray.500" : "transparent"}
-      ignoreFallback={isUser}
-      mt={1}
-    />
-  </Box>
-);
-
 const MessageBox = ({
   content,
   author,
@@ -83,6 +97,7 @@ const MessageBox = ({
   streamLoading,
   handleFollowUpQuestion,
   avatarSrc,
+  onExport, // NEW PROP
 }: {
   content: Message;
   author: string;
@@ -90,6 +105,7 @@ const MessageBox = ({
   streamLoading?: boolean;
   handleFollowUpQuestion: (question: string) => void;
   avatarSrc?: string;
+  onExport?: (format: "json" | "md" | "pdf") => void; // NEW PROP TYPE
 }) => {
   const { message, type } = content;
   const isUser = type === "userMessage";
@@ -103,7 +119,6 @@ const MessageBox = ({
       px={{ base: 2, md: 0 }}
       gap={3}
     >
-      {/* Render extracted component */}
       {!isUser && (
         <MessageAvatar isUser={isUser} author={author} avatarSrc={avatarSrc} />
       )}
@@ -143,12 +158,12 @@ const MessageBox = ({
               uniqueId={""}
               handleFollowUpQuestion={handleFollowUpQuestion}
               streamLoading={streamLoading}
+              onExport={onExport} // Pass down
             />
           )}
         </Box>
       </Flex>
 
-      {/* Render extracted component */}
       {isUser && (
         <MessageAvatar isUser={isUser} author={author} avatarSrc={avatarSrc} />
       )}
@@ -157,6 +172,8 @@ const MessageBox = ({
 };
 
 export default MessageBox;
+
+// ... ClickableLink and ClickableQuestions (Keep existing code) ...
 
 const ClickableLink = ({ linkString }: { linkString: string }) => {
   let url = linkString.split(" ")[1]?.trim();
@@ -210,15 +227,17 @@ const MessageContent = ({
   type,
   handleFollowUpQuestion,
   streamLoading,
+  onExport, // Receive prop
 }: Message & {
   handleFollowUpQuestion: (question: string) => void;
   streamLoading?: boolean;
+  onExport?: (format: "json" | "md" | "pdf") => void;
 }) => {
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
 
-  const showCopyIcon =
+  const showActions =
     !streamLoading && type === "apiMessage" && message.length > 0;
 
   if (!messageBody?.trim()) return null;
@@ -229,9 +248,10 @@ const MessageContent = ({
         <MarkdownWrapper text={messageBody.trim()} />
       </Box>
 
+      {/* Suggested Questions & Links Code (Keep existing) */}
       {isErrorMessage ? null : (
         <Box mt={3}>
-          {Boolean(messageQuestions.length) && (
+           {Boolean(messageQuestions.length) && (
             <Box pt={2}>
               <Text fontSize="xs" color="gray.400" mb={2} fontWeight={600}>
                 SUGGESTED QUESTIONS
@@ -244,10 +264,7 @@ const MessageContent = ({
                 css={{
                   "&::-webkit-scrollbar": { height: "4px" },
                   "&::-webkit-scrollbar-track": { background: "transparent" },
-                  "&::-webkit-scrollbar-thumb": {
-                    background: "#555",
-                    borderRadius: "4px",
-                  },
+                  "&::-webkit-scrollbar-thumb": { background: "#555", borderRadius: "4px" },
                 }}
               >
                 {messageQuestions.map((question, idx) => (
@@ -266,12 +283,7 @@ const MessageContent = ({
           )}
 
           {Boolean(messageLinks.length) && (
-            <Box
-              mt={3}
-              pt={2}
-              borderTop="1px solid"
-              borderColor="whiteAlpha.200"
-            >
+            <Box mt={3} pt={2} borderTop="1px solid" borderColor="whiteAlpha.200">
               <Text fontSize="xs" fontWeight={600} mb={1} color="gray.400">
                 SOURCES
               </Text>
@@ -285,9 +297,46 @@ const MessageContent = ({
         </Box>
       )}
 
-      {showCopyIcon && (
-        <Flex justify="flex-end" mt={2} gap={2}>
+      {/* Action Buttons: Copy & Export */}
+      {showActions && (
+        <Flex justify="flex-end" mt={2} gap={2} alignItems="center">
           <CopyResponseButton isCopyText msg={message} />
+          
+          {/* EXPORT MENU */}
+          <Menu placement="top-end">
+            <MenuButton
+              as={IconButton}
+              icon={<DownloadIcon />}
+              variant="ghost"
+              size="xs"
+              color="gray.400"
+              _hover={{ color: "white", bg: "whiteAlpha.200" }}
+              aria-label="Export Conversation"
+            />
+            <MenuList bg="gray.800" borderColor="gray.700" color="white">
+              <MenuItem 
+                bg="gray.800" 
+                _hover={{ bg: "gray.700" }} 
+                onClick={() => onExport && onExport("json")}
+              >
+                Export as JSON
+              </MenuItem>
+              <MenuItem 
+                bg="gray.800" 
+                _hover={{ bg: "gray.700" }} 
+                onClick={() => onExport && onExport("md")}
+              >
+                Export as Markdown
+              </MenuItem>
+              <MenuItem 
+                bg="gray.800" 
+                _hover={{ bg: "gray.700" }} 
+                onClick={() => onExport && onExport("pdf")}
+              >
+                Print to PDF
+              </MenuItem>
+            </MenuList>
+          </Menu>
         </Flex>
       )}
     </>
