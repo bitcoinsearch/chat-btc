@@ -1,4 +1,4 @@
-import { SendIcon } from "@/chakra/custom-chakra-icons";
+import { SendIcon, StopIcon } from "@/chakra/custom-chakra-icons"; // Import StopIcon
 import MessageBox, { Message } from "@/components/message/message";
 import Rating from "@/components/rating/Rating";
 import authorsConfig, {
@@ -13,6 +13,7 @@ import {
   IconButton,
   Text,
   Textarea,
+  Image as ChakraImage,
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -219,7 +220,7 @@ const ChatScreen = ({
           display="flex"
           flexDir="column"
           alignItems="center"
-          maxW={"1400px"}
+          maxW="full"
           h="100%"
           p={0}
         >
@@ -227,48 +228,9 @@ const ChatScreen = ({
             id="main"
             width="full"
             h="full"
-            flexDir={{ base: "column", lg: "row" }}
+            flexDir="column"
             gap="0"
           >
-            {/* Sidebar / Author Info */}
-            <Flex
-              display={{ base: "none", md: "flex" }}
-              flexDir="column"
-              gap={4}
-              alignItems="center"
-              p={6}
-              minW="250px"
-              borderRight="1px solid"
-              borderColor="gray.800"
-              bg="gray.900"
-            >
-              <Box
-                w="120px"
-                h="120px"
-                position="relative"
-                rounded="full"
-                overflow="hidden"
-                border="2px solid"
-                borderColor="purple.500"
-                boxShadow="0 0 20px rgba(128, 90, 213, 0.3)"
-              >
-                <Image
-                  src={author.imgURL}
-                  alt={`author-${author.slug}`}
-                  fill={true}
-                  style={{ objectFit: 'cover' }}
-                />
-              </Box>
-              <Box textAlign="center">
-                <Text fontSize="2xl" fontWeight={700} color="white">
-                  {author.name}
-                </Text>
-                <Text fontSize="md" color="gray.400" fontWeight={300}>
-                  {author.title}
-                </Text>
-              </Box>
-            </Flex>
-
             {/* Main Chat Area */}
             <Flex
               flexDir={"column"}
@@ -299,17 +261,18 @@ const ChatScreen = ({
                         <div key={index} style={{ width: '100%' }}>
                           <MessageBox
                             author={author.name}
-                            avatarSrc={author.imgURL}
+                            avatarSrc={author.imgURL} // Pass Avatar
                             content={message}
                             handleFollowUpQuestion={handleFollowUpQuestion}
+                            streamLoading={false} // Static messages are not loading
                           />
                           {isApiMessage && (
-                            <Box pl={16} mt={-2}>
-                              <Rating
-                                feedbackId={message.uniqueId}
-                                isResponseGenerated={!loading || !streamLoading}
-                              />
-                            </Box>
+                             <Box pl={16} mt={-2}> 
+                                <Rating
+                                  feedbackId={message.uniqueId}
+                                  isResponseGenerated={!loading || !streamLoading}
+                                />
+                             </Box>
                           )}
                         </div>
                       );
@@ -317,7 +280,7 @@ const ChatScreen = ({
                   {(loading || streamLoading) && (
                     <MessageBox
                       author={author.name}
-                      avatarSrc={author.imgURL}
+                      avatarSrc={author.imgURL} // Pass Avatar
                       content={{
                         message: streamData.message,
                         type: "apiStream",
@@ -328,43 +291,30 @@ const ChatScreen = ({
                       handleFollowUpQuestion={handleFollowUpQuestion}
                     />
                   )}
+                  {/* Spacer for scrolling */}
                   <Box h="20px" />
                 </Flex>
               </Box>
 
               {/* Input Area - Floating & Centered */}
-              <Box
-                w="full"
-                p={4}
+              <Box 
+                w="full" 
+                p={4} 
                 bgGradient="linear(to-t, gray.900 85%, transparent)"
                 zIndex={10}
               >
                 <Box maxW="900px" mx="auto" position="relative">
-                  {streamLoading && (
-                    <Button
-                      position="absolute"
-                      top="-50px"
-                      left="50%"
-                      transform="translateX(-50%)"
-                      colorScheme="purple"
-                      size="sm"
-                      onClick={stopGenerating}
-                      shadow="lg"
-                      rounded="full"
-                    >
-                      Stop Generating
-                    </Button>
-                  )}
-
+                  {/* Removed absolute positioning Stop Button */}
+                  
                   <form onSubmit={handleSubmit}>
-                    <Flex
-                      gap={2}
-                      alignItems="center"
-                      bg="gray.800"
-                      p={2}
+                    <Flex 
+                      gap={2} 
+                      alignItems="center" 
+                      bg="gray.800" 
+                      p={2} 
                       pl={4}
-                      borderRadius="2xl"
-                      border="1px solid"
+                      borderRadius="2xl" 
+                      border="1px solid" 
                       borderColor="gray.700"
                       boxShadow="lg"
                       transition="all 0.2s"
@@ -391,23 +341,39 @@ const ChatScreen = ({
                         fontSize="md"
                         color="white"
                       />
-                      <IconButton
-                        isLoading={loading || streamLoading}
-                        aria-label="send chat"
-                        icon={<SendIcon />}
-                        type="submit"
-                        colorScheme="purple"
-                        variant="solid"
-                        isRound
-                        size="md"
-                        m={1}
-                        _hover={{ bg: "purple.600" }}
-                        isDisabled={!userInput.trim() || loading || streamLoading}
-                      />
+                      
+                      {/* STOP BUTTON / SEND BUTTON SWAP */}
+                      {streamLoading ? (
+                        <IconButton
+                           aria-label="stop generating"
+                           icon={<StopIcon />}
+                           onClick={stopGenerating}
+                           colorScheme="red"
+                           variant="solid" // distinct look
+                           isRound
+                           size="md"
+                           m={1}
+                           _hover={{ bg: "red.600" }}
+                        />
+                      ) : (
+                        <IconButton
+                          isLoading={loading} // Only show spinner if 'loading' (initial fetch), not stream
+                          aria-label="send chat"
+                          icon={<SendIcon />}
+                          type="submit"
+                          colorScheme="purple"
+                          variant="solid"
+                          isRound
+                          size="md"
+                          m={1}
+                          _hover={{ bg: "purple.600" }}
+                          isDisabled={!userInput.trim() || loading}
+                        />
+                      )}
                     </Flex>
                   </form>
                   <Text fontSize="xs" color="gray.500" textAlign="center" mt={3}>
-                    AI can make mistakes. Please verify important information.
+                     AI can make mistakes. Please verify important information.
                   </Text>
                 </Box>
               </Box>
