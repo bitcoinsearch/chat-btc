@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Box, Button, Flex, Heading, Text, Avatar } from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
@@ -35,13 +34,13 @@ const messageConfig = {
     headingColor: "orange.400",
   },
   userMessage: {
-    bg: "blue.800",
+    bg: "purple.600",
     color: "white",
-    headingColor: "blue.300",
+    headingColor: "purple.400",
   },
   errorMessage: {
-    color: "red.200",
     bg: "red.900",
+    color: "red.200",
     headingColor: "red.500",
   },
   apiStream: {
@@ -69,7 +68,6 @@ const MessageBox = ({
   const { message, type } = content;
   const isUser = type === "userMessage";
 
-  // Define the Avatar Component
   const UserAvatar = () => (
     <Box minW="40px" display="flex" flexDirection="column" justifyContent="flex-start">
       <Avatar
@@ -78,7 +76,7 @@ const MessageBox = ({
         src={isUser ? undefined : avatarSrc}
         bg={isUser ? "gray.500" : "transparent"}
         ignoreFallback={isUser}
-        mt={1} // Visual alignment with top of bubble
+        mt={1} // Visual tweaking to align with top of bubble
       />
     </Box>
   );
@@ -86,12 +84,12 @@ const MessageBox = ({
   return (
     <Flex
       w="100%"
-      justify={isUser ? "flex-end" : "flex-start"}
+      justify={isUser ? "flex-end" : "flex-start"} // Keeps user on right, AI on left
+      alignItems="flex-start" // ENFORCES VERTICAL TOP ALIGNMENT with flow
       py={2}
       px={{ base: 2, md: 0 }}
       gap={3}
     >
-      {/* AI Avatar on the Left */}
       {!isUser && <UserAvatar />}
 
       <Flex
@@ -109,7 +107,6 @@ const MessageBox = ({
           py={3}
           boxShadow="md"
         >
-           {/* Hiding Author Name inside bubble for cleaner look since we have avatars */}
           {!isUser && (
              <Heading size="xs" mb={1} color={messageConfig[type].headingColor} opacity={0.8}>
                {author}
@@ -124,12 +121,12 @@ const MessageBox = ({
               type={type}
               uniqueId={""}
               handleFollowUpQuestion={handleFollowUpQuestion}
+              streamLoading={streamLoading} // PASSING PROP DOWN
             />
           )}
         </Box>
       </Flex>
 
-      {/* User Avatar on the Right */}
       {isUser && <UserAvatar />}
     </Flex>
   );
@@ -188,11 +185,14 @@ const MessageContent = ({
   message,
   type,
   handleFollowUpQuestion,
-}: Message & { handleFollowUpQuestion: (question: string) => void }) => {
+  streamLoading, // Receive prop
+}: Message & { handleFollowUpQuestion: (question: string) => void, streamLoading?: boolean }) => {
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
-  const showCopyIcon = (type === "apiMessage" || type === "apiStream") && message.length > 0;
+  
+  // Logic: Show copy only if NOT streaming and message has content
+  const showCopyIcon = !streamLoading && (type === "apiMessage") && message.length > 0;
 
   if (!messageBody?.trim()) return null;
 
