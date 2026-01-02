@@ -1,12 +1,12 @@
+
 import React from "react";
-import { Box, Button, Flex, Heading, Link, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Text, Avatar } from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
 import styles from "./message.module.css";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
 import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import MarkdownWrapper, {
-  CopyButton,
   CopyResponseButton,
 } from "./markdownWrapper/markdownWrapper";
 
@@ -16,44 +16,37 @@ type MessageType =
   | "apiMessage"
   | "errorMessage"
   | "apiStream";
+
 export interface Message {
   message: string;
   type: MessageType;
   uniqueId: string;
 }
 
-type MessageConfig = {
-  [key in MessageType]: {
-    color: string | null;
-    bg: string;
-    headingColor: string;
-  };
-};
-
-const messageConfig: MessageConfig = {
+const messageConfig = {
   apiMessage: {
-    color: null,
-    bg: "gray.600",
+    bg: "gray.700",
+    color: "gray.100",
     headingColor: "orange.400",
   },
   authorMessage: {
-    color: null,
-    bg: "gray.600",
+    bg: "gray.700",
+    color: "gray.100",
     headingColor: "orange.400",
   },
   userMessage: {
-    color: null,
-    bg: "gray.800",
-    headingColor: "purple.400",
+    bg: "blue.800",
+    color: "white",
+    headingColor: "blue.300",
   },
   errorMessage: {
     color: "red.200",
-    bg: "gray.600",
+    bg: "red.900",
     headingColor: "red.500",
   },
   apiStream: {
-    color: null,
-    bg: "gray.600",
+    bg: "gray.700",
+    color: "gray.100",
     headingColor: "orange.400",
   },
 };
@@ -64,49 +57,80 @@ const MessageBox = ({
   loading,
   streamLoading,
   handleFollowUpQuestion,
+  avatarSrc,
 }: {
   content: Message;
   author: string;
   loading?: boolean;
   streamLoading?: boolean;
   handleFollowUpQuestion: (question: string) => void;
+  avatarSrc?: string;
 }) => {
   const { message, type } = content;
+  const isUser = type === "userMessage";
+
+  // Define the Avatar Component
+  const UserAvatar = () => (
+    <Box minW="40px" display="flex" flexDirection="column" justifyContent="flex-start">
+      <Avatar
+        size="sm"
+        name={isUser ? "User" : author}
+        src={isUser ? undefined : avatarSrc}
+        bg={isUser ? "gray.500" : "transparent"}
+        ignoreFallback={isUser}
+        mt={1} // Visual alignment with top of bubble
+      />
+    </Box>
+  );
 
   return (
     <Flex
-      flexDir="column"
-      gap={{ base: 1, md: 2 }}
       w="100%"
-      bgColor={messageConfig[type].bg ?? ""}
-      textAlign={type === "userMessage" ? "right" : "left"}
-      py={{ base: 3, md: 4 }}
-      px={{ base: 3, md: 4 }}
+      justify={isUser ? "flex-end" : "flex-start"}
+      py={2}
+      px={{ base: 2, md: 0 }}
+      gap={3}
     >
-      <Heading
-        color={messageConfig[type].headingColor}
-        fontSize="sm"
-        fontWeight={600}
+      {/* AI Avatar on the Left */}
+      {!isUser && <UserAvatar />}
+
+      <Flex
+        maxW={{ base: "85%", md: "80%" }}
+        flexDir="column"
+        alignItems={isUser ? "flex-end" : "flex-start"}
       >
-        {type === "userMessage" ? USER_REFERENCE_NAME : author}
-      </Heading>
-      {loading ? (
-        <BeatLoader color="white" />
-      ) : streamLoading ? (
-        <MessageContent
-          message={message}
-          type={type}
-          uniqueId={""}
-          handleFollowUpQuestion={handleFollowUpQuestion}
-        />
-      ) : (
-        <MessageContent
-          message={message}
-          type={type}
-          uniqueId={""}
-          handleFollowUpQuestion={handleFollowUpQuestion}
-        />
-      )}
+        <Box
+          bgColor={messageConfig[type].bg}
+          color={messageConfig[type].color ?? "inherit"}
+          borderRadius="2xl"
+          borderTopLeftRadius={!isUser ? "sm" : "2xl"}
+          borderTopRightRadius={isUser ? "sm" : "2xl"}
+          px={5}
+          py={3}
+          boxShadow="md"
+        >
+           {/* Hiding Author Name inside bubble for cleaner look since we have avatars */}
+          {!isUser && (
+             <Heading size="xs" mb={1} color={messageConfig[type].headingColor} opacity={0.8}>
+               {author}
+             </Heading>
+          )}
+
+          {loading ? (
+            <BeatLoader color="white" size={8} />
+          ) : (
+            <MessageContent
+              message={message}
+              type={type}
+              uniqueId={""}
+              handleFollowUpQuestion={handleFollowUpQuestion}
+            />
+          )}
+        </Box>
+      </Flex>
+
+      {/* User Avatar on the Right */}
+      {isUser && <UserAvatar />}
     </Flex>
   );
 };
@@ -139,26 +163,23 @@ const ClickableQuestions = ({
 }) => {
   return (
     <Button
-      minW="220px"
-      maxW="220px"
-      minH="120px"
+      minW="200px"
+      maxW="200px"
+      minH="auto"
       h="100%"
-      w="100%"
-      padding="16px"
-      borderRadius="12px"
-      fontSize="14px"
+      p={3}
+      borderRadius="xl"
+      fontSize="sm"
       fontWeight="400"
+      whiteSpace="normal"
       color="white"
-      bgGradient="linear(to-b, gray.900, brand.bg_base_purple)"
-      alignItems="flex-start"
-      textAlign="left"
-      dropShadow="dark-lg"
-      _hover={{
-        scale: 1.5,
-      }}
+      bg="whiteAlpha.200"
+      _hover={{ bg: "whiteAlpha.300" }}
       onClick={() => handleFollowUpQuestion(question.trim())}
+      justifyContent="flex-start"
+      textAlign="left"
     >
-      <Text whiteSpace="break-spaces">{question}</Text>
+      <Text noOfLines={3}>{question}</Text>
     </Button>
   );
 };
@@ -171,28 +192,33 @@ const MessageContent = ({
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
-  const showCopyIcon = type === "apiMessage" && message.length;
+  const showCopyIcon = (type === "apiMessage" || type === "apiStream") && message.length > 0;
 
   if (!messageBody?.trim()) return null;
 
   return (
     <>
-      <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>
+      <Box className={styles.markdownClass}>
         <MarkdownWrapper text={messageBody.trim()} />
-      </Text>
+      </Box>
 
       {isErrorMessage ? null : (
-        <Box>
+        <Box mt={3}>
           {Boolean(messageQuestions.length) && (
-            <Box paddingTop="16px">
-              <Text fontSize="14px" paddingBottom="16px" fontWeight={500}>
-                Follow up questions
+            <Box pt={2}>
+              <Text fontSize="xs" color="gray.400" mb={2} fontWeight={600}>
+                SUGGESTED QUESTIONS
               </Text>
               <Flex
-                alignItems="flex-start"
-                justifyContent="flex-start"
-                overflowX={messageQuestions?.length >= 2 ? `scroll` : "hidden"}
-                gap="24px"
+                alignItems="stretch"
+                overflowX="auto"
+                gap={2}
+                pb={2}
+                css={{
+                  "&::-webkit-scrollbar": { height: "4px" },
+                  "&::-webkit-scrollbar-track": { background: "transparent" },
+                  "&::-webkit-scrollbar-thumb": { background: "#555", borderRadius: "4px" },
+                }}
               >
                 {messageQuestions.map((question, idx) => (
                   <ClickableQuestions
@@ -210,23 +236,22 @@ const MessageContent = ({
           )}
 
           {Boolean(messageLinks.length) && (
-            <>
-              <Text fontSize="14px" paddingTop="16px" fontWeight={500}>
-                Sources
+            <Box mt={3} pt={2} borderTop="1px solid" borderColor="whiteAlpha.200">
+              <Text fontSize="xs" fontWeight={600} mb={1} color="gray.400">
+                SOURCES
               </Text>
               {messageLinks.map((link, idx) => (
                 <div key={idx}>
                   <ClickableLink linkString={link} />
                 </div>
               ))}
-            </>
+            </Box>
           )}
         </Box>
       )}
 
       {showCopyIcon && (
-        <Flex paddingY={"16px"} gap={2} alignItems={"center"} maxH={"max-content"} marginTop={"16px"}>
-
+        <Flex justify="flex-end" mt={2} gap={2}>
           <CopyResponseButton isCopyText msg={message} />
         </Flex>
       )}
