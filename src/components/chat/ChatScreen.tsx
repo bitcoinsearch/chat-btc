@@ -13,6 +13,7 @@ import {
   IconButton,
   Text,
   Textarea,
+  useToast,
   Image as ChakraImage,
 } from "@chakra-ui/react";
 import Image from "next/image";
@@ -80,6 +81,52 @@ const ChatScreen = ({
   const [userHijackedScroll, setUserHijackedScroll] = useState(false);
 
   const chatList: Message[] = [authorInitialDialogue, ...messages];
+  
+  const toast = useToast();
+
+  const handleExportChat = (format: "json" | "md" | "pdf") => {
+    const fullHistory = [authorInitialDialogue, ...messages];
+
+    if (format === "pdf") {
+      window.print();
+      return;
+    }
+
+    let content = "";
+    let mimeType = "";
+    let extension = "";
+
+    if (format === "json") {
+      content = JSON.stringify(fullHistory, null, 2);
+      mimeType = "application/json";
+      extension = "json";
+    } else if (format === "md") {
+      content = fullHistory
+        .map((msg) => {
+          const role = msg.type === "userMessage" ? "User" : author.name;
+          return `### ${role}\n\n${msg.message}\n\n---`;
+        })
+        .join("\n\n");
+      mimeType = "text/markdown";
+      extension = "md";
+    }
+
+    try {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `chat_transcript_${new Date().toISOString().slice(0, 10)}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({ title: "Export Successful", status: "success", duration: 2000 });
+    } catch (err) {
+      toast({ title: "Export Failed", status: "error", duration: 2000 });
+    }
+  };
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -289,6 +336,7 @@ const ChatScreen = ({
                       loading={loading}
                       streamLoading={streamLoading}
                       handleFollowUpQuestion={handleFollowUpQuestion}
+                      onExport={handleExportChat}
                     />
                   )}
                   {/* Spacer for scrolling */}
