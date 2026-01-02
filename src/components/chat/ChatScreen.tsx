@@ -1,4 +1,4 @@
-import { SendIcon, StopIcon } from "@/chakra/custom-chakra-icons"; // Import StopIcon
+import { SendIcon, StopIcon } from "@/chakra/custom-chakra-icons";
 import MessageBox, { Message } from "@/components/message/message";
 import Rating from "@/components/rating/Rating";
 import authorsConfig, {
@@ -13,10 +13,10 @@ import {
   IconButton,
   Text,
   Textarea,
+  Image as ChakraImage, // Preserved
   useToast,
-  Image as ChakraImage,
 } from "@chakra-ui/react";
-import Image from "next/image";
+import Image from "next/image"; // Preserved
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
@@ -57,7 +57,7 @@ const ChatScreen = ({
   const router = useRouter();
   const authorQuery = router.query[AUTHOR_QUERY];
   const searchParams = new URLSearchParams(window.location.search);
-
+  const toast = useToast();
   const updateRouterQuery = useUpdateRouterQuery();
 
   const author = useMemo(() => {
@@ -81,52 +81,6 @@ const ChatScreen = ({
   const [userHijackedScroll, setUserHijackedScroll] = useState(false);
 
   const chatList: Message[] = [authorInitialDialogue, ...messages];
-  
-  const toast = useToast();
-
-  const handleExportChat = (format: "json" | "md" | "pdf") => {
-    const fullHistory = [authorInitialDialogue, ...messages];
-
-    if (format === "pdf") {
-      window.print();
-      return;
-    }
-
-    let content = "";
-    let mimeType = "";
-    let extension = "";
-
-    if (format === "json") {
-      content = JSON.stringify(fullHistory, null, 2);
-      mimeType = "application/json";
-      extension = "json";
-    } else if (format === "md") {
-      content = fullHistory
-        .map((msg) => {
-          const role = msg.type === "userMessage" ? "User" : author.name;
-          return `### ${role}\n\n${msg.message}\n\n---`;
-        })
-        .join("\n\n");
-      mimeType = "text/markdown";
-      extension = "md";
-    }
-
-    try {
-      const blob = new Blob([content], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `chat_transcript_${new Date().toISOString().slice(0, 10)}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({ title: "Export Successful", status: "success", duration: 2000 });
-    } catch (err) {
-      toast({ title: "Export Failed", status: "error", duration: 2000 });
-    }
-  };
 
   // Auto scroll chat to bottom
   useEffect(() => {
@@ -260,6 +214,66 @@ const ChatScreen = ({
     setUrlParamsQuery();
   }, [router]);
 
+  // --- EXPORT FUNCTIONALITY (Saves to File System) ---
+  const handleExportChat = (format: "json" | "md" | "pdf") => {
+    const fullHistory = [authorInitialDialogue, ...messages];
+
+    // Handle PDF (Browser Print/Save as PDF)
+    if (format === "pdf") {
+      window.print();
+      return;
+    }
+
+    let content = "";
+    let mimeType = "";
+    let extension = "";
+
+    // JSON Format
+    if (format === "json") {
+      content = JSON.stringify(fullHistory, null, 2);
+      mimeType = "application/json";
+      extension = "json";
+    } 
+    // Markdown Format
+    else if (format === "md") {
+      content = fullHistory
+        .map((msg) => {
+          const role = msg.type === "userMessage" ? "User" : author.name;
+          return `### ${role}\n\n${msg.message}\n\n---`;
+        })
+        .join("\n\n");
+      mimeType = "text/markdown";
+      extension = "md";
+    }
+
+    // Trigger File Download
+    try {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `chat_transcript_${new Date().toISOString().slice(0, 10)}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export Successful",
+        description: `Saved as .${extension}`,
+        status: "success",
+        duration: 2000,
+      });
+    } catch (err) {
+      console.error("Download failed", err);
+      toast({
+        title: "Export Failed",
+        status: "error",
+        duration: 2000,
+      });
+    }
+  };
+
   return (
     <>
       <Box position="relative" overflow="hidden" w="full" h="full" bg="black">
@@ -308,10 +322,11 @@ const ChatScreen = ({
                         <div key={index} style={{ width: '100%' }}>
                           <MessageBox
                             author={author.name}
-                            avatarSrc={author.imgURL} // Pass Avatar
+                            avatarSrc={author.imgURL}
                             content={message}
                             handleFollowUpQuestion={handleFollowUpQuestion}
-                            streamLoading={false} // Static messages are not loading
+                            streamLoading={false}
+                            onExport={handleExportChat} // PASS FUNCTION
                           />
                           {isApiMessage && (
                              <Box pl={16} mt={-2}> 
@@ -327,7 +342,7 @@ const ChatScreen = ({
                   {(loading || streamLoading) && (
                     <MessageBox
                       author={author.name}
-                      avatarSrc={author.imgURL} // Pass Avatar
+                      avatarSrc={author.imgURL}
                       content={{
                         message: streamData.message,
                         type: "apiStream",
@@ -336,10 +351,8 @@ const ChatScreen = ({
                       loading={loading}
                       streamLoading={streamLoading}
                       handleFollowUpQuestion={handleFollowUpQuestion}
-                      onExport={handleExportChat}
                     />
                   )}
-                  {/* Spacer for scrolling */}
                   <Box h="20px" />
                 </Flex>
               </Box>
@@ -352,8 +365,6 @@ const ChatScreen = ({
                 zIndex={10}
               >
                 <Box maxW="900px" mx="auto" position="relative">
-                  {/* Removed absolute positioning Stop Button */}
-                  
                   <form onSubmit={handleSubmit}>
                     <Flex 
                       gap={2} 
@@ -390,14 +401,14 @@ const ChatScreen = ({
                         color="white"
                       />
                       
-                      {/* STOP BUTTON / SEND BUTTON SWAP */}
+                      {/* Toggle Stop / Send Button */}
                       {streamLoading ? (
                         <IconButton
                            aria-label="stop generating"
                            icon={<StopIcon />}
                            onClick={stopGenerating}
                            colorScheme="red"
-                           variant="solid" // distinct look
+                           variant="solid"
                            isRound
                            size="md"
                            m={1}
@@ -405,7 +416,7 @@ const ChatScreen = ({
                         />
                       ) : (
                         <IconButton
-                          isLoading={loading} // Only show spinner if 'loading' (initial fetch), not stream
+                          isLoading={loading}
                           aria-label="send chat"
                           icon={<SendIcon />}
                           type="submit"
