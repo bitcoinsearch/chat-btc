@@ -214,143 +214,202 @@ const ChatScreen = ({
 
   return (
     <>
-      <Box position="relative" overflow="hidden" w="full" h="full">
+      <Box position="relative" overflow="hidden" w="full" h="full" bg="black">
         <Container
           display="flex"
           flexDir="column"
           alignItems="center"
-          maxW={"1280px"}
+          maxW={"1400px"}
           h="100%"
-          p={4}
+          p={0}
         >
           <Flex
             id="main"
             width="full"
             h="full"
-            my={4}
-            flexDir={{base:"column",lg:"row"}}
-            gap="4"
-            justifyContent="space-around"
-            alignItems={"start"}
+            flexDir={{ base: "column", lg: "row" }}
+            gap="0"
           >
-            <Flex gap={4} alignItems="center">
-              <Box w="75px">
-                <Box
-                  position="relative"
-                  pt="100%"
-                  w="full"
-                  rounded="full"
-                  overflow="hidden"
-                  bgColor="blackAlpha.400"
-                >
-                  <Image
-                    src={author.imgURL}
-                    alt={`author-${author.slug}`}
-                    fill={true}
-                  />
-                </Box>
+            {/* Sidebar / Author Info */}
+            <Flex
+              display={{ base: "none", md: "flex" }}
+              flexDir="column"
+              gap={4}
+              alignItems="center"
+              p={6}
+              minW="250px"
+              borderRight="1px solid"
+              borderColor="gray.800"
+              bg="gray.900"
+            >
+              <Box
+                w="120px"
+                h="120px"
+                position="relative"
+                rounded="full"
+                overflow="hidden"
+                border="2px solid"
+                borderColor="purple.500"
+                boxShadow="0 0 20px rgba(128, 90, 213, 0.3)"
+              >
+                <Image
+                  src={author.imgURL}
+                  alt={`author-${author.slug}`}
+                  fill={true}
+                  style={{ objectFit: 'cover' }}
+                />
               </Box>
-              <Box>
-                <Text fontSize={{ base: "18px", md: "24px" }} fontWeight={500}>
+              <Box textAlign="center">
+                <Text fontSize="2xl" fontWeight={700} color="white">
                   {author.name}
                 </Text>
-                <Text fontSize={{ base: "12px", md: "16px" }} fontWeight={300}>
+                <Text fontSize="md" color="gray.400" fontWeight={300}>
                   {author.title}
                 </Text>
               </Box>
             </Flex>
+
+            {/* Main Chat Area */}
             <Flex
               flexDir={"column"}
               width="full"
               h="full"
-              maxW="820px"
-              my={4}
-              gap="4"
-              justifyContent="space-around"
-              overflow="auto"
+              position="relative"
+              bg="gray.900"
             >
               <Box
                 ref={messageListRef}
                 w="full"
-                bgColor="gray.900"
-                borderRadius="md"
-                flex="1 1 0%"
-                overflow="auto"
-                maxH="100dvh"
-                padding={{lg:"0px 0px 20px 0px"}}
+                flex="1"
+                overflowY="auto"
+                px={{ base: 4, md: 8, lg: 12 }}
+                py={6}
+                css={{
+                  "&::-webkit-scrollbar": { width: "8px" },
+                  "&::-webkit-scrollbar-track": { background: "transparent" },
+                  "&::-webkit-scrollbar-thumb": { background: "#4A5568", borderRadius: "4px" },
+                }}
               >
-                {chatList.length &&
-                  chatList.map((message, index) => {
-                    const isApiMessage = message.type === "apiMessage";
-                    return (
-                      <div key={index}>
-                        <MessageBox
-                          author={author.name}
-                          content={message}
-                          handleFollowUpQuestion={handleFollowUpQuestion}
-                        />
-                        {isApiMessage && (
-                          <Rating
-                            feedbackId={message.uniqueId}
-                            isResponseGenerated={!loading || !streamLoading}
+                {/* Centered Column for Messages */}
+                <Flex flexDir="column" maxW="900px" mx="auto" gap={6}>
+                  {chatList.length &&
+                    chatList.map((message, index) => {
+                      const isApiMessage = message.type === "apiMessage";
+                      return (
+                        <div key={index} style={{ width: '100%' }}>
+                          <MessageBox
+                            author={author.name}
+                            avatarSrc={author.imgURL}
+                            content={message}
+                            handleFollowUpQuestion={handleFollowUpQuestion}
                           />
-                        )}
-                      </div>
-                    );
-                  })}
-                {(loading || streamLoading) && (
-                  <MessageBox
-                    author={author.name}
-                    content={{
-                      message: streamData.message,
-                      type: "apiStream",
-                      uniqueId: uuidv4(),
-                    }}
-                    loading={loading}
-                    streamLoading={streamLoading}
-                    handleFollowUpQuestion={handleFollowUpQuestion}
-                  />
-                )}
-              </Box>
-              <Box display="grid" placeItems="center">
-                {streamLoading && (
-                  <Button
-                    colorScheme="purple"
-                    size="sm"
-                    onClick={stopGenerating}
-                  >
-                    Stop Generating
-                  </Button>
-                )}
-              </Box>
-              <Box w="100%" position="relative">
-                <form onSubmit={handleSubmit}>
-                  <Flex gap={2} alignItems="flex-end">
-                    <Textarea
-                      ref={textAreaRef}
-                      placeholder="Type your question here"
-                      name=""
-                      id="userInput"
-                      rows={1}
-                      resize="none"
-                      disabled={loading || streamLoading}
-                      value={userInput}
-                      onChange={handleInputChange}
-                      bg="gray.700"
-                      flexGrow={1}
-                      flexShrink={1}
-                      onKeyDown={handleEnter}
-                      maxH="200px"
-                      onInput={handleTextAreaChange}
+                          {isApiMessage && (
+                            <Box pl={16} mt={-2}>
+                              <Rating
+                                feedbackId={message.uniqueId}
+                                isResponseGenerated={!loading || !streamLoading}
+                              />
+                            </Box>
+                          )}
+                        </div>
+                      );
+                    })}
+                  {(loading || streamLoading) && (
+                    <MessageBox
+                      author={author.name}
+                      avatarSrc={author.imgURL}
+                      content={{
+                        message: streamData.message,
+                        type: "apiStream",
+                        uniqueId: uuidv4(),
+                      }}
+                      loading={loading}
+                      streamLoading={streamLoading}
+                      handleFollowUpQuestion={handleFollowUpQuestion}
                     />
-                    <IconButton
-                      isLoading={loading || streamLoading}
-                      aria-label="send chat"
-                      icon={<SendIcon />}
-                      type="submit"
-                    />
-                  </Flex>
-                </form>
+                  )}
+                  <Box h="20px" />
+                </Flex>
+              </Box>
+
+              {/* Input Area - Floating & Centered */}
+              <Box
+                w="full"
+                p={4}
+                bgGradient="linear(to-t, gray.900 85%, transparent)"
+                zIndex={10}
+              >
+                <Box maxW="900px" mx="auto" position="relative">
+                  {streamLoading && (
+                    <Button
+                      position="absolute"
+                      top="-50px"
+                      left="50%"
+                      transform="translateX(-50%)"
+                      colorScheme="purple"
+                      size="sm"
+                      onClick={stopGenerating}
+                      shadow="lg"
+                      rounded="full"
+                    >
+                      Stop Generating
+                    </Button>
+                  )}
+
+                  <form onSubmit={handleSubmit}>
+                    <Flex
+                      gap={2}
+                      alignItems="center"
+                      bg="gray.800"
+                      p={2}
+                      pl={4}
+                      borderRadius="2xl"
+                      border="1px solid"
+                      borderColor="gray.700"
+                      boxShadow="lg"
+                      transition="all 0.2s"
+                      _focusWithin={{ borderColor: "purple.500", boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)" }}
+                    >
+                      <Textarea
+                        ref={textAreaRef}
+                        placeholder={`Ask ${author.name} anything...`}
+                        name=""
+                        id="userInput"
+                        rows={1}
+                        resize="none"
+                        disabled={loading || streamLoading}
+                        value={userInput}
+                        onChange={handleInputChange}
+                        bg="transparent"
+                        border="none"
+                        _focus={{ boxShadow: "none" }}
+                        flexGrow={1}
+                        onKeyDown={handleEnter}
+                        maxH="200px"
+                        onInput={handleTextAreaChange}
+                        py={3}
+                        fontSize="md"
+                        color="white"
+                      />
+                      <IconButton
+                        isLoading={loading || streamLoading}
+                        aria-label="send chat"
+                        icon={<SendIcon />}
+                        type="submit"
+                        colorScheme="purple"
+                        variant="solid"
+                        isRound
+                        size="md"
+                        m={1}
+                        _hover={{ bg: "purple.600" }}
+                        isDisabled={!userInput.trim() || loading || streamLoading}
+                      />
+                    </Flex>
+                  </form>
+                  <Text fontSize="xs" color="gray.500" textAlign="center" mt={3}>
+                    AI can make mistakes. Please verify important information.
+                  </Text>
+                </Box>
               </Box>
             </Flex>
           </Flex>
