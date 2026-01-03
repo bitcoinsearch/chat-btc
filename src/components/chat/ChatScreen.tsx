@@ -1,4 +1,4 @@
-import { SendIcon, StopIcon } from "@/chakra/custom-chakra-icons";
+import { SendIcon, StopIcon, HamburgerIcon } from "@/chakra/custom-chakra-icons";
 import MessageBox, { Message } from "@/components/message/message";
 import Rating from "@/components/rating/Rating";
 import authorsConfig, {
@@ -15,8 +15,15 @@ import {
   Textarea,
   Image as ChakraImage, // Preserved
   useToast,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
 } from "@chakra-ui/react";
-import Image from "next/image"; // Preserved
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
@@ -24,6 +31,8 @@ import { v4 as uuidv4 } from "uuid";
 import { PromptAction } from "@/types";
 import { handleTextAreaChange } from "@/utils/text";
 import useUpdateRouterQuery from "@/hooks/useUpdateRouterQuery";
+
+import SatsConverter from "@/components/tools/satoshiConverter"; // Import the new tool
 
 type ChatProps = {
   userInput: string;
@@ -59,6 +68,7 @@ const ChatScreen = ({
   const searchParams = new URLSearchParams(window.location.search);
   const toast = useToast();
   const updateRouterQuery = useUpdateRouterQuery();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const author = useMemo(() => {
     let authorInConfig = authorsConfig.find(
@@ -233,7 +243,7 @@ const ChatScreen = ({
       content = JSON.stringify(fullHistory, null, 2);
       mimeType = "application/json";
       extension = "json";
-    } 
+    }
     // Markdown Format
     else if (format === "md") {
       content = fullHistory
@@ -276,6 +286,22 @@ const ChatScreen = ({
 
   return (
     <>
+      <Drawer placement="left" onClose={onClose} isOpen={isOpen} size="xs">
+        <DrawerOverlay />
+        <DrawerContent bg="gray.900" borderRight="1px solid" borderColor="gray.700">
+          <DrawerCloseButton color="white" />
+          <DrawerHeader borderBottomWidth="1px" borderColor="gray.700" color="white">
+            Tools & History
+          </DrawerHeader>
+          <DrawerBody p={4}>
+           
+            <SatsConverter />
+
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+
+
       <Box position="relative" overflow="hidden" w="full" h="full" bg="black">
         <Container
           display="flex"
@@ -315,6 +341,20 @@ const ChatScreen = ({
               >
                 {/* Centered Column for Messages */}
                 <Flex flexDir="column" maxW="900px" mx="auto" gap={6}>
+                  <IconButton
+                    icon={<HamburgerIcon boxSize={6} />}
+                    variant="ghost"
+                    color="gray.400"
+                    position="absolute"
+                    top={4}
+                    left={4}
+                    zIndex={20}
+                    onClick={onOpen}
+                    _hover={{ bg: "whiteAlpha.200", color: "white" }}
+                    aria-label="Open Sidebar"
+                  />
+
+
                   {chatList.length &&
                     chatList.map((message, index) => {
                       const isApiMessage = message.type === "apiMessage";
@@ -329,12 +369,12 @@ const ChatScreen = ({
                             onExport={handleExportChat} // PASS FUNCTION
                           />
                           {isApiMessage && (
-                             <Box pl={16} mt={-2}> 
-                                <Rating
-                                  feedbackId={message.uniqueId}
-                                  isResponseGenerated={!loading || !streamLoading}
-                                />
-                             </Box>
+                            <Box pl={16} mt={-2}>
+                              <Rating
+                                feedbackId={message.uniqueId}
+                                isResponseGenerated={!loading || !streamLoading}
+                              />
+                            </Box>
                           )}
                         </div>
                       );
@@ -358,22 +398,22 @@ const ChatScreen = ({
               </Box>
 
               {/* Input Area - Floating & Centered */}
-              <Box 
-                w="full" 
-                p={4} 
+              <Box
+                w="full"
+                p={4}
                 bgGradient="linear(to-t, gray.900 85%, transparent)"
                 zIndex={10}
               >
                 <Box maxW="900px" mx="auto" position="relative">
                   <form onSubmit={handleSubmit}>
-                    <Flex 
-                      gap={2} 
-                      alignItems="center" 
-                      bg="gray.800" 
-                      p={2} 
+                    <Flex
+                      gap={2}
+                      alignItems="center"
+                      bg="gray.800"
+                      p={2}
                       pl={4}
-                      borderRadius="2xl" 
-                      border="1px solid" 
+                      borderRadius="2xl"
+                      border="1px solid"
                       borderColor="gray.700"
                       boxShadow="lg"
                       transition="all 0.2s"
@@ -400,19 +440,19 @@ const ChatScreen = ({
                         fontSize="md"
                         color="white"
                       />
-                      
+
                       {/* Toggle Stop / Send Button */}
                       {streamLoading ? (
                         <IconButton
-                           aria-label="stop generating"
-                           icon={<StopIcon />}
-                           onClick={stopGenerating}
-                           colorScheme="red"
-                           variant="solid"
-                           isRound
-                           size="md"
-                           m={1}
-                           _hover={{ bg: "red.600" }}
+                          aria-label="stop generating"
+                          icon={<StopIcon />}
+                          onClick={stopGenerating}
+                          colorScheme="red"
+                          variant="solid"
+                          isRound
+                          size="md"
+                          m={1}
+                          _hover={{ bg: "red.600" }}
                         />
                       ) : (
                         <IconButton
@@ -432,7 +472,7 @@ const ChatScreen = ({
                     </Flex>
                   </form>
                   <Text fontSize="xs" color="gray.500" textAlign="center" mt={3}>
-                     AI can make mistakes. Please verify important information.
+                    AI can make mistakes. Please verify important information.
                   </Text>
                 </Box>
               </Box>
