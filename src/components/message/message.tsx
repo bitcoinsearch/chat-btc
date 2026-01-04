@@ -1,10 +1,8 @@
-
 import React from "react";
 import { Box, Button, Flex, Heading, Text, Avatar } from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
 import styles from "./message.module.css";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
-import { USER_REFERENCE_NAME } from "@/config/ui-config";
 import { separateLinksFromApiMessage } from "@/utils/links";
 import MarkdownWrapper, {
   CopyResponseButton,
@@ -35,13 +33,13 @@ const messageConfig = {
     headingColor: "orange.400",
   },
   userMessage: {
-    bg: "blue.800",
+    bg: "purple.600",
     color: "white",
-    headingColor: "blue.300",
+    headingColor: "purple.300",
   },
   errorMessage: {
-    color: "red.200",
     bg: "red.900",
+    color: "red.200",
     headingColor: "red.500",
   },
   apiStream: {
@@ -50,6 +48,33 @@ const messageConfig = {
     headingColor: "orange.400",
   },
 };
+
+// --- FIX: Extract Avatar Component OUTSIDE MessageBox to prevent flickering ---
+const MessageAvatar = ({
+  isUser,
+  author,
+  avatarSrc,
+}: {
+  isUser: boolean;
+  author: string;
+  avatarSrc?: string;
+}) => (
+  <Box
+    minW="40px"
+    display="flex"
+    flexDirection="column"
+    justifyContent="flex-start"
+  >
+    <Avatar
+      size="sm"
+      name={isUser ? "User" : author}
+      src={isUser ? undefined : avatarSrc}
+      bg={isUser ? "gray.500" : "transparent"}
+      ignoreFallback={isUser}
+      mt={1}
+    />
+  </Box>
+);
 
 const MessageBox = ({
   content,
@@ -69,30 +94,19 @@ const MessageBox = ({
   const { message, type } = content;
   const isUser = type === "userMessage";
 
-  // Define the Avatar Component
-  const UserAvatar = () => (
-    <Box minW="40px" display="flex" flexDirection="column" justifyContent="flex-start">
-      <Avatar
-        size="sm"
-        name={isUser ? "User" : author}
-        src={isUser ? undefined : avatarSrc}
-        bg={isUser ? "gray.500" : "transparent"}
-        ignoreFallback={isUser}
-        mt={1} // Visual alignment with top of bubble
-      />
-    </Box>
-  );
-
   return (
     <Flex
       w="100%"
       justify={isUser ? "flex-end" : "flex-start"}
+      alignItems="flex-start"
       py={2}
       px={{ base: 2, md: 0 }}
       gap={3}
     >
-      {/* AI Avatar on the Left */}
-      {!isUser && <UserAvatar />}
+      {/* Render extracted component */}
+      {!isUser && (
+        <MessageAvatar isUser={isUser} author={author} avatarSrc={avatarSrc} />
+      )}
 
       <Flex
         maxW={{ base: "85%", md: "80%" }}
@@ -109,11 +123,15 @@ const MessageBox = ({
           py={3}
           boxShadow="md"
         >
-           {/* Hiding Author Name inside bubble for cleaner look since we have avatars */}
           {!isUser && (
-             <Heading size="xs" mb={1} color={messageConfig[type].headingColor} opacity={0.8}>
-               {author}
-             </Heading>
+            <Heading
+              size="xs"
+              mb={1}
+              color={messageConfig[type].headingColor}
+              opacity={0.8}
+            >
+              {author}
+            </Heading>
           )}
 
           {loading ? (
@@ -124,13 +142,16 @@ const MessageBox = ({
               type={type}
               uniqueId={""}
               handleFollowUpQuestion={handleFollowUpQuestion}
+              streamLoading={streamLoading}
             />
           )}
         </Box>
       </Flex>
 
-      {/* User Avatar on the Right */}
-      {isUser && <UserAvatar />}
+      {/* Render extracted component */}
+      {isUser && (
+        <MessageAvatar isUser={isUser} author={author} avatarSrc={avatarSrc} />
+      )}
     </Flex>
   );
 };
@@ -188,11 +209,17 @@ const MessageContent = ({
   message,
   type,
   handleFollowUpQuestion,
-}: Message & { handleFollowUpQuestion: (question: string) => void }) => {
+  streamLoading,
+}: Message & {
+  handleFollowUpQuestion: (question: string) => void;
+  streamLoading?: boolean;
+}) => {
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
-  const showCopyIcon = (type === "apiMessage" || type === "apiStream") && message.length > 0;
+
+  const showCopyIcon =
+    !streamLoading && type === "apiMessage" && message.length > 0;
 
   if (!messageBody?.trim()) return null;
 
@@ -217,7 +244,10 @@ const MessageContent = ({
                 css={{
                   "&::-webkit-scrollbar": { height: "4px" },
                   "&::-webkit-scrollbar-track": { background: "transparent" },
-                  "&::-webkit-scrollbar-thumb": { background: "#555", borderRadius: "4px" },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "#555",
+                    borderRadius: "4px",
+                  },
                 }}
               >
                 {messageQuestions.map((question, idx) => (
@@ -236,7 +266,12 @@ const MessageContent = ({
           )}
 
           {Boolean(messageLinks.length) && (
-            <Box mt={3} pt={2} borderTop="1px solid" borderColor="whiteAlpha.200">
+            <Box
+              mt={3}
+              pt={2}
+              borderTop="1px solid"
+              borderColor="whiteAlpha.200"
+            >
               <Text fontSize="xs" fontWeight={600} mb={1} color="gray.400">
                 SOURCES
               </Text>
