@@ -323,7 +323,7 @@ const ChatScreen = ({
                   </Button>
                 )}
               </Box>
-              <Box w="100%" position="relative">
+              <Box w="100%" position="relative" paddingBottom={{ base: "0.5rem", md: "2rem" }}>
                 <form onSubmit={handleSubmit}>
                   <Flex gap={2} alignItems="flex-end">
                     <Textarea
