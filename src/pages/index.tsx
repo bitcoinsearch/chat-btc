@@ -285,6 +285,7 @@ export default function Home() {
           loading={loading}
           streamLoading={streamLoading}
           stopGenerating={abortGeneration}
+          setMessages={setMessages}
         />
       ) : (
         <HomePage onPrompt={promptChat} />
