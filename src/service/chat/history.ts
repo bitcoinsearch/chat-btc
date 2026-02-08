@@ -3,14 +3,20 @@ import { separateLinksFromApiMessage } from "@/utils/links";
 import { CONTEXT_WINDOW_MESSAGES, guidelines } from "@/config/chatAPI-config";
 import { ChatHistory } from "@/types";
 
-const buildSystemMessage = (question: string, context: string) => {
+const buildSystemMessage = (question: string, context: string, fallback?: boolean) => {
   const {
     BASE_INSTRUCTION,
     NO_ANSWER,
     UNRELATED_QUESTION,
     FOLLOW_UP_QUESTIONS,
     LINKING,
+    FALLBACK_INSTRUCTION,
   } = guidelines;
+
+  if (fallback) {
+    return `${FALLBACK_INSTRUCTION}`;
+  }
+
   return `${BASE_INSTRUCTION}\n${NO_ANSWER}\n${UNRELATED_QUESTION}\n${context}\n${LINKING}\n${FOLLOW_UP_QUESTIONS}`;
 };
 
@@ -19,13 +25,15 @@ export const buildChatMessages = ({
   context,
   oldContext,
   messages,
+  fallback,
 }: {
   question: string;
   context: string;
   oldContext?: string;
   messages: ChatHistory[];
+  fallback?: boolean;
 }) => {
-  const systemMessage = buildSystemMessage(question, context);
+  const systemMessage = buildSystemMessage(question, context, fallback);
   return [
     {
       role: "system",

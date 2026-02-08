@@ -17,10 +17,12 @@ interface CustomContent {
   link: string;
 }
 
+
 interface EnforceTokenParams {
   question: string;
   slicedTextWithLink: SummaryData[];
-  chatHistory: ChatHistory[]
+  chatHistory: ChatHistory[];
+  fallback?: boolean;
 }
 
 interface EnforceTokenLimitReturnType {
@@ -50,11 +52,11 @@ function concatenateTextFields(data: string | ElementType[]): string {
   let elementArray: ElementType[];
 
   // Check whether data is JSON string
-  if(typeof data === "string") {
+  if (typeof data === "string") {
     try {
       elementArray = JSON.parse(data);
     }
-    catch(e) {
+    catch (e) {
       // If it's not a JSON string. Then, consider the whole string as text.
       return data;
     }
@@ -65,14 +67,14 @@ function concatenateTextFields(data: string | ElementType[]): string {
 
   // If data is an array of `ElementType`
   elementArray.forEach((element: ElementType) => {
-    if(element.type === "paragraph") {
-        concatenatedText += element.text + " ";
-    } else if(element.type === "heading") {
-        concatenatedText += "\n\n" + element.text + "\n\n";
+    if (element.type === "paragraph") {
+      concatenatedText += element.text + " ";
+    } else if (element.type === "heading") {
+      concatenatedText += "\n\n" + element.text + "\n\n";
     }
   });
-    return concatenatedText.trim();
-  }
+  return concatenatedText.trim();
+}
 
 
 function cleanText(text: string): string {
@@ -95,83 +97,88 @@ const generateContextBlock = (summaries: SummaryData[]): string => {
 };
 
 
-  async function SummaryGenerate(
-    link: SummaryData[],
-    messages: ChatHistory[],
-    retry: number = 0
-  ): Promise<ReadableStream<any>> {
-    try {
-      const payload = {
-        model: process.env.OPENAI_MODEL,
-        messages,
-        temperature: 0.7,
-        top_p: 1.0,
-        frequency_penalty: 0.0,
-        presence_penalty: 1,
-        max_tokens: 700,
-        stream: true,
-      };
-      const payloadJSON = JSON.stringify(payload)
-      
-      const response = await fetch(COMPLETION_URL,{
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ""}`,
-          },
-          method: "POST",
-          body: payloadJSON,
-        }
-        );
-      
-      if (!response.ok) {
-        return createReadableStream(ERROR_MESSAGES.NO_RESPONSE);
-      }
+async function SummaryGenerate(
+  link: SummaryData[],
+  messages: ChatHistory[],
+  retry: number = 0,
+  fallback?: boolean
+): Promise<ReadableStream<any>> {
+  try {
+    const payload = {
+      model: process.env.OPENAI_MODEL,
+      messages,
+      temperature: 0.7,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 1,
+      max_tokens: 700,
+      stream: true,
+    };
+    const payloadJSON = JSON.stringify(payload)
 
-      const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
+    const response = await fetch(COMPLETION_URL, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ""}`,
+      },
+      method: "POST",
+      body: payloadJSON,
+    }
+    );
 
-      const stream = new ReadableStream({
-        async start(controller) {
-          function onParse(event: ParsedEvent | ReconnectInterval) {
-            if (event.type === "event") {
-              const data = event.data;
-              let text = ""
-              try {
-                if (data === "[DONE]") {
-                  text = formatLinksToSourcesList(link)
-                  const queue = encoder.encode(text);
-                  controller.enqueue(queue);
-                  controller.close()
-                  return;
+    if (!response.ok) {
+      return createReadableStream(ERROR_MESSAGES.NO_RESPONSE);
+    }
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        function onParse(event: ParsedEvent | ReconnectInterval) {
+          if (event.type === "event") {
+            const data = event.data;
+            let text = ""
+            try {
+              if (data === "[DONE]") {
+                if (!fallback) {
+                  text = formatLinksToSourcesList(link);
+                } else {
+                  text = "\n\nDisclaimer: This response was generated without access to external sources and may be inaccurate."
                 }
-                const jsonData = JSON.parse(data)
-                text = jsonData?.choices[0]?.delta?.content || ''
-                
                 const queue = encoder.encode(text);
                 controller.enqueue(queue);
-              } catch (e) {
                 controller.close()
+                return;
               }
+              const jsonData = JSON.parse(data)
+              text = jsonData?.choices[0]?.delta?.content || ''
+
+              const queue = encoder.encode(text);
+              controller.enqueue(queue);
+            } catch (e) {
+              controller.close()
             }
           }
-          const parser = createParser(onParse);
-          // https://web.dev/streams/#asynchronous-iteration
-          for await (const chunk of response.body as any) {
-            parser.feed(decoder.decode(chunk));
-          }
         }
-      })
-
-      return stream
-
-    } catch (error) {
-      if (retry < 2) {
-        return SummaryGenerate(link, messages, retry + 1);
-      } else {
-        return createReadableStream(ERROR_MESSAGES.OVERLOAD);
+        const parser = createParser(onParse);
+        // https://web.dev/streams/#asynchronous-iteration
+        for await (const chunk of response.body as any) {
+          parser.feed(decoder.decode(chunk));
+        }
       }
+    })
+
+    return stream
+
+  } catch (error) {
+    if (retry < 2) {
+      return SummaryGenerate(link, messages, retry + 1, fallback);
+    } else {
+      return createReadableStream(ERROR_MESSAGES.OVERLOAD);
     }
   }
+}
 
 function removeDuplicatesByID(arr: CustomContent[]): CustomContent[] {
   const seen = new Set();
@@ -200,36 +207,39 @@ function formatLinksToSourcesList(
 export async function processInput(
   searchResults: Result[] | undefined,
   question: string,
-  chatHistory: ChatHistory[]
+  chatHistory: ChatHistory[],
+  fallback?: boolean
 ) {
   try {
-    if (!searchResults?.length) {
+    if (!searchResults?.length && !fallback) {
       let output_string: string = ERROR_MESSAGES.NO_ANSWER;
       return createReadableStream(output_string);
     } else {
       const intermediateContent: CustomContent[] = []
 
-      for (const result of searchResults) {
-        let { _source: source} = result
-        const isQuestionOnStackExchange =
-        source.type === "question" &&
-        source.url.includes("stackexchange");
-        if (!isQuestionOnStackExchange) {
-          const isMarkdown = source.body_type === "markdown";
-          const snippet = isMarkdown
-          ? concatenateTextFields(source.body)
-          : source.body;
-          intermediateContent.push({
-            title: source.title,
-            snippet: snippet,
-            link: source.url,
-          });
+      if (searchResults) {
+        for (const result of searchResults) {
+          let { _source: source } = result
+          const isQuestionOnStackExchange =
+            source.type === "question" &&
+            source.url.includes("stackexchange");
+          if (!isQuestionOnStackExchange) {
+            const isMarkdown = source.body_type === "markdown";
+            const snippet = isMarkdown
+              ? concatenateTextFields(source.body)
+              : source.body;
+            intermediateContent.push({
+              title: source.title,
+              snippet: snippet,
+              link: source.url,
+            });
+          }
         }
       }
 
       const deduplicatedContent = removeDuplicatesByID(intermediateContent);
 
-      if (!deduplicatedContent.length) {
+      if (!deduplicatedContent.length && !fallback) {
         throw new Error(ERROR_MESSAGES.NO_ANSWER)
       }
 
@@ -240,9 +250,9 @@ export async function processInput(
         })
       );
 
-      const {messages, slicedTextWithLink: finalSources} = enforceTokenLimit({question, slicedTextWithLink, chatHistory})
+      const { messages, slicedTextWithLink: finalSources } = enforceTokenLimit({ question, slicedTextWithLink, chatHistory, fallback })
 
-      const summary = await SummaryGenerate(finalSources, messages);
+      const summary = await SummaryGenerate(finalSources, messages, 0, fallback);
       return summary
     }
   } catch (error: any) {
@@ -251,14 +261,18 @@ export async function processInput(
   }
 }
 
-function enforceTokenLimit ({question, slicedTextWithLink, chatHistory}: EnforceTokenParams): EnforceTokenLimitReturnType {
-  const messages = buildChatMessages({question, context: generateContextBlock(slicedTextWithLink), messages: chatHistory })
-  let tokenLength = promptTokensEstimate({messages})
-  console.log({tokenLength})
+function enforceTokenLimit({ question, slicedTextWithLink, chatHistory, fallback }: EnforceTokenParams): EnforceTokenLimitReturnType {
+  const context = fallback ? "" : generateContextBlock(slicedTextWithLink);
+  const messages = buildChatMessages({ question, context, messages: chatHistory, fallback })
+  let tokenLength = promptTokensEstimate({ messages })
+  console.log({ tokenLength })
   if (tokenLength > TOKEN_UPPER_LIMIT) {
-    slicedTextWithLink.pop()
-    chatHistory.length>4 && chatHistory.shift()
-    return enforceTokenLimit({question, slicedTextWithLink, chatHistory})
+    if (slicedTextWithLink.length > 0) {
+      slicedTextWithLink.pop()
+    } else {
+      chatHistory.length > 4 && chatHistory.shift()
+    }
+    return enforceTokenLimit({ question, slicedTextWithLink, chatHistory, fallback });
   }
-  return {slicedTextWithLink, messages, tokenLength}
+  return { slicedTextWithLink, messages, tokenLength }
 }
