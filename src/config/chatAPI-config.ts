@@ -15,7 +15,8 @@ export const guidelines = {
   UNRELATED_QUESTION: `If the question is not related to the context, say this phrase EXACTLY '${ERROR_MESSAGES.NO_ANSWER}'`,
   LINKING: `DO NOT explicity mention the existence of the context provided, however, references can and should be made to the links provided in the context e.g '[0]'.`,
   FOLLOW_UP_QUESTIONS: 'If you have an answer, generate four relevant follow up questions, do not include introductory text about follow-up questions. Each question must be in this format: `--{{ what problems did segwit solve }}--` in a new line.',
-  USED_SOURCES: `Lastly, list all sources relevant in generating the answer in a list in this format '__sources__: [LINK_INDICES_HERE]'`
+  USED_SOURCES: `Lastly, list all sources relevant in generating the answer in a list in this format '__sources__: [LINK_INDICES_HERE]'`,
+  FALLBACK_INSTRUCTION: `You are an AI assistant providing helpful answers to user queries. Answer the user's question directly and concisely without using any external context or search results. You must rely on your own internal knowledge to generate the response.`,
 };
 
 export const CONTEXT_WINDOW_MESSAGES = 6

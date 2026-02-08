@@ -50,11 +50,11 @@ export default async function handler(req: Request) {
     const requesturl = req.url;
     const reqBody = await req.json();
 
-    let esResults: any[] | null;
+    let esResults: any[] | null = null;
     let userQuery;
 
     const inputs = reqBody?.inputs;
-    const { query, author }: { query: string; author: string } = inputs;
+    const { query, author, fallback }: { query: string; author: string; fallback?: boolean } = inputs;
 
     if (!query) {
       return new Response(
@@ -66,20 +66,22 @@ export default async function handler(req: Request) {
     const chatHistory = reqBody?.chatHistory ?? ([] as ChatHistory[]);
 
     try {
-      const fetchUrl = getNewUrl(requesturl, "/search");
+      if (!fallback) {
+        const fetchUrl = getNewUrl(requesturl, "/search");
 
-      const gptKeywords = await GPTKeywordExtractor([...chatHistory]);
+        const gptKeywords = await GPTKeywordExtractor([...chatHistory]);
 
-      esResults = await internalFetch({url: fetchUrl, query, author, keywords: gptKeywords});
+        esResults = await internalFetch({ url: fetchUrl, query, author, keywords: gptKeywords });
 
-      // FOR logging purposes
-      const loggedResultsURLs = esResults?.map(result => result?._source.url)
-      console.log(`query: ${query}\n gptKeywords: ${gptKeywords} \n results: ${loggedResultsURLs}`)
+        // FOR logging purposes
+        const loggedResultsURLs = esResults?.map(result => result?._source.url)
+        console.log(`query: ${query}\n gptKeywords: ${gptKeywords} \n results: ${loggedResultsURLs}`)
 
-      if (!esResults || !esResults.length) {
-        const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER);
-        console.log(error);
-        return new Response(error);
+        if (!esResults || !esResults.length) {
+          const error = createReadableStream(ERROR_MESSAGES.NO_ANSWER);
+          console.log(error);
+          return new Response(error);
+        }
       }
     } catch (error) {
       console.log(error);
@@ -90,7 +92,7 @@ export default async function handler(req: Request) {
     }
 
     try {
-      const result = await processInput(esResults, query, chatHistory);
+      const result = await processInput(esResults ?? undefined, query, chatHistory, fallback);
       return new Response(result);
     } catch (error: any) {
       const errMessage = error?.message
