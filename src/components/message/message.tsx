@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, Flex, Heading, Link, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Link, Text, useColorMode, useColorModeValue } from "@chakra-ui/react";
 import { BeatLoader } from "react-spinners";
 import styles from "./message.module.css";
 import { LinkShareIcon } from "@/chakra/custom-chakra-icons";
@@ -30,33 +30,34 @@ type MessageConfig = {
   };
 };
 
-const messageConfig: MessageConfig = {
+const getMessageConfig = (colorMode: string): MessageConfig => ({
   apiMessage: {
     color: null,
-    bg: "gray.600",
+    bg: colorMode === "dark" ? "gray.600" : "gray.300",
     headingColor: "orange.400",
   },
   authorMessage: {
     color: null,
-    bg: "gray.600",
+    bg: colorMode === "dark" ? "gray.600" : "gray.300",
     headingColor: "orange.400",
   },
   userMessage: {
     color: null,
-    bg: "gray.800",
+    bg: colorMode === "dark" ? "gray.800" : "white",
     headingColor: "purple.400",
   },
   errorMessage: {
     color: "red.200",
-    bg: "gray.600",
+    bg: colorMode === "dark" ? "gray.600" : "gray.300",
     headingColor: "red.500",
   },
   apiStream: {
     color: null,
-    bg: "gray.600",
+    bg: colorMode === "dark" ? "gray.600" : "gray.300",
     headingColor: "orange.400",
   },
-};
+});
+
 
 const MessageBox = ({
   content,
@@ -72,6 +73,9 @@ const MessageBox = ({
   handleFollowUpQuestion: (question: string) => void;
 }) => {
   const { message, type } = content;
+  const { colorMode } = useColorMode();
+  const messageConfig = getMessageConfig(colorMode);
+
 
   return (
     <Flex
@@ -168,16 +172,18 @@ const MessageContent = ({
   type,
   handleFollowUpQuestion,
 }: Message & { handleFollowUpQuestion: (question: string) => void }) => {
+  const adaptiveTextColor = useColorModeValue("gray.800", "white");
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
-    separateLinksFromApiMessage(message);
+  separateLinksFromApiMessage(message);
   const showCopyIcon = type === "apiMessage" && message.length;
 
   if (!messageBody?.trim()) return null;
 
+
   return (
     <>
-      <Text whiteSpace="pre-wrap" color={messageConfig[type].color || ""}>
+      <Text whiteSpace="pre-wrap" color={adaptiveTextColor}>
         <MarkdownWrapper text={messageBody.trim()} />
       </Text>
 

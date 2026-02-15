@@ -1,6 +1,6 @@
 import { SendIcon } from '@/chakra/custom-chakra-icons';
 import { PromptAction } from '@/types';
-import { Flex, IconButton, Textarea } from '@chakra-ui/react';
+import { Flex, IconButton, Textarea, useColorMode, useColorModeValue } from '@chakra-ui/react';
 import { FormEvent, useRef, useState } from 'react';
 import { handleTextAreaChange } from '@/utils/text';
 import { isMobile } from 'react-device-detect';
@@ -25,6 +25,7 @@ const InputTextArea = ({ submitInput }: { submitInput: PromptAction }) => {
       }
     }
   };
+  const bg = useColorModeValue("gray.100", "gray.700");
 
   return (
     <form onSubmit={handleSubmit}>
@@ -38,7 +39,7 @@ const InputTextArea = ({ submitInput }: { submitInput: PromptAction }) => {
           resize='none'
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          bg='gray.700'
+          bg={bg}
           flexGrow={1}
           flexShrink={1}
           onKeyDown={handleEnter}

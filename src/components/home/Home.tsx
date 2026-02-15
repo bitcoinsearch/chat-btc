@@ -16,6 +16,7 @@ import styles from "./home.module.css";
 import InputTextArea from "./InputTextArea";
 import PromptBubble from "./PromptBubble";
 import { InView } from "react-intersection-observer";
+import { useColorModeValue } from "@chakra-ui/react";
 
 type HomePageProps = {
   onPrompt: PromptAction;
@@ -35,6 +36,15 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
       setCurrentSegment(id);
     }
   };
+const pageBg = useColorModeValue("gray.50", "gray.900");
+
+const chatGradient = useColorModeValue(
+  "linear(to-b, gray.100, gray.50)",
+  "linear(to-b, gray.900, gray.800)"
+);
+const sideNavColor = useColorModeValue("gray.600", "gray.300");
+// const sideNavDivider = useColorModeValue("gray.400", "whiteAlpha.600");
+
 
   return (
     <>
@@ -52,7 +62,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
             alignItems="center"
             fontSize="12px"
             fontWeight={500}
-            color="gray.300"
+            color={sideNavColor}
             backdropFilter="auto"
             backdropBlur="base"
             p={2}
@@ -62,9 +72,9 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
             zIndex={1}
           >
             <InLink name="chat" currentSegment={currentSegment} />
-            <Box w="1px" rounded="sm" bgColor="whiteAlpha.600" h={4} />
+            <Box w="1px" rounded="sm" bgColor={sideNavColor} h={4} />
             <InLink name="authors" currentSegment={currentSegment} />
-            <Box w="1px" rounded="sm" bgColor="whiteAlpha.600" h={4} />
+            <Box w="1px" rounded="sm" bgColor={sideNavColor} h={4} />
             <InLink name="about" currentSegment={currentSegment} />
           </Flex>
         </Container>
@@ -72,7 +82,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
       <Box
         className={styles.full_screen_section}
         ref={fullScreenContainer}
-        bgColor="brand.bg_base_purple"
+        bgColor={pageBg}
       >
         <InView
           threshold={0.5}
@@ -82,7 +92,7 @@ const HomePage = ({ onPrompt }: HomePageProps) => {
             <Box
               id="chat"
               pt={{ base: 4, md: 10 }}
-              bgGradient="linear(to-b, gray.900, brand.bg_base_purple)"
+              bgGradient={chatGradient}
               ref={ref}
             >
               <Container maxW="container.lg">
@@ -346,7 +356,7 @@ const InLink = ({
   return (
     <NextLink href={`#${name}`}>
       <Text
-        color={isActive ? "orange.200" : "gray.200"}
+        color={isActive ? "orange.200" : "gray.400"}
         transitionDuration="0.5s"
       >
         {name}
