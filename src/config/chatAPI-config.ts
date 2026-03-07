@@ -2,7 +2,7 @@ import ERROR_MESSAGES from "./error-config";
 
 export const COMPLETION_URL = "https://api.openai.com/v1/chat/completions"
 
-export const OPENAI_EXTRACTOR_MODEL = "gpt-3.5-turbo"
+export const OPENAI_EXTRACTOR_MODEL = "gpt-4o-mini"
 
 export const extractorSystemPrompt = `
 You are a helpful assistant. You are given a list of user questions, the questions serve as context. Giving priority to ONLY the LAST QUESTION and the context from any relevant previous questions, what are the most relevant keywords that can be used in a search engine to find an answer to the last question. Return the minimum amount of relevant keywords in a json object: {keywords: 'keyword1, keyword2, ...'}
@@ -20,4 +20,4 @@ export const guidelines = {
 
 export const CONTEXT_WINDOW_MESSAGES = 6
 
-export const TOKEN_UPPER_LIMIT = 7000
+export const TOKEN_UPPER_LIMIT = 16000
