@@ -48,10 +48,8 @@ const ChatScreen = ({
 }: ChatProps) => {
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const initMessageListHeight = useRef(
-    messageListRef.current?.scrollHeight ?? 0,
-  );
-
+  // Track the last message
+  const lastMessageRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const authorQuery = router.query[AUTHOR_QUERY];
   const searchParams = new URLSearchParams(window.location.search);
@@ -80,29 +78,6 @@ const ChatScreen = ({
 
   const chatList: Message[] = [authorInitialDialogue, ...messages];
 
-  // Auto scroll chat to bottom
-  useEffect(() => {
-    const messageList = messageListRef.current;
-    if (userHijackedScroll) return;
-    if (!messageList) return;
-    const listHeight = messageList.scrollHeight;
-    const scrollBottom = messageList.scrollHeight - messageList.clientHeight;
-    if (listHeight > initMessageListHeight.current) {
-      messageList.scrollTo({ top: scrollBottom, behavior: "smooth" });
-      initMessageListHeight.current = listHeight;
-    }
-  }, [streamData, userHijackedScroll]);
-
-  // scroll to last message (user text after submit)
-  useEffect(() => {
-    if (userHijackedScroll || streamLoading) return;
-    const messageList = messageListRef.current;
-    if (messageList) {
-      const scrollBottom = messageList.scrollHeight - messageList.clientHeight;
-      messageList.scrollTo({ top: scrollBottom, behavior: "smooth" });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -150,6 +125,14 @@ const ChatScreen = ({
       messageListBox.removeEventListener("scroll", handleScroll);
     };
   }, [messageListRef, streamLoading, userHijackedScroll]);
+
+  // scroll to user's new prompt, not to the bottom of sources on every reply
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.type !== "userMessage") return;
+    if (userHijackedScroll) return;
+    lastMessageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [messages, userHijackedScroll]);
 
   // add columns to textarea for multiline text
   useEffect(() => {
@@ -228,7 +211,7 @@ const ChatScreen = ({
             width="full"
             h="full"
             my={4}
-            flexDir={{base:"column",lg:"row"}}
+            flexDir={{ base: "column", lg: "row" }}
             gap="4"
             justifyContent="space-around"
             alignItems={"start"}
@@ -277,13 +260,14 @@ const ChatScreen = ({
                 flex="1 1 0%"
                 overflow="auto"
                 maxH="100dvh"
-                padding={{lg:"0px 0px 20px 0px"}}
+                padding={{ lg: "0px 0px 20px 0px" }}
               >
                 {chatList.length &&
                   chatList.map((message, index) => {
                     const isApiMessage = message.type === "apiMessage";
+                    const isLastMessage = index === chatList.length - 1;
                     return (
-                      <div key={index}>
+                      <div key={index} ref={isLastMessage && !loading && !streamLoading ? lastMessageRef : null}>
                         <MessageBox
                           author={author.name}
                           content={message}
@@ -299,17 +283,19 @@ const ChatScreen = ({
                     );
                   })}
                 {(loading || streamLoading) && (
-                  <MessageBox
-                    author={author.name}
-                    content={{
-                      message: streamData.message,
-                      type: "apiStream",
-                      uniqueId: uuidv4(),
-                    }}
-                    loading={loading}
-                    streamLoading={streamLoading}
-                    handleFollowUpQuestion={handleFollowUpQuestion}
-                  />
+                  <div ref={lastMessageRef}>
+                    <MessageBox
+                      author={author.name}
+                      content={{
+                        message: streamData.message,
+                        type: "apiStream",
+                        uniqueId: uuidv4(),
+                      }}
+                      loading={loading}
+                      streamLoading={streamLoading}
+                      handleFollowUpQuestion={handleFollowUpQuestion}
+                    />
+                  </div>
                 )}
               </Box>
               <Box display="grid" placeItems="center">
