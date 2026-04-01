@@ -32,6 +32,7 @@ type ChatProps = {
   loading: boolean;
   streamLoading: boolean;
   stopGenerating: () => void;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 };
 
 const blippy = authorsConfig[0];
@@ -45,6 +46,7 @@ const ChatScreen = ({
   loading,
   streamLoading,
   stopGenerating,
+  setMessages,
 }: ChatProps) => {
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -125,6 +127,33 @@ const ChatScreen = ({
 
   const handleFollowUpQuestion = (question: string) => {
     startChat(question, author.slug, { startChat: true });
+  };
+
+  const handleRegenerateResponse = (messageId: string) => {
+    // Find the index of the API message to regenerate
+    const apiMessageIndex = messages.findIndex(
+      (msg) => msg.uniqueId === messageId && msg.type === "apiMessage"
+    );
+
+    if (apiMessageIndex === -1) return;
+
+    // Find the previous user message
+    let userMessageIndex = apiMessageIndex - 1;
+    while (userMessageIndex >= 0 && messages[userMessageIndex].type !== "userMessage") {
+      userMessageIndex--;
+    }
+
+    if (userMessageIndex === -1) return;
+
+    const userMessage = messages[userMessageIndex].message;
+
+    // Remove the API message from messages array
+    setMessages((prevMessages) =>
+      prevMessages.filter((msg) => msg.uniqueId !== messageId)
+    );
+
+    // Regenerate the response
+    startChat(userMessage, author.slug, { startChat: true });
   };
 
   useEffect(() => {
@@ -288,6 +317,7 @@ const ChatScreen = ({
                           author={author.name}
                           content={message}
                           handleFollowUpQuestion={handleFollowUpQuestion}
+                          handleRegenerateResponse={handleRegenerateResponse}
                         />
                         {isApiMessage && (
                           <Rating
@@ -309,6 +339,7 @@ const ChatScreen = ({
                     loading={loading}
                     streamLoading={streamLoading}
                     handleFollowUpQuestion={handleFollowUpQuestion}
+                    handleRegenerateResponse={handleRegenerateResponse}
                   />
                 )}
               </Box>

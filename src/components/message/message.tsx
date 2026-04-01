@@ -8,6 +8,7 @@ import { separateLinksFromApiMessage } from "@/utils/links";
 import MarkdownWrapper, {
   CopyButton,
   CopyResponseButton,
+  RegenerateButton,
 } from "./markdownWrapper/markdownWrapper";
 
 type MessageType =
@@ -64,12 +65,14 @@ const MessageBox = ({
   loading,
   streamLoading,
   handleFollowUpQuestion,
+  handleRegenerateResponse,
 }: {
   content: Message;
   author: string;
   loading?: boolean;
   streamLoading?: boolean;
   handleFollowUpQuestion: (question: string) => void;
+  handleRegenerateResponse?: (messageId: string) => void;
 }) => {
   const { message, type } = content;
 
@@ -96,15 +99,19 @@ const MessageBox = ({
         <MessageContent
           message={message}
           type={type}
-          uniqueId={""}
+          uniqueId={content.uniqueId}
           handleFollowUpQuestion={handleFollowUpQuestion}
+          handleRegenerateResponse={handleRegenerateResponse}
+          isLoading={streamLoading}
         />
       ) : (
         <MessageContent
           message={message}
           type={type}
-          uniqueId={""}
+          uniqueId={content.uniqueId}
           handleFollowUpQuestion={handleFollowUpQuestion}
+          handleRegenerateResponse={handleRegenerateResponse}
+          isLoading={loading || streamLoading}
         />
       )}
     </Flex>
@@ -166,8 +173,15 @@ const ClickableQuestions = ({
 const MessageContent = ({
   message,
   type,
+  uniqueId,
   handleFollowUpQuestion,
-}: Message & { handleFollowUpQuestion: (question: string) => void }) => {
+  handleRegenerateResponse,
+  isLoading,
+}: Message & {
+  handleFollowUpQuestion: (question: string) => void;
+  handleRegenerateResponse?: (messageId: string) => void;
+  isLoading?: boolean;
+}) => {
   if (!message?.trim()) return null;
   const { messageBody, messageLinks, messageQuestions, isErrorMessage } =
     separateLinksFromApiMessage(message);
@@ -225,9 +239,14 @@ const MessageContent = ({
       )}
 
       {showCopyIcon && (
-        <Flex paddingY={"16px"} gap={2} alignItems={"center"} maxH={"max-content"} marginTop={"16px"}>
-
+        <Flex paddingY={"16px"} gap={4} alignItems={"center"} maxH={"max-content"} marginTop={"16px"}>
           <CopyResponseButton isCopyText msg={message} />
+          {handleRegenerateResponse && (
+            <RegenerateButton
+              onRegenerate={() => handleRegenerateResponse(uniqueId)}
+              isDisabled={isLoading}
+            />
+          )}
         </Flex>
       )}
     </>

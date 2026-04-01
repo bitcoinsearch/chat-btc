@@ -4,6 +4,7 @@ import atomDark from "react-syntax-highlighter/dist/cjs/styles/prism/atom-dark";
 import styles from ".././message.module.css";
 import Image from "next/image";
 import CopyIcon from "@/assets/CopyIcon";
+import RegenerateIcon from "@/assets/RegenerateIcon";
 import { useState } from "react";
 import rehypeInlineCodeProperty from "../../../utils/rehypeInlineCodeProperty";
 import { useCopyToClipboard } from "usehooks-ts";
@@ -62,6 +63,29 @@ export const CopyResponseButton = ({
     </Flex>
   );
 };
+
+export const RegenerateButton = ({
+  onRegenerate,
+  isDisabled,
+}: {
+  onRegenerate: () => void;
+  isDisabled?: boolean;
+}) => {
+  return (
+    <Flex
+      onClick={isDisabled ? undefined : onRegenerate}
+      cursor={isDisabled ? "not-allowed" : "pointer"}
+      alignItems={"center"}
+      gap={1}
+      maxWidth={"max-content"}
+      opacity={isDisabled ? 0.5 : 1}
+    >
+      <Text>Regenerate</Text>
+      <RegenerateIcon />
+    </Flex>
+  );
+};
+
 const MarkdownWrapper = ({
   text,
   className,
