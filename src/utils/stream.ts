@@ -1,4 +1,4 @@
-import { TYPING_DELAY_IN_MILLISECONDS } from "@/config/ui-config";
+import { TYPING_DELAY_IN_MILLISECONDS, TYPING_CHUNK_SIZE } from "@/config/ui-config";
 
 export function createReadableStream(text: string, signal?: AbortSignal) {
   const encoder = new TextEncoder();
@@ -14,8 +14,9 @@ export function createReadableStream(text: string, signal?: AbortSignal) {
           return
         }
         if (currentCharIndex < textLength) {
-          controller.enqueue(encoder.encode(text[currentCharIndex]))
-          currentCharIndex++
+          const chunk = text.slice(currentCharIndex, currentCharIndex + TYPING_CHUNK_SIZE)
+          controller.enqueue(encoder.encode(chunk))
+          currentCharIndex += TYPING_CHUNK_SIZE
         } else {
           clearInterval(interval)
           controller.close();
