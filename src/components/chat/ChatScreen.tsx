@@ -13,6 +13,8 @@ import {
   IconButton,
   Text,
   Textarea,
+  useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -212,6 +214,11 @@ const ChatScreen = ({
     setUrlParamsQuery();
   }, [router]);
 
+  const chatBg = useColorModeValue("gray.100", "gray.600")
+  const inputBg = useColorModeValue("white", "gray.700")
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const textColor = useColorModeValue("gray.800", "white");
+
   return (
     <>
       <Box position="relative" overflow="hidden" w="full" h="full">
@@ -241,7 +248,7 @@ const ChatScreen = ({
                   w="full"
                   rounded="full"
                   overflow="hidden"
-                  bgColor="blackAlpha.400"
+                  bgColor={chatBg}
                 >
                   <Image
                     src={author.imgURL}
@@ -272,7 +279,7 @@ const ChatScreen = ({
               <Box
                 ref={messageListRef}
                 w="full"
-                bgColor="gray.900"
+                bgColor={chatBg}
                 borderRadius="md"
                 flex="1 1 0%"
                 overflow="auto"
@@ -336,7 +343,9 @@ const ChatScreen = ({
                       disabled={loading || streamLoading}
                       value={userInput}
                       onChange={handleInputChange}
-                      bg="gray.700"
+                      bg={inputBg}
+                      borderColor={borderColor}
+                      color={textColor}
                       flexGrow={1}
                       flexShrink={1}
                       onKeyDown={handleEnter}
